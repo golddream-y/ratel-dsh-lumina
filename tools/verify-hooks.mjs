@@ -20,6 +20,7 @@ const HOOKS = [
   'data-streaming',
   'data-ds-theme',
   'data-ds-dark-theme',
+  'data-row-key',
 ]
 
 /** The official slots the Tier 1 effects occupy. */
@@ -41,6 +42,24 @@ function countAttribute(attribute) {
 }
 
 /**
+ * Count the session rows the activity indicator targets.
+ *
+ * @returns {number} the number of session rows.
+ */
+function countSessionRows() {
+  return document.querySelectorAll('[data-row-key^="session:"]').length
+}
+
+/**
+ * Count the session rows currently showing the native running spinner.
+ *
+ * @returns {number} the number of running session rows.
+ */
+function countRunningSessionRows() {
+  return document.querySelectorAll('[data-row-key^="session:"] svg[data-state="ongoing"]').length
+}
+
+/**
  * Report the state of every hook and slot.
  *
  * @returns {object} the probe result.
@@ -57,9 +76,11 @@ export function probe() {
   return {
     hooks,
     missing,
-    luminaLoaded: entries.includes('dsh-lumina'),
+    luminaLoaded: entries.includes('@ratel/dsh-lumina'),
     bootEntries: entries,
-    luminaStyles: document.querySelectorAll('style[data-plugin="dsh-lumina"]').length,
+    luminaStyles: document.querySelectorAll('style[data-plugin="ratel-lumina"]').length,
+    sessionRows: countSessionRows(),
+    runningSessionRows: countRunningSessionRows(),
     reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
   }
 }
@@ -69,5 +90,7 @@ console.table(result.hooks)
 console.log('missing hooks :', result.missing.length ? result.missing : '(none)')
 console.log('lumina loaded :', result.luminaLoaded)
 console.log('lumina styles :', result.luminaStyles)
+console.log('session rows  :', result.sessionRows)
+console.log('running rows  :', result.runningSessionRows)
 console.log('boot entries  :', result.bootEntries.join(', ') || '(empty)')
 console.log('reduced motion:', result.reducedMotion)

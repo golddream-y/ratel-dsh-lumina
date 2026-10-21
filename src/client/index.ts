@@ -15,12 +15,21 @@
  * page re-applies the effects without a reload.
  */
 
+import { createElement } from 'react'
 import { createConfigStore, type ConfigStore, type LuminaConfig } from './core/config.ts'
 import { prefersReducedMotion, reducedMotionCss } from './core/motion.ts'
 import { runEffects, type EffectId } from './core/registry.ts'
 import { installStyle, removeAllStyles } from './core/styles.ts'
+import { occupySlot } from './core/slots.ts'
 import { ALL_KEYFRAMES } from './core/keyframes.ts'
 import { brandCss, installBrand } from './effects/brand.ts'
+import { installCaret } from './effects/caret.ts'
+import { installComposer } from './effects/composer.ts'
+import { installPress } from './effects/press.ts'
+import { installHero } from './effects/hero.ts'
+import { installSessionActivity } from './effects/session.ts'
+import { installStreamingState, type StreamingState } from './adapter/streaming.ts'
+import { durationCss } from './style/tokens.ts'
 import { LuminaPanel } from './panel/LuminaPanel.tsx'
 import { panelCss } from './panel/styles.ts'
 import { en, zh, LUMINA_LOCALE_NAMESPACE } from './locales.ts'
@@ -74,9 +83,15 @@ const ROOT_ATTRIBUTE = 'data-lumina'
 const BRAND_ATTRIBUTE = 'data-lumina-brand'
 
 /**
+ * The attribute on `<html>` that carries the active intensity tier, so the
+ * duration tokens can switch without re-installing the stylesheet.
+ */
+const INTENSITY_ATTRIBUTE = 'data-lumina-intensity'
+
+/**
  * The identity of the Lumina settings page inside the settings navigation.
  */
-const SETTINGS_SECTION_ID = 'dsh-lumina'
+const SETTINGS_SECTION_ID = 'ratel-lumina'
 
 /**
  * The position of the Lumina page among the settings pages. The shipped
@@ -93,6 +108,7 @@ function applyConfigToDocument(config: LuminaConfig): void {
   const root = document.documentElement
   root.setAttribute(ROOT_ATTRIBUTE, config.master ? 'on' : 'off')
   root.setAttribute(BRAND_ATTRIBUTE, config.brand)
+  root.setAttribute(INTENSITY_ATTRIBUTE, config.intensity)
 }
 
 /**
@@ -103,7 +119,7 @@ function applyConfigToDocument(config: LuminaConfig): void {
  * @returns the stylesheet text.
  */
 function baseCss(config: LuminaConfig): string {
-  return `${brandCss(config.brand)}\n${ALL_KEYFRAMES}\n${reducedMotionCss()}`
+  return `${brandCss(config.brand)}\n${durationCss()}\n${ALL_KEYFRAMES}\n${reducedMotionCss()}`
 }
 
 /**
@@ -113,7 +129,11 @@ function baseCss(config: LuminaConfig): string {
  * @param config - the active settings.
  * @returns a disposer removing the styles and releasing the registrations.
  */
-function installEffects(ctx: LuminaClientContext, config: LuminaConfig): () => void {
+function installEffects(
+  ctx: LuminaClientContext,
+  config: LuminaConfig,
+  streaming: StreamingState,
+): () => void {
   const disposers: Array<() => void> = []
 
   // The base stylesheet is installed before the effects so a broken effect
@@ -128,18 +148,11 @@ function installEffects(ctx: LuminaClientContext, config: LuminaConfig): () => v
       },
       {
         brand: () => installBrand(ctx),
-        composerGlow: () => {
-          // P1: the composer edge glow. Not installed yet.
-        },
-        caret: () => {
-          // P1: the streaming caret. Not installed yet.
-        },
-        press: () => {
-          // P2: button press feedback and the send flash. Not installed yet.
-        },
-        hero: () => {
-          // P2: the new-session hero entrance. Not installed yet.
-        },
+        composerGlow: () => installComposer(),
+        caret: () => installCaret(),
+        press: () => installPress(streaming, config.intensity),
+        hero: () => installHero(ctx),
+        sessionActivity: () => installSessionActivity(),
       },
     ),
   )
@@ -164,30 +177,82 @@ function installEffects(ctx: LuminaClientContext, config: LuminaConfig): () => v
  * @returns a disposer releasing the registration.
  */
 function installSettingsSection(ctx: LuminaClientContext, store: ConfigStore): () => void {
-  return ctx.slots.inject('settings.section', () => {
-    let release: (() => void) | undefined
+  return occupySlot(
+    ctx.slots,
+    'settings.section',
+    {
+      id: SETTINGS_SECTION_ID,
+      order: SETTINGS_SECTION_ORDER,
+      label: () => ctx.locale?.bind(LUMINA_LOCALE_NAMESPACE)('nav') ?? 'Lumina',
+      locale: LUMINA_LOCALE_NAMESPACE,
+      inject: () => ({
+        hooks: { settings: store },
+        save: (config: LuminaConfig) => store.commit(config),
+      }),
+    },
+    LuminaPanel,
+  )
+}
+
+/**
+ * Register a visible failure page when `apply` throws.
+ *
+ * The client half is loaded lazily and a throw otherwise leaves no UI trace:
+ * the plugin still appears installed while every effect is silently absent.
+ * This page is diagnostic, not a feature surface; it intentionally has no
+ * locale dependency so it can render when locale registration is the failure.
+ *
+ * @param ctx - the client context.
+ * @param error - the thrown value.
+ */
+function installFailureSection(ctx: LuminaClientContext, error: unknown): void {
+  const message = error instanceof Error
+    ? `${error.message}\n\n${error.stack ?? ''}`
+    : String(error)
+  const firstLine = message.split('\n')[0] ?? 'unknown error'
+  const FailurePanel = () => createElement(
+    'pre',
+    {
+      style: {
+        margin: 0,
+        padding: '16px',
+        whiteSpace: 'pre-wrap',
+        overflow: 'auto',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+        fontSize: '12px',
+        lineHeight: 1.5,
+      },
+    },
+    message,
+  )
+  try {
+    const dispose = ctx.slots.inject('settings.section', () => {
+      let release: (() => void) | undefined
+      try {
+        release = ctx.slots.register(
+          {
+            name: 'settings.section',
+            id: 'ratel-lumina-error',
+            order: 1201,
+            label: () => `Lumina error: ${firstLine.slice(0, 80)}`,
+          },
+          FailurePanel,
+        )
+      } catch (sectionError) {
+        console.warn('[ratel-lumina] cannot show the failure section', sectionError)
+      }
+      return () => {
+        release?.()
+      }
+    })
     try {
-      release = ctx.slots.register(
-        {
-          name: 'settings.section',
-          id: SETTINGS_SECTION_ID,
-          order: SETTINGS_SECTION_ORDER,
-          label: () => ctx.locale?.bind(LUMINA_LOCALE_NAMESPACE)('nav') ?? 'Lumina',
-          locale: LUMINA_LOCALE_NAMESPACE,
-          inject: () => ({
-            hooks: { settings: store },
-            save: (config: LuminaConfig) => store.commit(config),
-          }),
-        },
-        LuminaPanel,
-      )
-    } catch (error) {
-      console.warn('[dsh-lumina] cannot occupy the settings section', error)
+      ctx.effect(() => dispose, 'ratel-lumina: failure section')
+    } catch (effectError) {
+      console.warn('[ratel-lumina] cannot register the failure section teardown', effectError)
     }
-    return () => {
-      release?.()
-    }
-  })
+  } catch (sectionError) {
+    console.warn('[ratel-lumina] cannot inject the failure section', sectionError)
+  }
 }
 
 /**
@@ -197,6 +262,21 @@ function installSettingsSection(ctx: LuminaClientContext, store: ConfigStore): (
  * @param ctx - the client context.
  */
 export function apply(ctx: LuminaClientContext): void {
+  try {
+    applyInner(ctx)
+  } catch (error) {
+    console.error('[ratel-lumina] apply failed', error)
+    installFailureSection(ctx, error)
+    throw error
+  }
+}
+
+/**
+ * The normal apply path, wrapped so a failure leaves a visible page.
+ *
+ * @param ctx - the client context.
+ */
+function applyInner(ctx: LuminaClientContext): void {
   const store = createConfigStore()
 
   // The locale namespace must exist before the settings page is registered:
@@ -209,12 +289,16 @@ export function apply(ctx: LuminaClientContext): void {
 
   const disposeSection = installSettingsSection(ctx, store)
 
+  // One streaming observer for the whole plugin; effects read the root
+  // attribute instead of observing the same mutation themselves.
+  const streaming = installStreamingState()
+
   let disposeEffects: (() => void) | undefined
   const render = () => {
     disposeEffects?.()
     const config = store.getSnapshot()
     applyConfigToDocument(config)
-    disposeEffects = installEffects(ctx, config)
+    disposeEffects = installEffects(ctx, config, streaming)
   }
   render()
 
@@ -222,20 +306,25 @@ export function apply(ctx: LuminaClientContext): void {
   // preset, and the per-effect switches all change what is installed.
   const unsubscribe = store.subscribe(render)
 
-  ctx.effect(() => {
+  // `ctx.effect` runs this callback immediately and collects the disposer it
+  // returns. Returning the teardown is mandatory: passing it as the callback
+  // itself tears the plugin down during apply.
+  ctx.effect(() => () => {
     unsubscribe()
     disposeEffects?.()
+    streaming.dispose()
     disposeSection()
     disposePanel()
     disposeLocale?.()
     removeAllStyles()
     document.documentElement.removeAttribute(ROOT_ATTRIBUTE)
     document.documentElement.removeAttribute(BRAND_ATTRIBUTE)
-  }, 'dsh-lumina: teardown')
+    document.documentElement.removeAttribute(INTENSITY_ATTRIBUTE)
+  }, 'ratel-lumina: teardown')
 
   if (prefersReducedMotion()) {
     // The reduced-motion stylesheet already stops every animation; this log
     // line is the only signal that the preference is active.
-    console.info('[dsh-lumina] reduced motion is active; animations are disabled')
+    console.info('[ratel-lumina] reduced motion is active; animations are disabled')
   }
 }

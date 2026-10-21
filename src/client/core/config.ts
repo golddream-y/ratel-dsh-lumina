@@ -2,13 +2,16 @@
  * Lumina settings: a small, strictly validated snapshot persisted in
  * localStorage under a versioned key.
  *
- * Validation principle (see docs/design/03): an illegal value falls back to
+ * Validation principle (see docs/product/MVP.md §3): an illegal value falls back to
  * its default. Nothing throws, nothing is half-applied. A user with a
  * corrupted or future-versioned payload gets the defaults, not a broken UI.
  */
 
 /** Storage key. The `/v1` suffix is the schema version, not a migration path. */
-export const STORAGE_KEY = 'dsh-lumina/settings/v1'
+export const STORAGE_KEY = 'ratel-lumina/settings/v1'
+
+/** The pre-Ratel key, read once so an existing local install keeps its settings. */
+export const LEGACY_STORAGE_KEY = 'dsh-lumina/settings/v1'
 
 /** Schema version. A payload whose version differs is ignored wholesale. */
 export const SCHEMA_VERSION = 1
@@ -26,6 +29,7 @@ export interface EffectFlags {
   readonly caret: boolean
   readonly press: boolean
   readonly hero: boolean
+  readonly sessionActivity: boolean
 }
 
 /** The full settings snapshot. */
@@ -41,13 +45,14 @@ export interface LuminaConfig {
 export const DEFAULT_CONFIG: LuminaConfig = {
   version: SCHEMA_VERSION,
   master: true,
-  brand: 'ratel',
+  brand: 'deepseek',
   effects: {
     brand: true,
     composerGlow: true,
     caret: true,
     press: true,
     hero: true,
+    sessionActivity: true,
   },
   intensity: 'normal',
 }
@@ -79,6 +84,7 @@ function readEffects(value: unknown): EffectFlags {
     caret: readBoolean(source.caret, DEFAULT_CONFIG.effects.caret),
     press: readBoolean(source.press, DEFAULT_CONFIG.effects.press),
     hero: readBoolean(source.hero, DEFAULT_CONFIG.effects.hero),
+    sessionActivity: readBoolean(source.sessionActivity, DEFAULT_CONFIG.effects.sessionActivity),
   }
 }
 
@@ -113,7 +119,10 @@ export function parseConfig(raw: string | null): LuminaConfig {
  */
 export function readConfig(): LuminaConfig {
   try {
-    return parseConfig(globalThis.localStorage?.getItem(STORAGE_KEY) ?? null)
+    const raw = globalThis.localStorage?.getItem(STORAGE_KEY)
+      ?? globalThis.localStorage?.getItem(LEGACY_STORAGE_KEY)
+      ?? null
+    return parseConfig(raw)
   } catch {
     return DEFAULT_CONFIG
   }
@@ -190,13 +199,13 @@ export function createConfigStore(): ConfigStore {
       try {
         listener()
       } catch (error) {
-        console.warn('[dsh-lumina] settings listener failed', error)
+        console.warn('[ratel-lumina] settings listener failed', error)
       }
     }
   }
 
   const onStorage = (event: StorageEvent) => {
-    if (event.key !== null && event.key !== STORAGE_KEY) return
+    if (event.key !== null && event.key !== STORAGE_KEY && event.key !== LEGACY_STORAGE_KEY) return
     const next = readConfig()
     if (next === snapshot) return
     snapshot = next

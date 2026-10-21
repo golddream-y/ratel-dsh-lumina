@@ -10,7 +10,7 @@
  */
 
 /** The effect ids Lumina ships. */
-export type EffectId = 'brand' | 'composerGlow' | 'caret' | 'press' | 'hero'
+export type EffectId = 'brand' | 'composerGlow' | 'caret' | 'press' | 'hero' | 'sessionActivity'
 
 /** What an effect returns when it installs successfully. */
 export type EffectHandle = (() => void) | void
@@ -42,7 +42,7 @@ export function runEffects(
       const handle = install()
       if (typeof handle === 'function') disposers.push(handle)
     } catch (error) {
-      console.warn(`[dsh-lumina] effect failed: ${id}`, error)
+      console.warn(`[ratel-lumina] effect failed: ${id}`, error)
     }
   }
 
@@ -51,7 +51,7 @@ export function runEffects(
       try {
         disposers[index]?.()
       } catch (error) {
-        console.warn('[dsh-lumina] effect teardown failed', error)
+        console.warn('[ratel-lumina] effect teardown failed', error)
       }
     }
   }

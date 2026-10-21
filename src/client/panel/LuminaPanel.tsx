@@ -33,6 +33,7 @@ const EFFECT_ROWS = [
   { id: 'caret', label: 'effectCaret', hint: 'effectCaretHint' },
   { id: 'press', label: 'effectPress', hint: 'effectPressHint' },
   { id: 'hero', label: 'effectHero', hint: 'effectHeroHint' },
+  { id: 'sessionActivity', label: 'effectSessionActivity', hint: 'effectSessionActivityHint' },
 ] as const
 
 /**

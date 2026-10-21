@@ -1,4 +1,4 @@
-# Bundle layer for dsh-lumina.
+# Bundle layer for Ratel Lumina.
 #
 # The `id` is the Cordis plugin identity; it MUST match the `name` export of
 # lib/index.js (the host half). The `name` is the npm package name, which the
@@ -8,4 +8,4 @@
 # list, so a later layer wins per row.
 - insert:
     - id: ui-lumina
-      name: dsh-lumina
+      name: "@ratel/dsh-lumina"

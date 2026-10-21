@@ -1,10 +1,10 @@
-# dsh-lumina
+# Ratel Lumina
 
-> **Lumina 流光** — a motion enhancement layer for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) client.
+> **Ratel Lumina（Lumina 流光）** — a motion enhancement layer for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) client.
 >
 > English | [中文](README.zh.md)
 
-Lumina adds five visual motions to the DSH Web / PWA / desktop client. It changes **no business
+Ratel Lumina adds six visual motions to the DSH Web / PWA / desktop client. It changes **no business
 logic**, carries **no runtime dependencies**, and can be switched off completely.
 
 | # | Effect | Surface | Tier |
@@ -14,6 +14,7 @@ logic**, carries **no runtime dependencies**, and can be switched off completely
 | 3 | Streaming caret | `[data-lexical-cursor]` | 2 — CSS on a data hook |
 | 4 | Button press & send flash | `[data-composer-card] button` | 2 — CSS on a data hook |
 | 5 | New-session hero entrance | `conversation.hero.brand.mark` | 1 — official slot |
+| 6 | Session activity indicator | `svg[data-state="ongoing"]` | 2 — CSS on a data hook |
 
 ## Design principles
 
@@ -29,19 +30,18 @@ logic**, carries **no runtime dependencies**, and can be switched off completely
 ## Install
 
 ```sh
-dsh plugin --profile <profile> add dsh-lumina
+dsh plugin --profile <profile> add @ratel/dsh-lumina
 ```
 
 Then restart the client — plugins are read from the manifest at startup and are not hot-reloaded.
 
 ## Status
 
-| Phase | Scope | State |
+| Stage | Scope | State |
 | --- | --- | --- |
-| P0 | Skeleton, loading chain, brand slot, settings panel | skeleton done, panel pending |
-| P1 | Composer glow, streaming caret | pending |
-| P2 | Button press, hero entrance | pending |
-| P3 | Intensity tiers, brand presets, brand-studio deference | pending |
+| P0 | Skeleton, loading chain, brand slot, settings page | done (19 tests) |
+| MVP | Six effects + hook self-check | in progress — see [MVP](docs/product/MVP.md) |
+| Next stage | ratel asset, deployment defaults, official settings card | planned |
 
 ## Repository layout
 
@@ -49,19 +49,20 @@ Then restart the client — plugins are read from the manifest at startup and ar
 src/               plugin source (host half + browser half)
 tests/             vitest specs, including the loading-chain proof
 tools/             install and probe scripts
-docs/原始材料/       the Chinese design document set (12 files)
-docs/engineering/  engineering plan, verified API surface, revision log
+docs/product/      product requirements and the current MVP delivery scope
+docs/engineering/  engineering plan, verified API surface, settings page design
 .agents/           agent notes and the dsh-lumina-dev skill
 ```
 
 ## Documentation
 
-- [Product requirements](docs/product/产品需求.md) — the admission gate for every new request
+- [Product requirements](docs/product/产品需求.md) — boundaries and long-term scope
+- [MVP](docs/product/MVP.md) — current delivery scope, adaptation list, implementation order
 - [Architecture](docs/engineering/架构设计.md) — layers, dependency direction, the adaptation layer
+- [Technical design](docs/engineering/技术详细设计.md) — L0–L4 implementation contracts, adapter, test gates
 - [Engineering plan](docs/engineering/工程规划.md)
 - [Verified official API surface](docs/engineering/官方API面.md)
 - [Settings page design](docs/engineering/设置页设计.md)
-- [Original design set (Chinese)](docs/原始材料/README.md)
 
 ## Development
 

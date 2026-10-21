@@ -19,7 +19,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 const ARTIFACT = resolve(process.cwd(), 'lib/client.js')
 
 /** The module table entries the built bundle is allowed to require. */
-const EXPECTED_REQUIRES = ['react', 'react/jsx-runtime', '@deepseek-ai/dsh-client-ui-primitives']
+const EXPECTED_REQUIRES = ['react', 'react/jsx-runtime']
 
 interface CapturedRegistration {
   id: string
@@ -67,9 +67,6 @@ function createRequire(): { require: (spec: string) => unknown; requested: strin
       const element = (type: unknown, props: unknown, key: unknown) => ({ type, props, key })
       return { jsx: element, jsxs: element, Fragment: Symbol.for('react.fragment') }
     }
-    if (spec === '@deepseek-ai/dsh-client-ui-primitives') {
-      return { BrandWordmark: () => null, FishLogo: () => null }
-    }
     throw new Error(`unexpected require: ${spec}`)
   }
   return { require, requested }
@@ -80,6 +77,8 @@ describe('client bundle', () => {
     document.head.innerHTML = ''
     document.documentElement.removeAttribute('data-lumina')
     document.documentElement.removeAttribute('data-lumina-brand')
+    document.documentElement.removeAttribute('data-lumina-intensity')
+    document.documentElement.removeAttribute('data-lumina-streaming')
     // jsdom ships no matchMedia; the plugin must tolerate its absence, and
     // the stub keeps the reduced-motion branch reachable.
     Object.defineProperty(window, 'matchMedia', {
@@ -100,7 +99,7 @@ describe('client bundle', () => {
 
   it('registers itself with the module loader under the package id', () => {
     const registration = loadArtifact()
-    expect(registration.id).toBe('dsh-lumina')
+    expect(registration.id).toBe('@ratel/dsh-lumina')
   })
 
   it('returns module.exports from the factory', () => {
@@ -131,6 +130,7 @@ describe('client bundle', () => {
 
     const injected: string[] = []
     const registered: Array<Record<string, unknown>> = []
+    let effectDisposer: (() => void) | undefined
     const ctx = {
       slots: {
         inject: (key: string, callback: () => unknown) => {
@@ -147,23 +147,30 @@ describe('client bundle', () => {
         register: () => () => {},
         bind: () => (key: string) => key,
       },
-      effect: () => {},
+      effect: (callback: () => unknown) => {
+        const result = callback()
+        if (typeof result === 'function') effectDisposer = result as () => void
+      },
     }
 
     exported.apply(ctx)
 
-    expect(injected).toContain('sidebar.brand.mark')
-    expect(injected).toContain('sidebar.brand.name')
+    // `ctx.effect` runs its callback immediately and collects the returned
+    // disposer. Passing the teardown as the callback would unsubscribe the
+    // plugin during apply; assert the body returned a disposer instead.
+    expect(effectDisposer).toBeTypeOf('function')
 
-    // The brand slots are single slots: a lower rank wins, and two occupants
-    // at the same rank throw. The rank must differ from every competitor's.
+    // Registration prefers a direct `register` call; `inject` is only the
+    // fallback for a slot declared after apply.
     const brandEntries = registered.filter((entry) => String(entry.name).startsWith('sidebar.brand.'))
+    expect(brandEntries.map((entry) => entry.name)).toContain('sidebar.brand.mark')
+    expect(brandEntries.map((entry) => entry.name)).toContain('sidebar.brand.name')
     expect(brandEntries.length).toBe(2)
     for (const entry of brandEntries) {
       expect(entry.priority).toBe(-20)
     }
 
-    const styles = document.querySelectorAll('style[data-plugin="dsh-lumina"]')
+    const styles = document.querySelectorAll('style[data-plugin="ratel-lumina"]')
     expect(styles.length).toBeGreaterThan(0)
     expect(document.documentElement.getAttribute('data-lumina')).toBe('on')
   })
@@ -194,7 +201,7 @@ describe('client bundle', () => {
 
     const section = registered.find((entry) => entry.name === 'settings.section')
     expect(section).toBeDefined()
-    expect(section?.id).toBe('dsh-lumina')
+    expect(section?.id).toBe('ratel-lumina')
     expect(section?.locale).toBe('settings.lumina')
     const label = section?.label as () => string
     expect(label()).toBe('translated:nav')

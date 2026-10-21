@@ -27,7 +27,7 @@ window.__ModuleLoader__.load({
 ### 1.2 启动清单
 
 ```js
-window.__DSH_BOOT__.entries.map(e => e.id)   // 应含 'dsh-lumina'
+window.__DSH_BOOT__.entries.map(e => e.id)   // 应含 '@ratel/dsh-lumina'
 ```
 
 `entries` 每行：`{ id, url, rev, inject?, immediately?, external? }`。
@@ -51,6 +51,11 @@ PRELOADED_CLIENT_EXTERNALS = ['@deepseek-ai/dsh-client-runtime/client']
 ```
 
 其它依赖必须**打进自己的产物**（客户端不提供）。
+
+> ⚠️ **第三方插件规范**：模块表里存在某个 specifier，不代表第三方插件可以 require 它。
+> 当前客户端明确要求第三方插件**不要 require 任何 Harness Client 包**（包括
+> `@deepseek-ai/dsh-client-ui-primitives`）；`dsh.client.inject` 只用于激活排序，
+> 不是可 require 的依赖。Lumina 的运行时只 require `react` 与 `react/jsx-runtime`。
 
 ---
 
@@ -143,7 +148,7 @@ Bundle 路径**没有** `styles.insert`（那是动态插件的座位），因�
 
 ```js
 const tag = document.createElement('style')
-tag.dataset.plugin = 'dsh-lumina'
+tag.dataset.plugin = 'ratel-lumina'
 tag.dataset.effect = effectId
 document.head.append(tag)
 ```
@@ -165,15 +170,19 @@ document.head.append(tag)
 | `data-ds-theme` | 4 | 主题 |
 | `data-ds-dark-theme` | 23 | 深色主题 |
 
+会话行另有 `data-row-key="session:<id>"`（`ui-workspace` 的 `Rows`），运行中指示是
+`svg[data-state="ongoing"]`（primitives 的 `StateDot`，14×14，含淡轨道 + 短弧）。
+两者都来自 `app.asar` 代码，不依赖 hash 类名；M8 只用这两个钩子。
+
 > 升级后用 `tools/verify-hooks.mjs` 复测；钩子消失是**静默降级**，不会报错。
 
 ---
 
-## 8. 官方品牌图元（可直接用，MIT）
+## 8. 官方品牌图元（仅参考，不可 require）
 
-```js
-const { FishLogo, BrandWordmark } = require('@deepseek-ai/dsh-client-ui-primitives')
-```
+> 第三方插件**不得** `require('@deepseek-ai/dsh-client-ui-primitives')`。
+> 官方包在官方构建内可以使用它；第三方必须自带图形。Lumina 已改为
+> `assets/deepseek-harness-logo-v2.svg` + `tools/gen-brand-assets.mjs` 生成内联 SVG。
 
 | 图元 | 规格 | 备注 |
 | --- | --- | --- |
@@ -202,7 +211,7 @@ const { FishLogo, BrandWordmark } = require('@deepseek-ai/dsh-client-ui-primitiv
 
 | 东西 | 原因 |
 | --- | --- |
-| `packages/client/ui-*` 的内部导出 | bundle purity 门禁禁止跨插件**值**导入；`ui-primitives` 是官方点名的窄静态 owner，属例外 |
+| `packages/client/ui-*` 的内部导出 | bundle purity 门禁禁止跨插件**值**导入；`ui-primitives` 也不得被第三方 require（当前插件规范明确禁止） |
 | `packages/client/tsdown.client.ts` | 未发布，只能参考 |
 | `docs/subsystems/skills.md` 描述的 Skill 机制 | 那是**模型侧**的 skill 目录，与插件运行时无关 |
 | `deepseek-harness` checkout 作为 diff 基线 | 该 checkout 本身是脏的（7389 项变更） |

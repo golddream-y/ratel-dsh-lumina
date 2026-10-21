@@ -88,9 +88,10 @@ describe('settings panel', () => {
 
   it('renders the master switch and every effect row', () => {
     render(DEFAULT_CONFIG)
-    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(6)
+    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(7)
     expect(container.textContent).toContain('effectBrand')
     expect(container.textContent).toContain('effectHero')
+    expect(container.textContent).toContain('effectSessionActivity')
   })
 
   it('keeps an edit in the draft until the user saves', () => {
@@ -130,12 +131,12 @@ describe('settings panel', () => {
   it('switches the brand preset through the segmented control', () => {
     const saves = render(DEFAULT_CONFIG)
     const segments = [...container.querySelectorAll('.lumina-segment')]
-    const deepseek = segments.find((element) => element.textContent?.includes('brandDeepseek'))
+    const ratel = segments.find((element) => element.textContent?.includes('brandRatel'))
     act(() => {
-      deepseek?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      ratel?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
     clickButton('save')
-    expect(saves[0]?.brand).toBe('deepseek')
+    expect(saves[0]?.brand).toBe('ratel')
   })
 
   it('disables the effect switches while the master switch is off', () => {

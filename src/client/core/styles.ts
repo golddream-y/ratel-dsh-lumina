@@ -4,7 +4,7 @@
  * Lumina ships as a profile bundle, not a dynamic package, so the runtime's
  * `styles.insert` seat does not exist here — a bundle owns its own style tags
  * and must remove them on unload. Every tag is tagged with
- * `data-plugin="dsh-lumina"` so a teardown sweep can find it, and each effect
+ * `data-plugin="ratel-lumina"` so a teardown sweep can find it, and each effect
  * gets its own tag so one effect can be dropped without touching the others.
  */
 
@@ -23,7 +23,7 @@ export const EFFECT_ATTRIBUTE = 'data-effect'
  */
 export function installStyle(effect: string, css: string): () => void {
   const tag = document.createElement('style')
-  tag.setAttribute(PLUGIN_ATTRIBUTE, 'dsh-lumina')
+  tag.setAttribute(PLUGIN_ATTRIBUTE, 'ratel-lumina')
   tag.setAttribute(EFFECT_ATTRIBUTE, effect)
   tag.textContent = css
   document.head.append(tag)
@@ -40,7 +40,7 @@ export function installStyle(effect: string, css: string): () => void {
  * hard path used when the plugin is unloaded.
  */
 export function removeAllStyles(): void {
-  document.querySelectorAll(`style[${PLUGIN_ATTRIBUTE}="dsh-lumina"]`).forEach((tag) => {
+  document.querySelectorAll(`style[${PLUGIN_ATTRIBUTE}="ratel-lumina"]`).forEach((tag) => {
     tag.remove()
   })
 }

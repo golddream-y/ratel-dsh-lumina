@@ -2,17 +2,16 @@
  * Brand effect: occupies the sidebar brand mark and wordmark slots.
  *
  * Tier 1 (official slots) — the only tier that cannot silently break on a
- * client upgrade. The artwork comes from the client's own primitive package,
- * so it always matches the shipped brand and needs no asset upkeep.
+ * client upgrade. The artwork is inline SVG generated from the package asset;
+ * third-party bundles must not require Harness Client packages.
  *
- * The `deepseek` preset eventually renders Lumina's own shine-enabled
- * wordmark; the `ratel` preset needs a honey-badger mark that does not exist
- * yet (risk R15 in docs/design/07). Until then both presets render the
- * official artwork, and only the accent color differs.
+ * The `deepseek` preset renders the shine-enabled wordmark; the `ratel` preset
+ * is still deferred (MVP 1 §5, PRD O1), so both presets use the same artwork
+ * and only the accent color differs.
  */
 
-import { createElement } from 'react'
-import { BrandWordmark, FishLogo } from '@deepseek-ai/dsh-client-ui-primitives'
+import { BrandMark, BrandName } from '../brand/artwork.tsx'
+import { occupySlot } from '../core/slots.ts'
 
 /** The slots this effect occupies. */
 const BRAND_SLOTS = ['sidebar.brand.mark', 'sidebar.brand.name'] as const
@@ -44,37 +43,6 @@ const PRESET_VARIABLES: Record<string, Record<string, string>> = {
 }
 
 /**
- * The mark occupant: the whale mark, painted with the preset accent.
- *
- * @param props - the host-supplied presentation props.
- * @returns the mark element.
- */
-function BrandMark(props: { size?: number; className?: string }): unknown {
-  return createElement(
-    'span',
-    {
-      className: 'lumina-mark',
-      style: { display: 'inline-flex', flexShrink: 0, color: 'var(--lumina-brand, #2563EB)' },
-      'aria-hidden': 'true',
-    },
-    createElement(FishLogo, { size: props.size ?? 24, className: props.className }),
-  )
-}
-
-/**
- * The name occupant: the wordmark plus the HARNESS badge.
- *
- * @returns the name element.
- */
-function BrandName(): unknown {
-  return createElement(
-    'span',
-    { className: 'lumina-name' },
-    createElement(BrandWordmark, { size: 24, includeMark: false }),
-  )
-}
-
-/**
  * The stylesheet that carries the brand accent and the layout of the two
  * occupants.
  *
@@ -91,12 +59,19 @@ export function brandCss(preset: string): string {
   const presetAccents = Object.entries(PRESET_VARIABLES)
     .map(([id, values]) => `  --lumina-brand-${id}: ${values['--lumina-brand']};`)
     .join('\n')
-  return `:root {
+  return `html[data-lumina] {
 ${presetAccents}
+}
+html[data-lumina][data-lumina-brand="${preset}"] {
 ${declarations}
 }
-.lumina-mark { display: inline-flex; align-items: center; }
-.lumina-name { display: inline-flex; align-items: center; min-width: 0; height: 24px; overflow: hidden; }`
+.lumina-mark { display: inline-flex; align-items: center; flex-shrink: 0; }
+.lumina-name { display: inline-flex; align-items: center; min-width: 0; height: 24px; overflow: hidden; }
+.lumina-name-svg { display: block; height: 100%; width: auto; }
+.lumina-shine { animation: lumina-sweep var(--lumina-brand-sweep) cubic-bezier(.45, 0, .55, 1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .lumina-shine { animation: none; }
+}`
 }
 
 /**
@@ -129,24 +104,12 @@ export function installBrand(
 
   for (const slot of BRAND_SLOTS) {
     disposers.push(
-      ctx.slots.inject(slot, () => {
-        let release: (() => void) | undefined
-        try {
-          release = ctx.slots.register(
-            {
-              name: slot,
-              priority: BRAND_PRIORITY,
-            },
-            slot === 'sidebar.brand.name' ? BrandName : BrandMark,
-          )
-        } catch (error) {
-          if (!isOccupancyConflict(error)) throw error
-          console.warn(`[dsh-lumina] cannot occupy slot ${slot}; another plugin owns it`, error)
-        }
-        return () => {
-          release?.()
-        }
-      }),
+      occupySlot(
+        ctx.slots,
+        slot,
+        { priority: BRAND_PRIORITY },
+        slot === 'sidebar.brand.name' ? BrandName : BrandMark,
+      ),
     )
   }
 

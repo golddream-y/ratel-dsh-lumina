@@ -1,10 +1,10 @@
-# dsh-lumina · 流光
+# Ratel Lumina · 流光
 
-> **Lumina 流光** —— [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 客户端的动效增强层。
+> **Ratel Lumina（Lumina 流光）** —— [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 客户端的动效增强层。
 >
 > [English](README.md) | 中文
 
-Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐五处视觉动效。它**不改变任何业务逻辑**、
+Ratel Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐六处视觉动效。它**不改变任何业务逻辑**、
 **零运行时依赖**，并且**可以完全关掉**。
 
 | # | 效果 | 落点 | 层级 |
@@ -14,6 +14,7 @@ Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐五处视觉动效。它*
 | 3 | 打字机光标 | `[data-lexical-cursor]` | 2 · CSS 钩子 |
 | 4 | 按钮按压与发送闪光 | `[data-composer-card] button` | 2 · CSS 钩子 |
 | 5 | 新会话首屏入场 | `conversation.hero.brand.mark` | 1 · 官方 slot |
+| 6 | 会话进行中指示 | `svg[data-state="ongoing"]` | 2 · CSS 钩子 |
 
 ## 设计原则
 
@@ -27,7 +28,7 @@ Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐五处视觉动效。它*
 ## 安装
 
 ```sh
-dsh plugin --profile <profile> add dsh-lumina
+dsh plugin --profile <profile> add @ratel/dsh-lumina
 ```
 
 然后**重启客户端**——插件清单只在启动时读取，不支持热更新。
@@ -36,10 +37,9 @@ dsh plugin --profile <profile> add dsh-lumina
 
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
-| P0 | 骨架、装载链、品牌 slot、设置面板 | 骨架已完成，面板待做 |
-| P1 | 边框流光、打字机光标 | 待做 |
-| P2 | 按钮按压、首屏入场 | 待做 |
-| P3 | 强度档位、品牌预设、与 brand-studio 让位 | 待做 |
+| P0 | 骨架、装载链、品牌 slot、设置页 | 已完成（11 项测试） |
+| MVP | 六个效果 + 钩子自检 | 进行中，见 [MVP](docs/product/MVP.md) |
+| 后续阶段 | ratel 资产、部署默认、官方设置卡片 | 规划 |
 
 ## 目录结构
 
@@ -47,8 +47,8 @@ dsh plugin --profile <profile> add dsh-lumina
 src/               插件源码（host 半 + 浏览器半）
 tests/             vitest 规格，含装载链证明
 tools/             安装与探测脚本
-docs/原始材料/       中文设计文档集（12 份）
-docs/engineering/  工程规划、已验证的官方 API 面、改编与许可政策
+docs/product/      产品需求与当前 MVP 交付范围
+docs/engineering/  工程规划、官方 API 面、设置页设计
 .agents/           Agent Note 与 dsh-lumina-dev Skill
 ```
 
@@ -56,12 +56,13 @@ docs/engineering/  工程规划、已验证的官方 API 面、改编与许可�
 
 | 文档 | 内容 |
 | --- | --- |
-| [产品需求（PRD）](docs/product/产品需求.md) | **准入闸门**：定位、边界判据、V1 范围 |
+| [产品需求（PRD）](docs/product/产品需求.md) | 长期边界与能力范围（准入闸门） |
+| [MVP](docs/product/MVP.md) | **当前交付范围**、改编清单、实施顺序与验收 |
 | [架构设计](docs/engineering/架构设计.md) | 分层、依赖方向、适配层、失效半径 |
+| [技术详细设计](docs/engineering/技术详细设计.md) | L0–L4 实现契约、适配层、测试门禁、反返工决策 |
 | [工程规划](docs/engineering/工程规划.md) | 工程形态、工具链、规范体系、分期与门禁 |
 | [官方 API 面](docs/engineering/官方API面.md) | 已验证的 slot 契约、模块表、钩子清单 |
 | [设置页设计](docs/engineering/设置页设计.md) | 设置页落点、页面结构与向官方卡片通道的迁移路径 |
-| [原始材料](docs/原始材料/README.md) | 最初的 12 份设计文档：定位、约束、架构、效果规格、路线、风险 |
 
 ## 开发
 

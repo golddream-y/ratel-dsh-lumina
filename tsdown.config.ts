@@ -1,5 +1,5 @@
 /**
- * Build configuration for the two halves of the dsh-lumina bundle.
+ * Build configuration for the two halves of the Ratel Lumina bundle.
  *
  * The client half has a hard output contract that the runtime depends on. The
  * client fetches `/plugins/<package>/client.js` and evaluates it as a script;
@@ -10,15 +10,15 @@
  *
  * The `external` list is the loader's module table. Anything listed there is
  * resolved at runtime through the `require` the factory receives; anything not
- * listed is bundled into this file. React and the client primitives are
- * platform modules: the client ships one copy of each, and a second copy
- * inside this bundle would break hooks and context.
+ * listed is bundled into this file. Only React stays external: the client ships
+ * one copy, and a second copy would break hooks. Harness Client packages must
+ * not be required by a third-party bundle, so they are not listed here.
  */
 
 import { defineConfig } from 'tsdown'
 
 /** The npm package name; also the client module id the loader keys on. */
-const PACKAGE_ID = 'dsh-lumina'
+const PACKAGE_ID = '@ratel/dsh-lumina'
 
 /**
  * Module-table specifiers that stay external.
@@ -32,7 +32,6 @@ const CLIENT_EXTERNALS = [
   'react-dom/client',
   '@deepseek-ai/cordis',
   '@deepseek-ai/dsh-client-ui-slots',
-  '@deepseek-ai/dsh-client-ui-primitives',
   '@deepseek-ai/dsh-client-runtime/client',
 ] as const
 

@@ -1,16 +1,26 @@
 ---
 name: dsh-lumina-dev
-description: 开发和修改 dsh-lumina（DSH 客户端动效增强层）时必须遵守的工程约束。涵盖 slot 注册契约、priority 语义、模块表 require 边界、CSS 变量与主题 token、减少动态、性能预算、验收证据要求与文档同步规则。在修改 src/ 下的任何文件、注册或调整 slot、编写动效 CSS、扩展效果、或新增/修改测试前加载。
+description: 开发和修改 Ratel Lumina（@ratel/dsh-lumina，DSH 客户端动效增强层）时必须遵守的工程约束。涵盖 slot 注册契约、priority 语义、模块表 require 边界、CSS 变量与主题 token、减少动态、性能预算、验收证据要求与文档同步规则。在修改 src/ 下的任何文件、注册或调整 slot、编写动效 CSS、扩展效果、或新增/修改测试前加载。
 ---
 
-# dsh-lumina 开发约束
+# Ratel Lumina 开发约束
 
-本项目是 **DeepSeek Harness 客户端的动效增强层**：一个 npm 包 `dsh-lumina`，
+## 0. 命名
+
+- npm 包 / client module id：`@ratel/dsh-lumina`
+- 产品名：**Ratel Lumina**；UI 短名：**Lumina**
+- host patch 行：`include:ui-lumina`（id `ui-lumina`）
+- 设置 section id：`ratel-lumina`；样式标记：`data-plugin="ratel-lumina"`
+- 改包名时，`tsdown.config.ts` 的 `PACKAGE_ID`、`cordis.patch.yml` 的 `name`、profile 安装 spec 必须同步；client factory id 必须等于包名。
+
+
+本项目是 **DeepSeek Harness 客户端的动效增强层**：一个 npm 包 `@ratel/dsh-lumina`，产品名 **Ratel Lumina**（UI 短名 Lumina），
 以 profile bundle 的形式占据官方 UI slot 并注入 CSS 动效。
 
-**先读**：`docs/原始材料/02-平台约束（执行前必读）.md`（平台硬约束）、
+**先读**：`docs/engineering/官方API面.md`（平台硬约束与已验证 API）、
+`docs/engineering/技术详细设计.md`（L0–L4 实现契约、测试门禁）、
 `docs/engineering/工程规划.md`（工程形态与工具链）、
-`docs/engineering/官方API面.md`（已验证的 API 清单）。
+`docs/product/MVP.md`（当前交付范围、改编清单与实施顺序）。
 
 ---
 
@@ -19,8 +29,7 @@ description: 开发和修改 dsh-lumina（DSH 客户端动效增强层）时必�
 1. **不改 `app.asar`**——它被代码签名逐字节封印，改一字节即破签、macOS 拒绝启动。
    所有实现必须在插件层完成。
 2. **不用 hash 类名做选择器**——客户端类名形如 `_3WPZCG_brandName`，每次构建都变。
-   只用 `data-*` 钩子与官方 slot。（`04d` 里残留的 `[class*="sidebar"]` 是待删的违规项，
-   不要模仿，也不要新增同类选择器。）
+   只用 `data-*` 钩子与官方 slot；`[class*="…"]` 一律禁止，不要新增同类选择器。
 3. **不碰业务逻辑**——动效不承载信息；关掉后功能与含义完全不变。
    不监听模型输出内容、不改请求、不写业务状态。
 
@@ -32,7 +41,7 @@ ctx.slots.inject(slotKey, () => {
   try {
     release = ctx.slots.register({ name: slotKey, priority: -20 }, Component)
   } catch (error) {
-    console.warn('[dsh-lumina] cannot occupy slot', error)
+    console.warn('[ratel-lumina] cannot occupy slot', error)
   }
   return () => { release?.() }   // 卸载必须 release
 })
@@ -63,21 +72,27 @@ ctx.slots.inject(slotKey, () => {
 
 走那条路会让 `ctx.slots.inject('settings.plugin.item', …)` 等待一个**永不出现的声明**，
 卡片静默不渲染。判定方法：`grep -c "settings.plugin.item" app.asar`。
-迁移步骤见 [设置页设计](../../docs/engineering/设置页设计.md) §1。
+迁移步骤见 [设置页设计](../../../docs/engineering/设置页设计.md) §1。
 
-设置项持久化自持于 `localStorage["dsh-lumina/settings/v1"]`；模型是**扁平 8 字段**，
-迁移到官方通道时不需要改数据结构。
+设置项持久化自持于 `localStorage["ratel-lumina/settings/v1"]`（旧 `dsh-lumina/settings/v1` 仍兼容读取）；模型是扁平字段
+（字段集合见技术详细设计 §7.1），迁移到官方通道时不需要改数据结构。
 
 ## 3. 运行时边界
 
-- 浏览器半**不能 `import`**，只有工厂收到的 `require`。可请求的 specifier 仅限模块表：
-  `react` / `react/jsx-runtime` / `react-dom` / `react-dom/client` / `@deepseek-ai/cordis` /
-  `@deepseek-ai/dsh-client-ui-slots` / `@deepseek-ai/dsh-client-ui-primitives` /
-  `@deepseek-ai/dsh-client-runtime/client`。
+- 浏览器半**不能 `import`**，只有工厂收到的 `require`。本项目只允许 require
+  `react` / `react/jsx-runtime`（确需 React DOM 时再加 react-dom）。
+  **不得 require 任何 `@deepseek-ai/*` Harness Client 包**（包括 primitives）：
+  当前客户端规范明确禁止；`dsh.client.inject` 只负责激活排序，不是可 require 的依赖。
+  模块表里存在的 specifier 不代表第三方可用。
   **请求表外的 specifier = 当场 throw**（require 是同步的）。
 - 工厂必须 `return module.exports`。返回 `module` 会让插件**永不物化、零报错**。
+- `ctx.effect(callback)` **立即执行 callback**，并收集它返回的 disposer。必须写
+  `ctx.effect(() => () => teardown)`；把 teardown 本身当 callback 传入，会在
+  apply 阶段立刻卸载 slot/样式/根属性，表现为“设置页和效果都没有”。
+- slot 注册统一走 `occupySlot`：先直接 `register`，slot 尚未声明时再 `inject`；
+  不要在效果里自己写 try/catch 或重复注册。
 - bundle 路径**没有 `styles.insert`**——那是动态插件的座位。自建 `<style>` 标签，
-  带 `data-plugin="dsh-lumina"` 与 `data-effect="<effectId>"`。
+  带 `data-plugin="ratel-lumina"` 与 `data-effect="<effectId>"`。
 - 组件不得接触 `ctx`；数据只经 props 传递。`ctx` 只属于 apply 世界。
 
 ## 4. 样式与主题
@@ -94,8 +109,10 @@ ctx.slots.inject(slotKey, () => {
   补偿：每个效果独立标签（`data-plugin` + `data-effect`），卸载即摘除；
   所有选择器作用域化在 `data-*` 上。
 - 装饰层一律 `position: absolute` + `pointer-events: none`，永不阻挡点击/输入/拖拽/选中。
-- 只动 `transform` / `opacity`，不碰 `width` / `height` / `top` / `left`。
-- 常驻动画**上限 2 条**（边框 + 光标），其余一次性或交互触发。
+- 默认只动 `transform` / `opacity`，不碰 `width` / `height` / `top` / `left`；
+  例外以技术详细设计 §6.6.1 为准，且不得触发 layout。
+- 效果清单、动画分类、逐效果时长、伪元素分配以
+  [技术详细设计](../../../docs/engineering/技术详细设计.md) 为准；本 Skill 不复述这些数字。
 
 ## 5. 减少动态（无障碍底线）
 
@@ -112,7 +129,7 @@ ctx.slots.inject(slotKey, () => {
 
 | 类型 | 要求 |
 | --- | --- |
-| 装载 | `window.__DSH_BOOT__.entries` 含 `dsh-lumina`；控制台无 `cannot occupy` / `effect failed` |
+| 装载 | `window.__DSH_BOOT__.entries` 含 `@ratel/dsh-lumina`；控制台无 `cannot occupy` / `effect failed` |
 | DOM | 关键断言的实际返回值（贴输出） |
 | 动效 | **两次以上采样**的 `getComputedStyle` / `getBoundingClientRect`，证明在变 |
 | 无障碍 | `matchMedia` 与 `animation-name` 的实际值 |
@@ -136,7 +153,7 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 
 ## 9. 文档同步
 
-- 设计变更 → 先改 `docs/原始材料/` 对应文档，再改代码。
+- 设计变更 → 先改 `docs/product/MVP.md`（范围/效果）或 `docs/engineering/` 对应文档，再改代码。
 - 决策与理由 → 写 `.agents/notes/{proposed,implemented,rejected}/<class>/yyyy-mm-dd-<topic>.md`。
   `implemented` 必含 `## Alternatives considered`。
 - 与官方事实冲突的假设 → 写进 `.agents/notes/` 决策记录，并同步修正现行文档。
@@ -153,6 +170,8 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 - 文档中**不得**写"未使用其源码"这类会被自己打脸的断言；改写就要如实写"改编自"。
 
 
-- reactbits 仅作**视觉参考**。不得复制/直译其源码，不得再分发组件或其「移植版」；
-  reactbits 组件目录**不得随包分发**（该调研文件已从仓库移除，结论：一个都不移植）。
-- 官方 `@deepseek-ai/dsh-client-ui-primitives` 为 MIT，可直接使用与派生（须注明出处）。
+- reactbits 组件目录**不得随包分发**；改编按上节登记，且不单独售卖。
+- 官方 `@deepseek-ai/dsh-client-ui-primitives` 可阅读、可派生视觉，但**不得 require**；
+  品牌图形用包内 `assets/` + 构建期生成的内联 SVG。
+- 品牌字标 `viewBox` 必须覆盖全部字形与徽标；当前为 `94 28 315 44`。
+  第一个 `d` 从 `x≈95.85` 开始，不能被裁掉；改资产后重新生成并目检首尾字形。

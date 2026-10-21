@@ -1,7 +1,7 @@
 /**
- * Host half of the Lumina motion plugin.
+ * Host half of the Ratel Lumina motion plugin.
  *
- * Lumina is a browser-only plugin: every effect lives in the client half and
+ * Ratel Lumina is a browser-only plugin: every effect lives in the client half and
  * renders through official UI slots. The host half exists so the bundle has a
  * Cordis identity that `cordis.patch.yml` can point at.
  *

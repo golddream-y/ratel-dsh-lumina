@@ -1,7 +1,7 @@
 {
-  "name": "dsh-lumina",
+  "name": "@ratel/dsh-lumina",
   "version": "0.1.0",
-  "description": "Motion enhancement layer for the DeepSeek Harness client: brand mark, composer edge glow, streaming caret, button press, and new-session hero.",
+  "description": "Ratel Lumina — motion enhancement layer for the DeepSeek Harness client: brand mark, composer edge glow, streaming caret, button press, new-session hero, and session activity.",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -50,7 +50,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "verify:hooks": "node tools/verify-hooks.mjs",
-    "watch": "tsdown --watch"
+    "watch": "tsdown --watch",
+    "gen:brand": "node tools/gen-brand-assets.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
@@ -66,7 +67,6 @@
     "@deepseek-ai/cordis": "4.0.5",
     "@deepseek-ai/dsh-client-locale": "0.2.1-rc.2",
     "@deepseek-ai/dsh-client-ui-conversation": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.2",
     "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.2",
     "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.2",
     "@deepseek-ai/dsh-client-ui-sidebar": "0.2.1-rc.2",

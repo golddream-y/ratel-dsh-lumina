@@ -44,6 +44,30 @@ export const HERO_IN = `
 }
 `
 
+/** The hero halo breathing once on entrance. */
+export const HERO_GLOW = `
+@keyframes lumina-hero-glow {
+  0% { filter: drop-shadow(0 0 0 rgba(var(--lumina-brand-rgb), 0)); }
+  35% { filter: drop-shadow(0 0 18px rgba(var(--lumina-brand-rgb), .55)); }
+  100% { filter: drop-shadow(0 0 0 rgba(var(--lumina-brand-rgb), 0)); }
+}
+`
+
+/** The session-row spinner breathing. */
+export const SESSION_PULSE = `
+@keyframes lumina-session-pulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+`
+
+/** The session-row spinner rotating. */
+export const SESSION_SPIN = `
+@keyframes lumina-session-spin {
+  to { transform: rotate(360deg); }
+}
+`
+
 /** The halo expanding once after a message is sent. */
 export const SEND_FLASH = `
 @keyframes lumina-send-flash {
@@ -59,5 +83,8 @@ export const ALL_KEYFRAMES = [
   CARET_BREATHE,
   WORDMARK_SWEEP,
   HERO_IN,
+  HERO_GLOW,
+  SESSION_PULSE,
+  SESSION_SPIN,
   SEND_FLASH,
 ].join('\n')
