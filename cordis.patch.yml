@@ -1,0 +1,11 @@
+# Bundle layer for dsh-lumina.
+#
+# The `id` is the Cordis plugin identity; it MUST match the `name` export of
+# lib/index.js (the host half). The `name` is the npm package name, which the
+# loader resolves through Node so the installed code is found.
+#
+# Loaded after every earlier bundle in the profile's `dsh.profile.bundles`
+# list, so a later layer wins per row.
+- insert:
+    - id: ui-lumina
+      name: dsh-lumina

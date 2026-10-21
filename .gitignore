@@ -1,0 +1,14 @@
+# Build artifacts
+lib/
+node_modules/
+.pnpm-store/
+
+# Tooling caches
+*.tsbuildinfo
+.vitest/
+coverage/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
