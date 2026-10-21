@@ -83,7 +83,7 @@ Canvas / WebGL 路线，与"只动 transform/opacity、零运行时依赖"冲突
 - **品牌**：必须内联 SVG，不能用 `<img>`；流光用 `<mask>` 重新填字，不能用 `clip-path` + 白块；
   `<use>` 在 `<mask>` / `<clipPath>` 内不生效，必须展开 path；渐变用 `objectBoundingBox`；
   同一资产挂多处时用 `useId()` 给 id 去重。
-- **边框**：装饰层 `pointer-events: none`；`@property` 不支持时降级为静态渐变 + 透明度呼吸
+- **边框**：装饰层 `pointer-events: none`；`@property` 不支持时降级为静态蓝色环 + 亮度呼吸
   （不旋转整块，避免圆角错位）；只用 `[data-composer-card]`，禁止 `[class*="…"]`。
 - **光标**：两段，共用一个 `caret` 开关（M9 不新增开关）：
   1. 流式末尾：`[data-streaming]` 最后一个文本块上挂 2px 品牌竖线，随流式结束消失；

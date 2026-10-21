@@ -1,4 +1,4 @@
-# Ratel Lumina · 流光
+![Ratel Lumina 流光 — 让交互，泛起流光。DeepSeek Harness 动效创意示意图。](assets/readme/hero-zh-CN.webp)
 
 > **Ratel Lumina（Lumina 流光）** —— [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 客户端的动效增强层。
 >

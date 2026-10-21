@@ -6,8 +6,9 @@
  * card until the stream ends, then returns to the idle blue breath.
  *
  * The ring lives on `::before`; the card is already a positioned box, so no
- * layout or DOM mutation is involved. The idle color is the client's official
- * brand accent, not the Lumina brand red used by the logo.
+ * layout or DOM mutation is involved. The idle color is the client's blue
+ * accent token, not `--dsw-alias-brand-primary` (which is near-black in the
+ * light theme) and not the Lumina brand red used by the logo.
  */
 
 import { cssSelector } from '../adapter/selector.ts'
@@ -31,30 +32,29 @@ ${card} {
 ${card}::before {
   content: "";
   position: absolute;
-  inset: -1.5px;
+  inset: -1px;
   border-radius: inherit;
-  padding: 1.5px;
-  background: var(--dsw-alias-brand-primary);
+  padding: 1px;
+  background: var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4176e6);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   pointer-events: none;
-  opacity: .4;
+  opacity: 1;
   animation: lumina-border-breathe var(--lumina-composer-breathe) ease-in-out infinite;
 }
 
 ${card}:focus-within::before {
-  filter: brightness(1.15);
   animation-duration: var(--lumina-composer-focus);
 }
 
 [data-lumina-streaming="on"] ${card}::before {
   background: conic-gradient(
     from var(--lumina-angle),
-    transparent 0deg 300deg,
-    var(--dsw-alias-brand-primary) 330deg,
-    transparent 360deg
+    color-mix(in srgb, var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4176e6) 15%, transparent) 0deg 300deg,
+    var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4176e6) 330deg,
+    color-mix(in srgb, var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4176e6) 15%, transparent) 360deg
   );
   opacity: 1;
   animation: lumina-border-spin var(--lumina-composer-stream) linear infinite;
@@ -69,12 +69,12 @@ ${card}:focus-within::before {
 @media (prefers-reduced-motion: reduce) {
   ${card}::before {
     animation: none;
-    opacity: .5;
+    opacity: .8;
   }
 
   [data-lumina-streaming="on"] ${card}::before {
-    background: var(--dsw-alias-brand-primary);
-    opacity: .5;
+    background: var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4176e6);
+    opacity: .8;
   }
 }
 `
