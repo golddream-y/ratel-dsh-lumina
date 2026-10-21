@@ -57,6 +57,7 @@ docs/engineering/  engineering plan, verified API surface, revision log
 ## Documentation
 
 - [Product requirements](docs/product/产品需求.md) — the admission gate for every new request
+- [Architecture](docs/engineering/架构设计.md) — layers, dependency direction, the adaptation layer
 - [Engineering plan](docs/engineering/工程规划.md)
 - [Verified official API surface](docs/engineering/官方API面.md)
 - [Official documentation cross-check](docs/engineering/官方文档对照.md)
