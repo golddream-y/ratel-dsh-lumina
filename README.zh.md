@@ -46,7 +46,7 @@ dsh plugin --profile <profile> add @ratel/dsh-lumina
 
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
-| P0 | 骨架、装载链、品牌 slot、设置页 | 已完成（11 项测试） |
+| P0 | 骨架、装载链、品牌 slot、设置页 | 已完成（19 项测试） |
 | MVP | 六个效果 + 钩子自检 | 进行中，见 [MVP](docs/product/MVP.md) |
 | 后续阶段 | ratel 资产、部署默认、官方设置卡片 | 规划 |
 
@@ -57,7 +57,7 @@ src/               插件源码（host 半 + 浏览器半）
 tests/             vitest 规格，含装载链证明
 tools/             安装与探测脚本
 docs/product/      产品需求与当前 MVP 交付范围
-docs/engineering/  工程规划、官方 API 面、设置页设计
+docs/engineering/  工程规划、官方 API 面、设置页设计、发布流程
 .agents/           Agent Note 与 dsh-lumina-dev Skill
 ```
 
@@ -72,6 +72,7 @@ docs/engineering/  工程规划、官方 API 面、设置页设计
 | [工程规划](docs/engineering/工程规划.md) | 工程形态、工具链、规范体系、分期与门禁 |
 | [官方 API 面](docs/engineering/官方API面.md) | 已验证的 slot 契约、模块表、钩子清单 |
 | [设置页设计](docs/engineering/设置页设计.md) | 设置页落点、页面结构与向官方卡片通道的迁移路径 |
+| [发布流程](docs/engineering/发布.md) | npm 发版、scope/registry 前置条件与插件商店发现 |
 
 ## 开发
 

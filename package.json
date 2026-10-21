@@ -24,7 +24,8 @@
     "lib/types/**/*.d.ts",
     "cordis.patch.yml",
     "README.md",
-    "README.zh.md"
+    "README.zh.md",
+    "assets/readme/hero-zh-CN.webp"
   ],
   "dsh": {
     "bundle": {
@@ -39,10 +40,22 @@
         "@deepseek-ai/dsh-client-locale"
       ],
       "immediately": false
+    },
+    "catalog": {
+      "category": "theme",
+      "summary": {
+        "en": "Ratel Lumina — a light, breathing motion layer for the DeepSeek Harness client: brand, composer halo, caret, press feedback, hero entrance, and session activity.",
+        "zh": "Ratel Lumina —— 为 DeepSeek Harness 客户端添加一层轻盈会呼吸的动效：品牌、输入框光晕、光标、按压反馈、首屏入场与会话进行中指示。"
+      },
+      "capabilities": [
+        "slots",
+        "locale",
+        "settings"
+      ]
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsdown",
+    "build": "rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
     "build:client": "tsdown",
     "install:local": "bash tools/install-local.sh",
     "prepare": "npm run build",
@@ -51,7 +64,8 @@
     "typecheck": "tsc --noEmit",
     "verify:hooks": "node tools/verify-hooks.mjs",
     "watch": "tsdown --watch",
-    "gen:brand": "node tools/gen-brand-assets.mjs"
+    "gen:brand": "node tools/gen-brand-assets.mjs",
+    "pack:check": "npm pack --dry-run"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
@@ -82,11 +96,34 @@
     "vitest": "3.2.4"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.19.0",
+    "dsh": ">=0.2.1-rc.2 <0.3.0-0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "motion",
+    "ui",
+    "lumina",
+    "ratel"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/golddream-y/ratel-dsh-lumina.git"
+  },
+  "homepage": "https://github.com/golddream-y/ratel-dsh-lumina#readme",
+  "bugs": {
+    "url": "https://github.com/golddream-y/ratel-dsh-lumina/issues"
+  },
+  "author": "golddream-y",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

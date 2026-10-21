@@ -7,7 +7,8 @@
  * panel is what the live effect does.
  */
 
-import { BORDER_SPIN, CARET_BREATHE, WORDMARK_SWEEP } from '../core/keyframes.ts'
+import { BORDER_BREATHE, BORDER_SPIN, CARET_BREATHE, WORDMARK_SWEEP } from '../core/keyframes.ts'
+import { composerCss } from '../effects/composer.ts'
 
 /**
  * The stylesheet of the Lumina settings page.
@@ -103,26 +104,10 @@ export function panelCss(): string {
   align-items: center;
   padding: 0 10px;
 }
-.lumina-preview-composer[data-active='true']::before {
-  content: '';
-  position: absolute;
-  inset: -1.5px;
-  border-radius: inherit;
-  padding: 1.5px;
-  background: conic-gradient(
-    from var(--lumina-angle, 0deg),
-    transparent 0deg,
-    var(--lumina-brand) 40deg,
-    var(--lumina-brand-soft) 70deg,
-    transparent 110deg,
-    transparent 360deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: lumina-border-spin 6s linear infinite;
-  pointer-events: none;
-}
+${composerCss(
+  ".lumina-preview-composer[data-active='true']",
+  ".lumina-preview-composer[data-active='true']",
+)}
 .lumina-preview-caret {
   display: inline-block;
   width: 2px;
@@ -182,6 +167,7 @@ export function panelCss(): string {
   background: var(--dsw-alias-brand-primary);
 }
 
+${BORDER_BREATHE}
 ${BORDER_SPIN}
 ${CARET_BREATHE}
 ${WORDMARK_SWEEP}

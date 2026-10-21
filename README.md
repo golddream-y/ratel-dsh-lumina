@@ -72,6 +72,7 @@ docs/engineering/  engineering plan, verified API surface, settings page design
 - [Engineering plan](docs/engineering/工程规划.md)
 - [Verified official API surface](docs/engineering/官方API面.md)
 - [Settings page design](docs/engineering/设置页设计.md)
+- [Publishing](docs/engineering/发布.md) — npm release and plugin-shop discovery
 
 ## Development
 

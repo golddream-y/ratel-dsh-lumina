@@ -30,12 +30,14 @@ const BRAND_PRIORITY = -20
 const PRESET_VARIABLES: Record<string, Record<string, string>> = {
   ratel: {
     '--lumina-brand': '#2563EB',
+    '--lumina-hi': '#FFFFFF',
     '--lumina-brand-soft': '#93B4F8',
     '--lumina-brand-deep': '#1E3A8A',
     '--lumina-brand-rgb': '37, 99, 235',
   },
   deepseek: {
     '--lumina-brand': '#FF3B30',
+    '--lumina-hi': '#FFFFFF',
     '--lumina-brand-soft': '#FFB3A8',
     '--lumina-brand-deep': '#8C1D12',
     '--lumina-brand-rgb': '255, 59, 48',
