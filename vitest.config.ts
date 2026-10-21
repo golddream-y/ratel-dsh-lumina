@@ -7,6 +7,7 @@ export default defineConfig({
     // and this default keeps the node side free of a DOM.
     environment: 'node',
     include: ['tests/**/*.spec.ts', 'tests/**/*.spec.tsx'],
+    setupFiles: ['tests/setup.ts'],
     globals: false,
   },
 })

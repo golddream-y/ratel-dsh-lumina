@@ -19,7 +19,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 const ARTIFACT = resolve(process.cwd(), 'lib/client.js')
 
 /** The module table entries the built bundle is allowed to require. */
-const EXPECTED_REQUIRES = ['react', '@deepseek-ai/dsh-client-ui-primitives']
+const EXPECTED_REQUIRES = ['react', 'react/jsx-runtime', '@deepseek-ai/dsh-client-ui-primitives']
 
 interface CapturedRegistration {
   id: string
@@ -62,6 +62,10 @@ function createRequire(): { require: (spec: string) => unknown; requested: strin
     requested.push(spec)
     if (spec === 'react') {
       return { createElement: (type: unknown, props: unknown, ...children: unknown[]) => ({ type, props, children }) }
+    }
+    if (spec === 'react/jsx-runtime') {
+      const element = (type: unknown, props: unknown, key: unknown) => ({ type, props, key })
+      return { jsx: element, jsxs: element, Fragment: Symbol.for('react.fragment') }
     }
     if (spec === '@deepseek-ai/dsh-client-ui-primitives') {
       return { BrandWordmark: () => null, FishLogo: () => null }
@@ -126,7 +130,7 @@ describe('client bundle', () => {
     const exported = registration.factory(require) as { apply: (ctx: unknown) => void }
 
     const injected: string[] = []
-    const registered: Array<{ name: string; priority?: number }> = []
+    const registered: Array<Record<string, unknown>> = []
     const ctx = {
       slots: {
         inject: (key: string, callback: () => unknown) => {
@@ -134,10 +138,14 @@ describe('client bundle', () => {
           callback()
           return () => {}
         },
-        register: (options: { name: string; priority?: number }) => {
+        register: (options: Record<string, unknown>) => {
           registered.push(options)
           return () => {}
         },
+      },
+      locale: {
+        register: () => () => {},
+        bind: () => (key: string) => key,
       },
       effect: () => {},
     }
@@ -146,12 +154,49 @@ describe('client bundle', () => {
 
     expect(injected).toContain('sidebar.brand.mark')
     expect(injected).toContain('sidebar.brand.name')
-    for (const entry of registered) {
+
+    // The brand slots are single slots: a lower rank wins, and two occupants
+    // at the same rank throw. The rank must differ from every competitor's.
+    const brandEntries = registered.filter((entry) => String(entry.name).startsWith('sidebar.brand.'))
+    expect(brandEntries.length).toBe(2)
+    for (const entry of brandEntries) {
       expect(entry.priority).toBe(-20)
     }
 
     const styles = document.querySelectorAll('style[data-plugin="dsh-lumina"]')
     expect(styles.length).toBeGreaterThan(0)
     expect(document.documentElement.getAttribute('data-lumina')).toBe('on')
+  })
+
+  it('registers the settings page with a localized label', () => {
+    const registration = loadArtifact()
+    const { require } = createRequire()
+    const exported = registration.factory(require) as { apply: (ctx: unknown) => void }
+
+    const registered: Array<Record<string, unknown>> = []
+    exported.apply({
+      slots: {
+        inject: (_key: string, callback: () => unknown) => {
+          callback()
+          return () => {}
+        },
+        register: (options: Record<string, unknown>) => {
+          registered.push(options)
+          return () => {}
+        },
+      },
+      locale: {
+        register: () => () => {},
+        bind: () => (key: string) => `translated:${key}`,
+      },
+      effect: () => {},
+    })
+
+    const section = registered.find((entry) => entry.name === 'settings.section')
+    expect(section).toBeDefined()
+    expect(section?.id).toBe('dsh-lumina')
+    expect(section?.locale).toBe('settings.lumina')
+    const label = section?.label as () => string
+    expect(label()).toBe('translated:nav')
   })
 })

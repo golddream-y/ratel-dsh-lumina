@@ -8,7 +8,7 @@ description: 开发和修改 dsh-lumina（DSH 客户端动效增强层）时必�
 本项目是 **DeepSeek Harness 客户端的动效增强层**：一个 npm 包 `dsh-lumina`，
 以 profile bundle 的形式占据官方 UI slot 并注入 CSS 动效。
 
-**先读**：`docs/design/02-平台约束（执行前必读）.md`（平台硬约束）、
+**先读**：`docs/原始材料/02-平台约束（执行前必读）.md`（平台硬约束）、
 `docs/engineering/工程规划.md`（工程形态与工具链）、
 `docs/engineering/官方API面.md`（已验证的 API 清单）。
 
@@ -45,7 +45,28 @@ ctx.slots.inject(slotKey, () => {
   换 priority 之前先确认没有别人用同一个值。
 - `list` slot 必须给 `id`；`chain` 必须给 `select`。
 - `settings.section` 还需 `order` / `locale`（命名空间）/ `label`（本地化 thunk）。
+- **消费者注册进别人的 slot 时不得声明 `children`**——`children` 是 slot **所有者**
+  用来声明子 slot 的。我们的单 slot 占据不需要 `children`。
 - 注册进**未声明**的 slot 会抛异常——slot 只在声明它的宿主挂载时存在。
+
+## 2.1 设置页落点（当前唯一可用通道）
+
+设置页注册进 **`settings.section`**（list 槽）——设置导航中的一个独立页面。
+
+**不要改成官方的 `settings.plugin.item` 卡片通道**，除非客户端已经提供它：
+
+| 符号 | 已安装客户端 0.2.1-rc.2 |
+| --- | --- |
+| `installSettingsSection` / `settingsNamespace` | 不存在 |
+| `settingsScope` | 不存在 |
+| `settings.plugin.item` | 不存在 |
+
+走那条路会让 `ctx.slots.inject('settings.plugin.item', …)` 等待一个**永不出现的声明**，
+卡片静默不渲染。判定方法：`grep -c "settings.plugin.item" app.asar`。
+迁移步骤见 [设置页设计](../../docs/engineering/设置页设计.md) §1。
+
+设置项持久化自持于 `localStorage["dsh-lumina/settings/v1"]`；模型是**扁平 8 字段**，
+迁移到官方通道时不需要改数据结构。
 
 ## 3. 运行时边界
 
@@ -109,7 +130,7 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 
 ## 9. 文档同步
 
-- 设计变更 → 先改 `docs/design/` 对应文档，再改代码。
+- 设计变更 → 先改 `docs/原始材料/` 对应文档，再改代码。
 - 决策与理由 → 写 `.agents/notes/{proposed,implemented,rejected}/<class>/yyyy-mm-dd-<topic>.md`。
   `implemented` 必含 `## Alternatives considered`。
 - 与官方事实冲突的假设 → 记入 `docs/engineering/文档修订记录.md`。
@@ -117,5 +138,5 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 ## 10. 许可
 
 - reactbits 仅作**视觉参考**。不得复制/直译其源码，不得再分发组件或其「移植版」；
-  `docs/design/08-reactbits组件目录（调研）.md` **不得随包分发**。
+  `docs/原始材料/08-reactbits组件目录（调研）.md` **不得随包分发**。
 - 官方 `@deepseek-ai/dsh-client-ui-primitives` 为 MIT，可直接使用与派生（须注明出处）。

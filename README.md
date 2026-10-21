@@ -49,7 +49,7 @@ Then restart the client — plugins are read from the manifest at startup and ar
 src/               plugin source (host half + browser half)
 tests/             vitest specs, including the loading-chain proof
 tools/             install and probe scripts
-docs/design/       the Chinese design document set (12 files)
+docs/原始材料/       the Chinese design document set (12 files)
 docs/engineering/  engineering plan, verified API surface, revision log
 .agents/           agent notes and the dsh-lumina-dev skill
 ```
@@ -58,8 +58,10 @@ docs/engineering/  engineering plan, verified API surface, revision log
 
 - [Engineering plan](docs/engineering/工程规划.md)
 - [Verified official API surface](docs/engineering/官方API面.md)
+- [Official documentation cross-check](docs/engineering/官方文档对照.md)
+- [Settings page design](docs/engineering/设置页设计.md)
 - [Design document revisions](docs/engineering/文档修订记录.md)
-- [Design set index (Chinese)](docs/design/README.md)
+- [Original design set (Chinese)](docs/原始材料/README.md)
 
 ## Development
 
@@ -77,4 +79,4 @@ After a client upgrade, run `node tools/verify-hooks.mjs` in the client console 
 ## License
 
 MIT. The reactbits visual-reference study is **not** redistributed with this package; see
-`docs/design/05-reactbits对照与许可.md` (Chinese).
+`docs/原始材料/05-reactbits对照与许可.md` (Chinese).

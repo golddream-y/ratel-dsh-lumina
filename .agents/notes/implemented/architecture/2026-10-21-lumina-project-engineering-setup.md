@@ -4,7 +4,7 @@ Status: implemented — 12 份设计文档已就绪但零代码，本记录固�
 
 ## Problem
 
-`docs/design/` 下已有 12 份中文设计文档（定位、平台约束、架构、五效果规格、路线、风险），
+`docs/原始材料/` 下已有 12 份中文设计文档（定位、平台约束、架构、五效果规格、路线、风险），
 但工程本身不存在：没有 `package.json`、没有构建、没有测试、没有规范体系。
 同时存在三个尚未澄清的事实性问题，会直接决定工程形态：
 
@@ -29,7 +29,7 @@ lazy-CJS 工厂产物、`require` 只请求模块表 specifier、`return module.
 
 **规范体系**：复刻 DSH 原生 Agent Note 树（`proposed/implemented/rejected` × 6 class），
 并把本项目开发规范做成一个 DSH Skill（`.agents/skills/dsh-lumina-dev/SKILL.md`）。
-**不引入 OpenSpec。** `docs/design/` 的 12 份中文文档不重写，作为设计真相源保留。
+**不引入 OpenSpec。** `docs/原始材料/` 的 12 份中文文档不重写，作为设计真相源保留。
 
 **四项事实澄清**（详见 `docs/engineering/文档修订记录.md`）：
 

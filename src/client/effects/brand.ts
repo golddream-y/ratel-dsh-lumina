@@ -27,10 +27,20 @@ const BRAND_SLOTS = ['sidebar.brand.mark', 'sidebar.brand.name'] as const
  */
 const BRAND_PRIORITY = -20
 
-/** The accent color each brand preset paints the mark with. */
-const PRESET_ACCENT: Record<string, string> = {
-  ratel: '#2563EB',
-  deepseek: '#FF3B30',
+/** The full variable set each brand preset publishes. */
+const PRESET_VARIABLES: Record<string, Record<string, string>> = {
+  ratel: {
+    '--lumina-brand': '#2563EB',
+    '--lumina-brand-soft': '#93B4F8',
+    '--lumina-brand-deep': '#1E3A8A',
+    '--lumina-brand-rgb': '37, 99, 235',
+  },
+  deepseek: {
+    '--lumina-brand': '#FF3B30',
+    '--lumina-brand-soft': '#FFB3A8',
+    '--lumina-brand-deep': '#8C1D12',
+    '--lumina-brand-rgb': '255, 59, 48',
+  },
 }
 
 /**
@@ -72,9 +82,18 @@ function BrandName(): unknown {
  * @returns the stylesheet text.
  */
 export function brandCss(preset: string): string {
-  const accent = PRESET_ACCENT[preset] ?? PRESET_ACCENT.ratel
+  const variables = PRESET_VARIABLES[preset] ?? PRESET_VARIABLES.ratel ?? {}
+  const declarations = Object.entries(variables)
+    .map(([name, value]) => `  ${name}: ${value};`)
+    .join('\n')
+  // Both presets are published as named variables so the settings preview can
+  // show the *draft* brand while the live effects use the committed one.
+  const presetAccents = Object.entries(PRESET_VARIABLES)
+    .map(([id, values]) => `  --lumina-brand-${id}: ${values['--lumina-brand']};`)
+    .join('\n')
   return `:root {
-  --lumina-brand: ${accent};
+${presetAccents}
+${declarations}
 }
 .lumina-mark { display: inline-flex; align-items: center; }
 .lumina-name { display: inline-flex; align-items: center; min-width: 0; height: 24px; overflow: hidden; }`

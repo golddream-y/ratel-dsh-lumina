@@ -150,3 +150,76 @@ export function intensityFactor(intensity: Intensity): number {
       return 1
   }
 }
+
+/**
+ * A live view over the persisted settings.
+ *
+ * The settings page edits a draft and commits it; the effects read the
+ * committed snapshot and re-apply when it changes. A store is the seam that
+ * lets the panel and the effects share one truth without either knowing about
+ * the other's storage.
+ */
+export interface ConfigStore {
+  /** The current committed snapshot; the same reference until it changes. */
+  getSnapshot: () => LuminaConfig
+  /** Observe committed changes. */
+  subscribe: (listener: () => void) => () => void
+  /**
+   * Persist a snapshot and notify the subscribers.
+   *
+   * @param config - the snapshot to persist.
+   * @returns the persisted snapshot, or the previous one when the write failed.
+   */
+  commit: (config: LuminaConfig) => LuminaConfig
+}
+
+/**
+ * Create a store over the settings persisted in localStorage.
+ *
+ * Writes from another tab arrive through the `storage` event, so two open
+ * clients stay consistent.
+ *
+ * @returns the store.
+ */
+export function createConfigStore(): ConfigStore {
+  let snapshot = readConfig()
+  const listeners = new Set<() => void>()
+
+  const notify = () => {
+    for (const listener of listeners) {
+      try {
+        listener()
+      } catch (error) {
+        console.warn('[dsh-lumina] settings listener failed', error)
+      }
+    }
+  }
+
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== null && event.key !== STORAGE_KEY) return
+    const next = readConfig()
+    if (next === snapshot) return
+    snapshot = next
+    notify()
+  }
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('storage', onStorage)
+  }
+
+  return {
+    getSnapshot: () => snapshot,
+    subscribe: (listener) => {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    commit: (config) => {
+      if (!writeConfig(config)) return snapshot
+      snapshot = config
+      notify()
+      return snapshot
+    },
+  }
+}
