@@ -100,6 +100,23 @@ ${declarations}
 }
 
 /**
+ * Classify a slot registration failure.
+ *
+ * Two failures need opposite handling. A *conflict* — another occupant at the
+ * same rank — is expected in the wild (a user may run two branding plugins),
+ * so it degrades to a warning. A *programming* failure — the slot does not
+ * exist, or the options are malformed — means the plugin is wrong, and
+ * swallowing it would leave the effect silently missing.
+ *
+ * @param error - the thrown registration error.
+ * @returns whether the error is a benign occupancy conflict.
+ */
+export function isOccupancyConflict(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+  return message.includes('already has a registration') || message.includes('already has an entry')
+}
+
+/**
  * Install the brand effect.
  *
  * @param ctx - the client context carrying the slot registry.
@@ -123,7 +140,8 @@ export function installBrand(
             slot === 'sidebar.brand.name' ? BrandName : BrandMark,
           )
         } catch (error) {
-          console.warn(`[dsh-lumina] cannot occupy slot ${slot}`, error)
+          if (!isOccupancyConflict(error)) throw error
+          console.warn(`[dsh-lumina] cannot occupy slot ${slot}; another plugin owns it`, error)
         }
         return () => {
           release?.()

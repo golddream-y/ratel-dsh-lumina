@@ -83,10 +83,16 @@ ctx.slots.inject(slotKey, () => {
 ## 4. 样式与主题
 
 - **不写死颜色**。用官方语义 token（`var(--dsw-alias-label-primary)` 等）或本插件的
-  `--lumina-*` 变量。深浅色用 `--dsw-*` 或 `[data-ds-dark-theme]` 兜底，
-  **不要只靠 `prefers-color-scheme`**（Windows 桌面端可能不跟随系统）。
+  `--lumina-*` 变量。深浅色由 `--dsw-*` 自动跟随，
+  **不要写主题选择器**（`prefers-color-scheme` / `[data-ds-dark-theme]`）——
+  官方明文要求功能包 CSS 里不放主题选择器（`docs/web-styling.md`）。
+  唯一允许的媒体查询是 `prefers-reduced-motion`（动效查询，无障碍底线）。
 - 本插件的品牌色由 `brand` 配置项驱动，**所有效果只消费变量**，不硬编码红/蓝。
   切预设后品牌区与全部效果必须同步变色。
+- 自建 `<style>` 是**第三方插件的固有机制**：我们不在官方仓库内，无法向 `ui-theme`
+  的全局表加样式；且要样式的是别人拥有的 DOM，CSS Modules 对其无效。
+  补偿：每个效果独立标签（`data-plugin` + `data-effect`），卸载即摘除；
+  所有选择器作用域化在 `data-*` 上。
 - 装饰层一律 `position: absolute` + `pointer-events: none`，永不阻挡点击/输入/拖拽/选中。
 - 只动 `transform` / `opacity`，不碰 `width` / `height` / `top` / `left`。
 - 常驻动画**上限 2 条**（边框 + 光标），其余一次性或交互触发。
