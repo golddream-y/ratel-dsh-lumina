@@ -3,6 +3,9 @@ lib/
 node_modules/
 .pnpm-store/
 
+# Wireframe prototypes (design artifacts, not plugin source)
+prototypes/
+
 # Tooling caches
 *.tsbuildinfo
 .vitest/
