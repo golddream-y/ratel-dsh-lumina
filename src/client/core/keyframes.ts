@@ -8,9 +8,19 @@
 
 /** The idle composer edge breathing without moving. */
 export const BORDER_BREATHE = `
-@keyframes lumina-border-breathe {
-  0%, 100% { opacity: .62; filter: drop-shadow(0 0 3px rgba(65, 118, 230, .2)) drop-shadow(0 0 8px rgba(65, 118, 230, .12)); }
-  50% { opacity: 1; filter: drop-shadow(0 0 5px rgba(65, 118, 230, .4)) drop-shadow(0 0 18px rgba(65, 118, 230, .25)); }
+@keyframes lumina-border-halo {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(65, 118, 230, .18),
+      0 0 10px 1px rgba(65, 118, 230, .10),
+      0 0 24px 3px rgba(65, 118, 230, .05);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(65, 118, 230, .45),
+      0 0 18px 3px rgba(65, 118, 230, .26),
+      0 0 42px 8px rgba(65, 118, 230, .13);
+  }
 }
 `
 

@@ -32,6 +32,7 @@ export function composerCss(): string {
 ${card} {
   position: relative;
   border-color: transparent !important;
+  animation: lumina-border-halo var(--lumina-composer-breathe) ease-in-out infinite;
 }
 
 ${card}::before {
@@ -39,7 +40,7 @@ ${card}::before {
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  padding: 1.5px;
+  padding: 2px;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, ${blue} 95%, transparent),
@@ -51,12 +52,10 @@ ${card}::before {
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   pointer-events: none;
-  opacity: .85;
-  filter: drop-shadow(0 0 4px rgba(65, 118, 230, .35)) drop-shadow(0 0 14px rgba(65, 118, 230, .22));
-  animation: lumina-border-breathe var(--lumina-composer-breathe) ease-in-out infinite;
+  opacity: .95;
 }
 
-${card}:focus-within::before {
+${card}:focus-within {
   animation-duration: var(--lumina-composer-focus);
 }
 
@@ -68,7 +67,6 @@ ${card}:focus-within::before {
     color-mix(in srgb, ${blue} 18%, transparent) 360deg
   );
   opacity: 1;
-  filter: drop-shadow(0 0 5px rgba(65, 118, 230, .45)) drop-shadow(0 0 18px rgba(65, 118, 230, .3));
   animation: lumina-border-spin var(--lumina-composer-stream) linear infinite;
 }
 
@@ -79,9 +77,12 @@ ${card}:focus-within::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ${card}::before {
+  ${card} {
     animation: none;
-    opacity: .8;
+  }
+
+  ${card}::before {
+    opacity: .85;
   }
 
   [data-lumina-streaming="on"] ${card}::before {
