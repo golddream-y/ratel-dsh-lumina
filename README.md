@@ -77,7 +77,30 @@ npm run install:local web
 After a client upgrade, run `node tools/verify-hooks.mjs` in the client console to check that every
 `data-*` hook the effects rely on still exists.
 
+## Design references
+
+Every motion in this package is built on web platform primitives — CSS transitions, keyframes, and
+inline SVG masks. **No animation library is bundled, and the runtime has zero dependencies.**
+
+The *visual behaviour* of several effects was informed by components published on
+[reactbits.dev](https://reactbits.dev) (the free site, MIT + Commons Clause). That licence forbids
+redistributing those components **or a ported version of them**, so we studied the behaviour and
+re-implemented each effect from scratch on platform primitives. **No source code from that project
+is included in this package.**
+
+| Lumina effect | Behaviour studied |
+| --- | --- |
+| Brand wordmark shine | a band of light sweeping across letterforms |
+| Composer edge glow | a light travelling along a border |
+| Streaming caret | a caret that breathes instead of blinking |
+| Button press and send flash | an immediate press acknowledgement |
+| New-session hero | a blur-to-focus entrance |
+
+Particle and fluid cursor effects were evaluated and deliberately not adopted: they introduce a new
+visual entity and require continuous frame work, which falls outside this product's boundary.
+
 ## License
 
-MIT. The reactbits visual-reference study is **not** redistributed with this package; see
-`docs/原始材料/05-reactbits对照与许可.md` (Chinese).
+MIT. The reactbits study notes are **not** redistributed with this package; see
+`docs/原始材料/05-reactbits对照与许可.md` (Chinese) for the full licence analysis.
+
