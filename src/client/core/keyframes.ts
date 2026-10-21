@@ -9,8 +9,8 @@
 /** The idle composer edge breathing without moving. */
 export const BORDER_BREATHE = `
 @keyframes lumina-border-breathe {
-  0%, 100% { filter: brightness(.8); }
-  50% { filter: brightness(1.2); }
+  0%, 100% { opacity: .5; filter: drop-shadow(0 0 3px rgba(65, 118, 230, .18)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 9px rgba(65, 118, 230, .4)); }
 }
 `
 

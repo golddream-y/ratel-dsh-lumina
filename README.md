@@ -16,6 +16,15 @@ logic**, carries **no runtime dependencies**, and can be switched off completely
 | 5 | New-session hero entrance | `conversation.hero.brand.mark` | 1 — official slot |
 | 6 | Session activity indicator | `svg[data-state="ongoing"]` | 2 — CSS on a data hook |
 
+## Visual language
+
+The poster sets the direction: **light, not strokes**.
+
+- Edges are thin gradients with a soft halo, never a hard outline;
+- cool blue as the base, a little warm coral for the breath;
+- motion reads as a band of light, never competing with content or layout;
+- large editorial type, white glass, restrained negative space.
+
 ## Design principles
 
 1. **Upgrade safety over effect count.** A missing effect is better than a patch that breaks next
