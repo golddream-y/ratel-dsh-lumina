@@ -37,22 +37,22 @@ ${card} {
 ${card}::before {
   content: "";
   position: absolute;
-  inset: -0.5px;
+  inset: -1px;
   border-radius: inherit;
-  padding: 1px;
+  padding: 1.5px;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, ${blue} 85%, transparent),
-    color-mix(in srgb, ${warm} 55%, transparent) 70%,
-    color-mix(in srgb, ${blue} 85%, transparent)
+    color-mix(in srgb, ${blue} 95%, transparent),
+    color-mix(in srgb, ${warm} 85%, transparent) 58%,
+    color-mix(in srgb, ${blue} 95%, transparent)
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   pointer-events: none;
-  opacity: .75;
-  filter: drop-shadow(0 0 5px rgba(65, 118, 230, .25));
+  opacity: .85;
+  filter: drop-shadow(0 0 4px rgba(65, 118, 230, .35)) drop-shadow(0 0 14px rgba(65, 118, 230, .22));
   animation: lumina-border-breathe var(--lumina-composer-breathe) ease-in-out infinite;
 }
 
@@ -68,7 +68,7 @@ ${card}:focus-within::before {
     color-mix(in srgb, ${blue} 18%, transparent) 360deg
   );
   opacity: 1;
-  filter: drop-shadow(0 0 9px rgba(65, 118, 230, .42));
+  filter: drop-shadow(0 0 5px rgba(65, 118, 230, .45)) drop-shadow(0 0 18px rgba(65, 118, 230, .3));
   animation: lumina-border-spin var(--lumina-composer-stream) linear infinite;
 }
 
