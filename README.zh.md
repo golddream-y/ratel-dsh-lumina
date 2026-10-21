@@ -56,6 +56,7 @@ docs/engineering/  工程规划、已验证的官方 API 面、文档修订记�
 
 | 文档 | 内容 |
 | --- | --- |
+| [产品需求（PRD）](docs/product/产品需求.md) | **准入闸门**：定位、边界判据、V1 范围 |
 | [工程规划](docs/engineering/工程规划.md) | 工程形态、工具链、规范体系、分期与门禁 |
 | [官方 API 面](docs/engineering/官方API面.md) | 已验证的 slot 契约、模块表、钩子清单 |
 | [官方文档对照](docs/engineering/官方文档对照.md) | 与 25 份官方文档的逐条对照（14 条必须改 / 20 条建议改） |
