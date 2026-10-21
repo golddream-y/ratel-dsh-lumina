@@ -117,7 +117,7 @@ reactbits 免费站里视觉最接近的是：
 
 **我们未使用其源码。** 本效果用内联 SVG + `<mask>` + `linearGradient` 自行实现，机制与上述组件不同——它们基于 DOM 文本的 `background-clip:text`，而 SVG 里没有这个属性（这也是我们必须换实现路径的原因）。
 
-许可约束见 [05 §5.4](05-reactbits对照与许可.md)。
+许可约束见 [改编与许可政策](../../THIRD_PARTY_NOTICES.md)。
 
 ---
 

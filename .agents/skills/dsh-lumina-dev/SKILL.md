@@ -139,7 +139,7 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 - 设计变更 → 先改 `docs/原始材料/` 对应文档，再改代码。
 - 决策与理由 → 写 `.agents/notes/{proposed,implemented,rejected}/<class>/yyyy-mm-dd-<topic>.md`。
   `implemented` 必含 `## Alternatives considered`。
-- 与官方事实冲突的假设 → 记入 `docs/engineering/文档修订记录.md`。
+- 与官方事实冲突的假设 → 写进 `.agents/notes/` 决策记录，并同步修正现行文档。
 
 ## 10. 许可与代码归属
 

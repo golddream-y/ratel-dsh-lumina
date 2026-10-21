@@ -202,7 +202,7 @@ const { FishLogo, BrandWordmark } = require('@deepseek-ai/dsh-client-ui-primitiv
 
 | 东西 | 原因 |
 | --- | --- |
-| `packages/client/ui-*` 的内部导出 | bundle purity 门禁禁止跨插件**值**导入 |
+| `packages/client/ui-*` 的内部导出 | bundle purity 门禁禁止跨插件**值**导入；`ui-primitives` 是官方点名的窄静态 owner，属例外 |
 | `packages/client/tsdown.client.ts` | 未发布，只能参考 |
 | `docs/subsystems/skills.md` 描述的 Skill 机制 | 那是**模型侧**的 skill 目录，与插件运行时无关 |
 | `deepseek-harness` checkout 作为 diff 基线 | 该 checkout 本身是脏的（7389 项变更） |

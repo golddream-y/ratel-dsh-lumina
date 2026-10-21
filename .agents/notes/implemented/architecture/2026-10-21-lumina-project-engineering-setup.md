@@ -31,7 +31,7 @@ lazy-CJS 工厂产物、`require` 只请求模块表 specifier、`return module.
 并把本项目开发规范做成一个 DSH Skill（`.agents/skills/dsh-lumina-dev/SKILL.md`）。
 **不引入 OpenSpec。** `docs/原始材料/` 的 12 份中文文档不重写，作为设计真相源保留。
 
-**四项事实澄清**（详见 `docs/engineering/文档修订记录.md`）：
+**四项事实澄清**（详见 原文档修订记录（已归档））：
 
 1. `priority` 在 **bundle 路径**按传入值生效（升序、最小者渲染），**动态插件路径**才被 facade 覆盖。
    官方 slot 目录里「不要传 priority」那条只对后者成立 → **`-20` 必须保留**。

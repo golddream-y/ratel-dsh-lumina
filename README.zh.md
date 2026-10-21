@@ -48,7 +48,7 @@ src/               插件源码（host 半 + 浏览器半）
 tests/             vitest 规格，含装载链证明
 tools/             安装与探测脚本
 docs/原始材料/       中文设计文档集（12 份）
-docs/engineering/  工程规划、已验证的官方 API 面、文档修订记录
+docs/engineering/  工程规划、已验证的官方 API 面、改编与许可政策
 .agents/           Agent Note 与 dsh-lumina-dev Skill
 ```
 
@@ -61,7 +61,6 @@ docs/engineering/  工程规划、已验证的官方 API 面、文档修订记�
 | [工程规划](docs/engineering/工程规划.md) | 工程形态、工具链、规范体系、分期与门禁 |
 | [官方 API 面](docs/engineering/官方API面.md) | 已验证的 slot 契约、模块表、钩子清单 |
 | [设置页设计](docs/engineering/设置页设计.md) | 设置页落点、页面结构与向官方卡片通道的迁移路径 |
-| [文档修订记录](docs/engineering/文档修订记录.md) | 与官方事实冲突的 15 处修订 |
 | [原始材料](docs/原始材料/README.md) | 最初的 12 份设计文档：定位、约束、架构、效果规格、路线、风险 |
 
 ## 开发
@@ -97,4 +96,4 @@ npm run install:local web
 ## 许可
 
 MIT。reactbits 的调研笔记**不随包分发**，完整许可分析见
-`docs/原始材料/05-reactbits对照与许可.md`。
+`THIRD_PARTY_NOTICES.md`。

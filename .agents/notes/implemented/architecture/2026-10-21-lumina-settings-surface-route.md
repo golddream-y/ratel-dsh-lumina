@@ -86,4 +86,4 @@ Host 半还要为 `installSettingsSection` 做命名空间导入的兼容处理�
 - 与 `dsh-brand-studio` 的关系不变：品牌槽 Lumina 以 `-20` 胜出（`-10`），
   设置页是新增的一个独立页面，不影响对方的任何 slot。
 - 本次裁决产生的三条文档修订（R-13 patch id 语义、R-14 `inject` 语义、
-  R-15 设置页落点）已记入 `docs/engineering/文档修订记录.md`。
+  R-15 设置页落点）已记入 原文档修订记录（已归档）。

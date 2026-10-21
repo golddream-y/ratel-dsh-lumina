@@ -61,7 +61,6 @@ docs/engineering/  engineering plan, verified API surface, revision log
 - [Engineering plan](docs/engineering/工程规划.md)
 - [Verified official API surface](docs/engineering/官方API面.md)
 - [Settings page design](docs/engineering/设置页设计.md)
-- [Design document revisions](docs/engineering/文档修订记录.md)
 - [Original design set (Chinese)](docs/原始材料/README.md)
 
 ## Development
@@ -100,5 +99,5 @@ and require continuous frame work, which falls outside this product's scope.
 ## License
 
 MIT. The reactbits study notes are **not** redistributed with this package; see
-`docs/原始材料/05-reactbits对照与许可.md` (Chinese) for the full licence analysis.
+`THIRD_PARTY_NOTICES.md` (Chinese) for the full licence analysis.
 
