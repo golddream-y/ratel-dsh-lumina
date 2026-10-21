@@ -99,7 +99,7 @@ describe('client bundle', () => {
 
   it('registers itself with the module loader under the package id', () => {
     const registration = loadArtifact()
-    expect(registration.id).toBe('@ratel/dsh-lumina')
+    expect(registration.id).toBe('@ratel-works/dsh-lumina')
   })
 
   it('returns module.exports from the factory', () => {

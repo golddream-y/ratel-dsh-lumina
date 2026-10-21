@@ -76,7 +76,7 @@ export function probe() {
   return {
     hooks,
     missing,
-    luminaLoaded: entries.includes('@ratel/dsh-lumina'),
+    luminaLoaded: entries.includes('@ratel-works/dsh-lumina'),
     bootEntries: entries,
     luminaStyles: document.querySelectorAll('style[data-plugin="ratel-lumina"]').length,
     sessionRows: countSessionRows(),

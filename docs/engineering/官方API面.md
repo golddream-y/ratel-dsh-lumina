@@ -27,7 +27,7 @@ window.__ModuleLoader__.load({
 ### 1.2 启动清单
 
 ```js
-window.__DSH_BOOT__.entries.map(e => e.id)   // 应含 '@ratel/dsh-lumina'
+window.__DSH_BOOT__.entries.map(e => e.id)   // 应含 '@ratel-works/dsh-lumina'
 ```
 
 `entries` 每行：`{ id, url, rev, inject?, immediately?, external? }`。

@@ -8,4 +8,4 @@
 # list, so a later layer wins per row.
 - insert:
     - id: ui-lumina
-      name: "@ratel/dsh-lumina"
+      name: "@ratel-works/dsh-lumina"

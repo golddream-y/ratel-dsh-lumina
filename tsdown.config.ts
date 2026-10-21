@@ -18,7 +18,7 @@
 import { defineConfig } from 'tsdown'
 
 /** The npm package name; also the client module id the loader keys on. */
-const PACKAGE_ID = '@ratel/dsh-lumina'
+const PACKAGE_ID = '@ratel-works/dsh-lumina'
 
 /**
  * Module-table specifiers that stay external.

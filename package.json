@@ -1,5 +1,5 @@
 {
-  "name": "@ratel/dsh-lumina",
+  "name": "@ratel-works/dsh-lumina",
   "version": "0.1.0",
   "description": "Ratel Lumina — motion enhancement layer for the DeepSeek Harness client: brand mark, composer edge glow, streaming caret, button press, new-session hero, and session activity.",
   "license": "MIT",

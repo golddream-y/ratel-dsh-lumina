@@ -39,7 +39,7 @@ The poster sets the direction: **light, not strokes**.
 ## Install
 
 ```sh
-dsh plugin --profile <profile> add @ratel/dsh-lumina
+dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 ```
 
 Then restart the client — plugins are read from the manifest at startup and are not hot-reloaded.

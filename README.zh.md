@@ -37,7 +37,7 @@ Ratel Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐六处视觉动效�
 ## 安装
 
 ```sh
-dsh plugin --profile <profile> add @ratel/dsh-lumina
+dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 ```
 
 然后**重启客户端**——插件清单只在启动时读取，不支持热更新。

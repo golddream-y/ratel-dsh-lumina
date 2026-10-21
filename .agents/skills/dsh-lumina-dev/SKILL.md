@@ -1,20 +1,20 @@
 ---
 name: dsh-lumina-dev
-description: 开发和修改 Ratel Lumina（@ratel/dsh-lumina，DSH 客户端动效增强层）时必须遵守的工程约束。涵盖 slot 注册契约、priority 语义、模块表 require 边界、CSS 变量与主题 token、减少动态、性能预算、验收证据要求与文档同步规则。在修改 src/ 下的任何文件、注册或调整 slot、编写动效 CSS、扩展效果、或新增/修改测试前加载。
+description: 开发和修改 Ratel Lumina（@ratel-works/dsh-lumina，DSH 客户端动效增强层）时必须遵守的工程约束。涵盖 slot 注册契约、priority 语义、模块表 require 边界、CSS 变量与主题 token、减少动态、性能预算、验收证据要求与文档同步规则。在修改 src/ 下的任何文件、注册或调整 slot、编写动效 CSS、扩展效果、或新增/修改测试前加载。
 ---
 
 # Ratel Lumina 开发约束
 
 ## 0. 命名
 
-- npm 包 / client module id：`@ratel/dsh-lumina`
+- npm 包 / client module id：`@ratel-works/dsh-lumina`
 - 产品名：**Ratel Lumina**；UI 短名：**Lumina**
 - host patch 行：`include:ui-lumina`（id `ui-lumina`）
 - 设置 section id：`ratel-lumina`；样式标记：`data-plugin="ratel-lumina"`
 - 改包名时，`tsdown.config.ts` 的 `PACKAGE_ID`、`cordis.patch.yml` 的 `name`、profile 安装 spec 必须同步；client factory id 必须等于包名。
 
 
-本项目是 **DeepSeek Harness 客户端的动效增强层**：一个 npm 包 `@ratel/dsh-lumina`，产品名 **Ratel Lumina**（UI 短名 Lumina），
+本项目是 **DeepSeek Harness 客户端的动效增强层**：一个 npm 包 `@ratel-works/dsh-lumina`，产品名 **Ratel Lumina**（UI 短名 Lumina），
 以 profile bundle 的形式占据官方 UI slot 并注入 CSS 动效。
 
 **先读**：`docs/engineering/官方API面.md`（平台硬约束与已验证 API）、
@@ -129,7 +129,7 @@ ctx.slots.inject(slotKey, () => {
 
 | 类型 | 要求 |
 | --- | --- |
-| 装载 | `window.__DSH_BOOT__.entries` 含 `@ratel/dsh-lumina`；控制台无 `cannot occupy` / `effect failed` |
+| 装载 | `window.__DSH_BOOT__.entries` 含 `@ratel-works/dsh-lumina`；控制台无 `cannot occupy` / `effect failed` |
 | DOM | 关键断言的实际返回值（贴输出） |
 | 动效 | **两次以上采样**的 `getComputedStyle` / `getBoundingClientRect`，证明在变 |
 | 无障碍 | `matchMedia` 与 `animation-name` 的实际值 |
