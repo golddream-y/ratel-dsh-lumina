@@ -1,9 +1,13 @@
 /**
  * M2 · composer edge glow.
  *
- * A conic-gradient ring is masked to the card's edge and rotates a light arc
- * around it. The ring lives on `::before`; the card is already a positioned
- * box, so no layout or DOM mutation is involved.
+ * Idle: a static blue edge breathes in opacity. It does not travel.
+ * Streaming (a send): the edge becomes a light arc and rotates around the
+ * card until the stream ends, then returns to the idle blue breath.
+ *
+ * The ring lives on `::before`; the card is already a positioned box, so no
+ * layout or DOM mutation is involved. The idle color is the client's official
+ * brand accent, not the Lumina brand red used by the logo.
  */
 
 import { cssSelector } from '../adapter/selector.ts'
@@ -30,29 +34,30 @@ ${card}::before {
   inset: -1.5px;
   border-radius: inherit;
   padding: 1.5px;
-  background: conic-gradient(
-    from var(--lumina-angle),
-    transparent 0deg 300deg,
-    var(--lumina-brand) 330deg,
-    transparent 360deg
-  );
+  background: var(--dsw-alias-brand-primary);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   pointer-events: none;
-  opacity: .65;
-  animation: lumina-border-spin var(--lumina-composer-idle) linear infinite;
+  opacity: .4;
+  animation: lumina-border-breathe var(--lumina-composer-breathe) ease-in-out infinite;
 }
 
 ${card}:focus-within::before {
-  opacity: .95;
+  filter: brightness(1.15);
   animation-duration: var(--lumina-composer-focus);
 }
 
 [data-lumina-streaming="on"] ${card}::before {
+  background: conic-gradient(
+    from var(--lumina-angle),
+    transparent 0deg 300deg,
+    var(--dsw-alias-brand-primary) 330deg,
+    transparent 360deg
+  );
   opacity: 1;
-  animation-duration: var(--lumina-composer-stream);
+  animation: lumina-border-spin var(--lumina-composer-stream) linear infinite;
 }
 
 @supports not (mask-composite: exclude) {
@@ -64,6 +69,11 @@ ${card}:focus-within::before {
 @media (prefers-reduced-motion: reduce) {
   ${card}::before {
     animation: none;
+    opacity: .5;
+  }
+
+  [data-lumina-streaming="on"] ${card}::before {
+    background: var(--dsw-alias-brand-primary);
     opacity: .5;
   }
 }

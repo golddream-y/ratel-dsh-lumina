@@ -6,6 +6,14 @@
  * of truth means the preview can never drift from what the user actually gets.
  */
 
+/** The idle composer edge breathing without moving. */
+export const BORDER_BREATHE = `
+@keyframes lumina-border-breathe {
+  0%, 100% { opacity: .28; }
+  50% { opacity: .58; }
+}
+`
+
 /** The border light travelling once around the composer edge. */
 export const BORDER_SPIN = `
 @keyframes lumina-border-spin {
@@ -78,6 +86,7 @@ export const SEND_FLASH = `
 
 /** Every keyframe Lumina defines, in one block. */
 export const ALL_KEYFRAMES = [
+  BORDER_BREATHE,
   BORDER_SPIN,
   BORDER_ROTATE,
   CARET_BREATHE,

@@ -11,7 +11,7 @@ import type { Intensity } from '../core/config.ts'
 /** The duration tokens every effect consumes. */
 export type DurationToken =
   | 'brand-sweep'
-  | 'composer-idle'
+  | 'composer-breathe'
   | 'composer-focus'
   | 'composer-stream'
   | 'caret-idle'
@@ -28,7 +28,7 @@ export const DURATIONS: Readonly<
 > = {
   normal: {
     'brand-sweep': 3600,
-    'composer-idle': 10000,
+    'composer-breathe': 3600,
     'composer-focus': 4000,
     'composer-stream': 2400,
     'caret-idle': 1150,
@@ -41,7 +41,7 @@ export const DURATIONS: Readonly<
   },
   subtle: {
     'brand-sweep': 6000,
-    'composer-idle': 15000,
+    'composer-breathe': 4800,
     'composer-focus': 6000,
     'composer-stream': 3600,
     'caret-idle': 1600,
@@ -54,7 +54,7 @@ export const DURATIONS: Readonly<
   },
   vivid: {
     'brand-sweep': 2600,
-    'composer-idle': 7000,
+    'composer-breathe': 2800,
     'composer-focus': 2800,
     'composer-stream': 1680,
     'caret-idle': 850,
