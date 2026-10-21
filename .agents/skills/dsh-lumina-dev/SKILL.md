@@ -144,5 +144,5 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 ## 10. 许可
 
 - reactbits 仅作**视觉参考**。不得复制/直译其源码，不得再分发组件或其「移植版」；
-  `docs/原始材料/08-reactbits组件目录（调研）.md` **不得随包分发**。
+  reactbits 组件目录**不得随包分发**（该调研文件已从仓库移除，结论：一个都不移植）。
 - 官方 `@deepseek-ai/dsh-client-ui-primitives` 为 MIT，可直接使用与派生（须注明出处）。

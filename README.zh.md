@@ -60,10 +60,8 @@ docs/engineering/  工程规划、已验证的官方 API 面、文档修订记�
 | [架构设计](docs/engineering/架构设计.md) | 分层、依赖方向、适配层、失效半径 |
 | [工程规划](docs/engineering/工程规划.md) | 工程形态、工具链、规范体系、分期与门禁 |
 | [官方 API 面](docs/engineering/官方API面.md) | 已验证的 slot 契约、模块表、钩子清单 |
-| [官方文档对照](docs/engineering/官方文档对照.md) | 与 25 份官方文档的逐条对照（14 条必须改 / 20 条建议改） |
 | [设置页设计](docs/engineering/设置页设计.md) | 设置页落点、页面结构与向官方卡片通道的迁移路径 |
 | [文档修订记录](docs/engineering/文档修订记录.md) | 与官方事实冲突的 15 处修订 |
-| [规范工作流选型](docs/research/规范工作流选型结论.md) | 为什么用 Agent Note 而不用 OpenSpec |
 | [原始材料](docs/原始材料/README.md) | 最初的 12 份设计文档：定位、约束、架构、效果规格、路线、风险 |
 
 ## 开发
