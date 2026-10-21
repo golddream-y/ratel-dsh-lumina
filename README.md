@@ -79,25 +79,23 @@ After a client upgrade, run `node tools/verify-hooks.mjs` in the client console 
 
 ## Design references
 
-Every motion in this package is built on web platform primitives — CSS transitions, keyframes, and
-inline SVG masks. **No animation library is bundled, and the runtime has zero dependencies.**
+Motion is built on web platform primitives — CSS transitions, keyframes, and inline SVG masks.
 
-The *visual behaviour* of several effects was informed by components published on
-[reactbits.dev](https://reactbits.dev) (the free site, MIT + Commons Clause). That licence forbids
-redistributing those components **or a ported version of them**, so we studied the behaviour and
-re-implemented each effect from scratch on platform primitives. **No source code from that project
-is included in this package.**
+Several effects are **adapted from** components published on [reactbits.dev](https://reactbits.dev)
+(MIT + Commons Clause). Adapted code keeps its original copyright and licence header, and every
+adapted file is listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) with its source and the
+licence terms that travel with it.
 
-| Lumina effect | Behaviour studied |
+| Lumina effect | Adapted from |
 | --- | --- |
-| Brand wordmark shine | a band of light sweeping across letterforms |
-| Composer edge glow | a light travelling along a border |
-| Streaming caret | a caret that breathes instead of blinking |
-| Button press and send flash | an immediate press acknowledgement |
-| New-session hero | a blur-to-focus entrance |
+| Brand wordmark shine | text shine / gradient text |
+| Composer edge glow | border glow |
+| Streaming caret | typewriter caret |
+| Button press and send flash | click acknowledgement |
+| New-session hero | blur-to-focus entrance |
 
-Particle and fluid cursor effects were evaluated and deliberately not adopted: they introduce a new
-visual entity and require continuous frame work, which falls outside this product's boundary.
+Particle and fluid cursor effects were evaluated and not adopted: they introduce a new visual entity
+and require continuous frame work, which falls outside this product's scope.
 
 ## License
 
