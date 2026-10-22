@@ -1,17 +1,22 @@
 /**
- * The ghost mode: a small translucent red ghost rises from the composer edge
- * and drifts to the message, trailing a puff of mist, then dissolves into the
- * text.
+ * The ghost mode: a small translucent red ghost rises from the composer edge,
+ * floats straight to the message trailing a puff of mist, and dissolves into
+ * the text.
+ *
+ * The silhouette is a classic little ghost: a soft dome, a scalloped hem, two
+ * big eyes and a highlight. The flight is a plain eased drift — no wobble, no
+ * squash and no bouncing curve.
  */
 
 import { mix, smoother, smooth } from '../liquid-geometry.ts'
 import { arcPoint } from './shared.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
 
-/** The ghost silhouette: round head, wavy hem, two soft eyes. */
-const GHOST_PATH = 'M30 5 C16 5 7 15 7 28 C7 38 11 44 14 49 L17 42 L21 50 L25 42 L29 50 L33 42 L37 50 L41 42 L44 49 C47 44 53 38 53 28 C53 15 44 5 30 5 Z'
+/** The ghost silhouette: dome, scalloped hem, drawn at 64×64. */
+const GHOST_PATH = 'M32 5 C17 5 7 16 7 30 C7 40 10 46 13 52 L17 45 L22 53 L27 45 L32 53 L37 45 L42 53 L47 45 L51 52 C54 46 57 40 57 30 C57 16 47 5 32 5 Z'
+/** The soft top highlight. */
+const GHOST_HIGHLIGHT = 'M19 15 C23 11 29 9 34 10 C30 13 25 16 21 21 C20 19 19 17 19 15 Z'
 
-/** Build the ghost mode renderer. */
 /** The blobs of the mist trail that follows the ghost. */
 const TRAIL = [
   { x: 16, y: 22, w: 30, h: 26, delay: '0s', duration: '2.4s' },
@@ -19,6 +24,7 @@ const TRAIL = [
   { x: 28, y: 30, w: 22, h: 20, delay: '-1.8s', duration: '2.2s' },
 ]
 
+/** Build the ghost mode renderer. */
 export function createGhostRenderer(): TransferRenderer {
   let sprite: SVGSVGElement | null = null
   let trail: HTMLElement | null = null
@@ -29,18 +35,18 @@ export function createGhostRenderer(): TransferRenderer {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
     svg.setAttribute('class', 'lumina-transfer-ghost')
-    svg.setAttribute('viewBox', '0 0 60 60')
-    svg.setAttribute('width', '46')
-    svg.setAttribute('height', '46')
+    svg.setAttribute('viewBox', '0 0 64 64')
+    svg.setAttribute('width', '56')
+    svg.setAttribute('height', '56')
     const defs = document.createElementNS(ns, 'defs')
     const gradient = document.createElementNS(ns, 'radialGradient')
     gradient.id = 'lumina-ghost-fill'
-    gradient.setAttribute('cx', '35%')
-    gradient.setAttribute('cy', '28%')
+    gradient.setAttribute('cx', '36%')
+    gradient.setAttribute('cy', '26%')
     const stops: Array<[string, string, string]> = [
-      ['0%', '#ffffff', '.85'],
-      ['45%', '#ff6b63', '.72'],
-      ['100%', '#e8322a', '.5'],
+      ['0%', '#ffe9e7', '.95'],
+      ['38%', '#ff7a71', '.82'],
+      ['100%', '#e3261c', '.62'],
     ]
     for (const [offset, color, opacity] of stops) {
       const stop = document.createElementNS(ns, 'stop')
@@ -53,13 +59,41 @@ export function createGhostRenderer(): TransferRenderer {
     const body = document.createElementNS(ns, 'path')
     body.setAttribute('d', GHOST_PATH)
     body.setAttribute('fill', 'url(#lumina-ghost-fill)')
-    const eyeLeft = document.createElementNS(ns, 'circle')
-    eyeLeft.setAttribute('cx', '24'); eyeLeft.setAttribute('cy', '26'); eyeLeft.setAttribute('r', '2.6')
-    eyeLeft.setAttribute('fill', '#7a0f0c'); eyeLeft.setAttribute('opacity', '.55')
-    const eyeRight = document.createElementNS(ns, 'circle')
-    eyeRight.setAttribute('cx', '36'); eyeRight.setAttribute('cy', '26'); eyeRight.setAttribute('r', '2.6')
-    eyeRight.setAttribute('fill', '#7a0f0c'); eyeRight.setAttribute('opacity', '.55')
-    svg.append(defs, body, eyeLeft, eyeRight)
+    body.setAttribute('stroke', 'rgba(255, 235, 232, .5)')
+    body.setAttribute('stroke-width', '1')
+    const shine = document.createElementNS(ns, 'path')
+    shine.setAttribute('d', GHOST_HIGHLIGHT)
+    shine.setAttribute('fill', '#ffffff')
+    shine.setAttribute('opacity', '.35')
+    const eye = (cx: number) => {
+      const node = document.createElementNS(ns, 'ellipse')
+      node.setAttribute('cx', String(cx))
+      node.setAttribute('cy', '27')
+      node.setAttribute('rx', '3.2')
+      node.setAttribute('ry', '4')
+      node.setAttribute('fill', '#5c0d09')
+      node.setAttribute('opacity', '.82')
+      return node
+    }
+    const glint = (cx: number) => {
+      const node = document.createElementNS(ns, 'circle')
+      node.setAttribute('cx', String(cx))
+      node.setAttribute('cy', '25.4')
+      node.setAttribute('r', '1.05')
+      node.setAttribute('fill', '#fff')
+      node.setAttribute('opacity', '.9')
+      return node
+    }
+    const blush = (cx: number) => {
+      const node = document.createElementNS(ns, 'circle')
+      node.setAttribute('cx', String(cx))
+      node.setAttribute('cy', '35')
+      node.setAttribute('r', '3.1')
+      node.setAttribute('fill', '#fff')
+      node.setAttribute('opacity', '.16')
+      return node
+    }
+    svg.append(defs, body, shine, eye(24), eye(40), glint(23), glint(39), blush(17), blush(47))
     stage.ink.append(svg)
     sprite = svg
 
@@ -96,23 +130,22 @@ export function createGhostRenderer(): TransferRenderer {
     if (sprite === null) return false
 
     const target: Point = stage.arrival ?? { x: edge.x, y: edge.y - 40 }
-    const start: Point = { x: edge.x, y: edge.y - 4 }
-    const via: Point = { x: (start.x + target.x) / 2, y: Math.min(start.y, target.y) - 64 }
-    const rise = smoother((t - 80) / 180)
-    const fly = smoother((t - 240) / 560)
-    const point = t < 240 ? start : arcPoint(start, via, target, fly)
-    const wobble = Math.sin((t - 240) / 120) * (t < 240 ? 0 : 6)
-    const stretch = Math.sin(fly * Math.PI) * 0.16
-    const arrive = smoother((t - 800) / 220)
-    const scale = (0.4 + 0.6 * rise) * (1 - 0.55 * arrive)
-    sprite.style.opacity = String((0.95 * rise) * (1 - arrive))
-    sprite.style.transform = `translate(${point.x - origin.x - 23}px, ${point.y - origin.y - 23}px) rotate(${wobble}deg) scale(${scale * (1 + stretch)}, ${scale * (1 - stretch)})`
-    sprite.style.filter = `drop-shadow(0 6px 12px rgba(232, 50, 42, ${(.35 * (1 - arrive)).toFixed(2)}))`
+    const start: Point = { x: edge.x, y: edge.y - 8 }
+    // A slight bow, not a bounce: the ghost floats up and settles forward.
+    const via: Point = { x: (start.x + target.x) / 2, y: Math.min(start.y, target.y) - 16 }
+    const rise = smoother((t - 80) / 200)
+    const fly = smoother((t - 200) / 620)
+    const arrive = smoother((t - 820) / 220)
+    const point = t < 200 ? start : arcPoint(start, via, target, fly)
+    const scale = (0.55 + 0.45 * rise) * (1 - 0.2 * arrive)
+    sprite.style.opacity = String(rise * (1 - arrive))
+    sprite.style.transform = `translate(${point.x - origin.x - 28}px, ${point.y - origin.y - 28}px) scale(${scale})`
+    sprite.style.filter = `drop-shadow(0 8px 14px rgba(232, 50, 42, ${(.32 * (1 - arrive)).toFixed(2)}))`
     if (trail !== null) {
-      // The mist trails behind the ghost along the direction of travel.
-      const back = arcPoint(start, via, target, Math.max(0, fly - .06))
-      trail.style.opacity = String((0.5 * rise) * (1 - arrive))
-      trail.style.transform = `translate(${back.x - origin.x - 32}px, ${back.y - origin.y - 32}px) rotate(${wobble * .6}deg) scale(${(0.6 + 0.5 * rise) * (1 + 0.4 * arrive)})`
+      // The mist follows the same path, a little behind the ghost.
+      const back = arcPoint(start, via, target, Math.max(0, fly - .08))
+      trail.style.opacity = String((0.48 * rise) * (1 - arrive))
+      trail.style.transform = `translate(${back.x - origin.x - 32}px, ${back.y - origin.y - 32}px) scale(${(0.6 + 0.4 * rise) * (1 + 0.3 * arrive)})`
     }
 
     if (stage.target === null) return false
@@ -126,7 +159,7 @@ export function createGhostRenderer(): TransferRenderer {
       const x = mix(target.x, glyph.x + glyph.width / 2, p)
       const y = mix(target.y, glyph.y + glyph.height / 2, p)
       node.style.opacity = String(p)
-      node.style.transform = `translate(${x - origin.x - glyph.width / 2}px, ${y - origin.y - glyph.height / 2}px) scale(${1.08 - .08 * p})`
+      node.style.transform = `translate(${x - origin.x - glyph.width / 2}px, ${y - origin.y - glyph.height / 2}px) scale(${1.06 - .06 * p})`
     }
     return arrive >= 1 && resolve >= 1
   }
