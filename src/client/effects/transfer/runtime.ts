@@ -18,7 +18,6 @@ import { FLIGHT_START, TRANSFER_TIME } from '../liquid-geometry.ts'
 import type { Point, TransferMode, TransferStage } from './types.ts'
 import { createLiquidRenderer } from './liquid.ts'
 import { createDissolveRenderer } from './dissolve.ts'
-import { createMistRenderer } from './mist.ts'
 import { createGhostRenderer } from './ghost.ts'
 
 /** The attribute that hides host surfaces while a transition runs. */
@@ -28,7 +27,6 @@ let sequence = 0
 
 /** Pick the renderer for a mode. */
 function rendererFor(mode: TransferMode) {
-  if (mode === 'mist') return createMistRenderer()
   if (mode === 'ghost') return createGhostRenderer()
   if (mode === 'dissolve') return createDissolveRenderer()
   return createLiquidRenderer()
@@ -120,7 +118,7 @@ export function runTransfer(
     origin,
     pad,
     // The dissolve needs room for two acts, the mist for its flight.
-    duration: Math.round(durationMs(intensity, 'transfer') * (mode === 'dissolve' ? 1.25 : mode === 'mist' || mode === 'ghost' ? 1.1 : 1)),
+    duration: Math.round(durationMs(intensity, 'transfer') * (mode === 'dissolve' ? 1.25 : mode === 'ghost' ? 1.1 : 1)),
     intensity,
     mask,
   }

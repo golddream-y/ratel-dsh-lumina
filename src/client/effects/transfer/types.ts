@@ -4,7 +4,7 @@ import type { Glyph, GlyphSnapshot } from '../../adapter/glyphs.ts'
 import type { Intensity } from '../../core/config.ts'
 
 /** The selectable send transition modes. */
-export type TransferMode = 'liquid' | 'dissolve' | 'mist' | 'ghost'
+export type TransferMode = 'liquid' | 'dissolve' | 'ghost'
 
 /** A point in viewport coordinates. */
 export interface Point { x: number; y: number }
