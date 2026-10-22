@@ -94,7 +94,7 @@ describe('settings panel', () => {
     expect(container.textContent).toContain('effectHero')
     expect(container.textContent).toContain('effectSendTransfer')
     expect(container.textContent).toContain('effectSessionActivity')
-    for (const mode of ['transferModeOff', 'transferModeLiquid', 'transferModeDissolve', 'transferModeMist']) {
+    for (const mode of ['transferModeOff', 'transferModeLiquid', 'transferModeDissolve', 'transferModeMist', 'transferModeGhost']) {
       expect(container.textContent).toContain(mode)
     }
   })

@@ -28,10 +28,10 @@ export type Intensity = 'subtle' | 'normal' | 'vivid'
  * `off` keeps the send free of any decoration; the other three replace the
  * message feedback with a distinct transition.
  */
-export type TransferMode = 'off' | 'liquid' | 'dissolve' | 'mist'
+export type TransferMode = 'off' | 'liquid' | 'dissolve' | 'mist' | 'ghost'
 
 /** The modes a user can pick, in settings order. */
-export const TRANSFER_MODES: readonly TransferMode[] = ['off', 'liquid', 'dissolve', 'mist']
+export const TRANSFER_MODES: readonly TransferMode[] = ['off', 'liquid', 'dissolve', 'mist', 'ghost']
 
 /** Per-effect switches. The keys are the effect ids used across the codebase. */
 export interface EffectFlags {
