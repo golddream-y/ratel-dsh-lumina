@@ -44,6 +44,14 @@ export const SEND_RIPPLE = `
 }
 `
 
+/** The slow drift of one mist blob. */
+export const MIST_DRIFT = `
+@keyframes lumina-mist-drift {
+  from { transform: translate(-6px, 4px) scale(.88); }
+  to { transform: translate(8px, -6px) scale(1.14); }
+}
+`
+
 /** The light band sweeping across the brand wordmark. */
 export const WORDMARK_SWEEP = `
 @keyframes lumina-sweep {
@@ -98,6 +106,7 @@ export const ALL_KEYFRAMES = [
   BORDER_SPIN,
   BORDER_ROTATE,
   CARET_BREATHE,
+  MIST_DRIFT,
   WORDMARK_SWEEP,
   HERO_IN,
   HERO_GLOW,

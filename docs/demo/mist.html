@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Mist transition</title>
+<style>
+  :root { --blue:#4176e6; --mist:255,77,69; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; display:grid; place-items:center;
+    background: radial-gradient(1200px 620px at 50% -10%, #fff 0%, #eef3fb 55%, #e5ecf8 100%);
+    color:#182230; font:14px/1.6 ui-sans-serif,-apple-system,"SF Pro Text","PingFang SC",sans-serif;
+  }
+  .demo { width:min(720px, calc(100vw - 40px)); }
+  h1 { margin:0 0 6px; font-size:22px; letter-spacing:-.02em; }
+  .lead { margin:0 0 22px; color:#5b6676; }
+  .column { display:grid; gap:14px; }
+  .bubble {
+    align-self:flex-end; max-width:78%; padding:12px 16px; border-radius:18px 18px 6px 18px;
+    background:#fff; border:1px solid #dfe6f2; box-shadow:0 10px 30px rgba(31,57,104,.08); min-height:44px;
+  }
+  .composer {
+    background:#fff; border:1px solid #dfe6f2; border-radius:24px; padding:14px 16px 12px;
+    box-shadow:0 20px 50px rgba(31,57,104,.10); display:flex; align-items:center; gap:10px;
+  }
+  .composer span { flex:1; font-size:15px; }
+  .send { width:38px;height:38px;border:0;border-radius:50%;background:var(--blue);color:#fff;font-size:18px;cursor:pointer; }
+  .mist { position:absolute; width:64px; height:64px; pointer-events:none; opacity:0; filter:blur(5px); }
+  .mist span { position:absolute; border-radius:50%; background: radial-gradient(circle, rgba(var(--mist),.52), rgba(var(--mist),0) 70%); animation: drift 2.6s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translate(-6px,4px) scale(.88); } to { transform: translate(8px,-6px) scale(1.14); } }
+  .hint { margin:14px 0 0; color:#6b7688; font-size:12px; }
+</style>
+</head>
+<body>
+  <main class="demo">
+    <h1>雾气</h1>
+    <p class="lead">一团红色半透明雾气从输入框边缘升起，飘向消息位置，到达后散开化成文字。</p>
+    <div class="column" style="position:relative">
+      <div class="bubble" id="bubble"></div>
+      <div class="composer"><span>让这团雾把话带过去</span><button class="send" id="send" aria-label="发送">↑</button></div>
+    </div>
+    <p class="hint">点发送键重播；减少动态偏好下直接显示结果。</p>
+  </main>
+<script>
+  const bubble = document.getElementById('bubble');
+  const send = document.getElementById('send');
+  const TEXT = '让这团雾把话带过去';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BLOBS = [[14,20,34,30,'0s','2.6s'],[30,12,28,26,'-.8s','3.1s'],[8,30,26,24,'-1.4s','2.3s'],[34,30,24,22,'-.4s','2.9s'],[22,26,20,20,'-1.9s','2.1s']];
+  const puff = document.createElement('div');
+  puff.className = 'mist';
+  for (const [x,y,w,h,delay,duration] of BLOBS) {
+    const blob = document.createElement('span');
+    Object.assign(blob.style, { left:x+'px', top:y+'px', width:w+'px', height:h+'px', animationDelay:delay, animationDuration:duration });
+    puff.append(blob);
+  }
+  document.body.append(puff);
+
+  send.addEventListener('click', () => {
+    bubble.textContent = '';
+    if (reduced) { bubble.textContent = TEXT; return; }
+    const from = send.getBoundingClientRect();
+    const to = bubble.getBoundingClientRect();
+    const start = { x: from.right - 32, y: from.top - 20 };
+    const end = { x: to.right - 32, y: to.top + 6 };
+    const via = { x: (start.x+end.x)/2, y: Math.min(start.y,end.y)-58 };
+    puff.style.transform = `translate(${start.x-32}px, ${start.y-32}px)`;
+    const appear = puff.animate([{opacity:0, transform:puff.style.transform+' scale(.35)'},
+                                {opacity:.92, transform:puff.style.transform+' scale(1)'}], {duration:220, easing:'cubic-bezier(.2,.9,.3,1.2)', fill:'forwards'});
+    const drift = puff.animate([
+      {transform:`translate(${start.x-32}px, ${start.y-32}px) rotate(0deg) scale(1)`},
+      {transform:`translate(${via.x-32}px, ${via.y-32}px) rotate(-5deg) scale(1.06,.94)`},
+      {transform:`translate(${end.x-32}px, ${end.y-32}px) rotate(4deg) scale(1)`},
+    ], {duration:560, easing:'cubic-bezier(.35,.1,.25,1)', fill:'forwards'});
+    setTimeout(() => {
+      puff.animate([{opacity:.92, transform:drift.effect.getComputedTiming().progress?`translate(${end.x-32}px, ${end.y-32}px) scale(1)`:`translate(${end.x-32}px, ${end.y-32}px) scale(1)`},
+                    {opacity:0, transform:`translate(${end.x-32}px, ${end.y-32}px) scale(1.75)`}], {duration:220, easing:'ease-out', fill:'forwards'});
+      bubble.textContent = TEXT;
+    }, 800);
+    void appear;
+  });
+</script>
+</body>
+</html>

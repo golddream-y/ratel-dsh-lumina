@@ -28,6 +28,25 @@ export function glyphNode(glyph: Glyph, parent: HTMLElement): HTMLSpanElement {
   return span
 }
 
+/** The rows that carry a chat message in the conversation list. */
+const ROW_SELECTOR = '[data-submission-echo], [data-chat-node-key], [data-chat-flow-key]'
+
+/**
+ * The element that owns the message bubble.
+ *
+ * The bubble paints its own background, so hiding only the text would leave an
+ * empty bubble behind. The message row is the stable owner of that bubble and
+ * hides the background together with the text.
+ */
+export function bubbleHost(node: HTMLElement): HTMLElement {
+  let current: HTMLElement | null = node
+  for (let depth = 0; current !== null && depth < 6; depth += 1) {
+    if (current.matches(ROW_SELECTOR)) return current
+    current = current.parentElement
+  }
+  return paintedAncestor(node)
+}
+
 /**
  * The nearest painted ancestor of a text element is the message bubble.
  * A surface that covers most of the viewport is a page region, not a bubble.

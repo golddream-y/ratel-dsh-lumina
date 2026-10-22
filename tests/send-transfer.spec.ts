@@ -145,7 +145,7 @@ describe('send transfer identity and lifecycle', () => {
     // The first release stored a boolean switch: true becomes the liquid mode.
     expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransfer: true } })).effects.sendTransition).toBe('liquid')
     expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransfer: false } })).effects.sendTransition).toBe('off')
-    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransition: 'ghost' } })).effects.sendTransition).toBe('ghost')
+    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransition: 'mist' } })).effects.sendTransition).toBe('mist')
     expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransition: 'nope' } })).effects.sendTransition).toBe('dissolve')
   })
 })

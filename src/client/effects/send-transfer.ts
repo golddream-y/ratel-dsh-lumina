@@ -36,7 +36,15 @@ export function transferCss(): string {
   position: absolute; left: 0; top: 0; white-space: pre; transform-origin: center;
 }
 [data-lumina="on"] .lumina-transfer-liquid { position: absolute; inset: 0; overflow: visible; }
-[data-lumina="on"] .lumina-transfer-ghost { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+[data-lumina="on"] .lumina-transfer-mist {
+  position: absolute; left: 0; top: 0; width: 64px; height: 64px;
+  will-change: transform, opacity; filter: blur(5px);
+}
+[data-lumina="on"] .lumina-transfer-mist-blob {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 77, 69, .52), rgba(255, 77, 69, 0) 70%);
+  animation: lumina-mist-drift 2.6s ease-in-out infinite alternate;
+}
 ${cssSelector('composerCard')}[data-lumina-transfer]::before,
 ${cssSelector('composerCard')}[data-lumina-transfer]::after { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {

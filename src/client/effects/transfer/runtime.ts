@@ -13,12 +13,12 @@ import { prefersReducedMotion } from '../../core/motion.ts'
 import { reportTransferStatus } from '../../core/transfer-status.ts'
 import type { Intensity } from '../../core/config.ts'
 import { durationMs } from '../../style/tokens.ts'
-import { center, glyphNode, paintedAncestor } from './shared.ts'
+import { bubbleHost, center, glyphNode } from './shared.ts'
 import { FLIGHT_START, TRANSFER_TIME } from '../liquid-geometry.ts'
 import type { Point, TransferMode, TransferStage } from './types.ts'
 import { createLiquidRenderer } from './liquid.ts'
 import { createDissolveRenderer } from './dissolve.ts'
-import { createGhostRenderer } from './ghost.ts'
+import { createMistRenderer } from './mist.ts'
 
 /** The attribute that hides host surfaces while a transition runs. */
 export const MASK = 'data-lumina-transfer-mask'
@@ -27,7 +27,7 @@ let sequence = 0
 
 /** Pick the renderer for a mode. */
 function rendererFor(mode: TransferMode) {
-  if (mode === 'ghost') return createGhostRenderer()
+  if (mode === 'mist') return createMistRenderer()
   if (mode === 'dissolve') return createDissolveRenderer()
   return createLiquidRenderer()
 }
@@ -188,9 +188,9 @@ export function runTransfer(
           const nextCenter = center(next)
           if (stage.arrival && t >= landingStart && Math.hypot(nextCenter.x - stage.arrival.x, nextCenter.y - stage.arrival.y) > 8) { stop(); return }
           stage.target = next
-          // Hide the real message surface, background included, so the bubble
-          // never shows up next to the flying copy.
-          mask(paintedAncestor(next.element))
+          // Hide the whole message row first, background included, so the
+          // bubble is gone before the animation reads as a send.
+          mask(bubbleHost(next.element))
           if (stage.copyGlyphs.length === 0) {
             // Freeze the destination and the copy geometry on the first hit.
             stage.arrival = nextCenter
