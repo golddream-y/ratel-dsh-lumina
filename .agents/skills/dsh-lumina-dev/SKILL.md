@@ -33,6 +33,17 @@ description: 开发和修改 Ratel Lumina（@ratel-works/dsh-lumina，DSH 客户
 3. **不碰业务逻辑**——动效不承载信息；关掉后功能与含义完全不变。
    不监听模型输出内容、不改请求、不写业务状态。
 
+## 1.1 生效方式：设置热生效，代码要重启
+
+- **设置改动立刻生效**：设置页保存走 `store.commit`，客户端 `store.subscribe(render)` 会
+  重新安装全部效果（`disposeEffects()` → `installEffects(config)`）。所以切换发送转场模式、
+  品牌预设、强度档位、任何开关都**不需要重启客户端**，当场就能看到效果，适合现场对比。
+- **代码改动必须重启**：client bundle 在客户端启动时加载。改了 `src/` 里的代码后，
+  重新构建并安装只是更新了 profile 里的文件，**当前页面仍然跑旧 bundle**，必须完整退出
+  客户端再打开才会生效。清理 Electron 的 `Cache` / `Code Cache` 能避免旧页面缓存。
+
+排查顺序：先确认现象属于"设置"还是"代码"；设置类问题直接改设置验证，代码类问题先重启再看。
+
 ## 2. Slot 注册契约
 
 ```js
