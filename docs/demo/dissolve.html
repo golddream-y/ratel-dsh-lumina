@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Dissolve transition</title>
+<style>
+  :root { --blue:#4176e6; --blue-rgb:65,118,230; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; min-height:100vh; display:grid; place-items:center;
+    background: radial-gradient(1200px 620px at 50% -10%, #fff 0%, #eef3fb 55%, #e5ecf8 100%);
+    color:#182230; font:14px/1.6 ui-sans-serif,-apple-system,"SF Pro Text","PingFang SC",sans-serif;
+  }
+  .demo { width:min(720px, calc(100vw - 40px)); }
+  h1 { margin:0 0 6px; font-size:22px; letter-spacing:-.02em; }
+  .lead { margin:0 0 20px; color:#5b6676; }
+  .column { display:grid; gap:14px; }
+  .bubble {
+    align-self:flex-end; max-width:78%; padding:12px 16px; border-radius:18px 18px 6px 18px;
+    background:#fff; border:1px solid #dfe6f2; box-shadow:0 10px 30px rgba(31,57,104,.08);
+    min-height:44px;
+  }
+  .bubble .slot { color:#182230; font-size:15px; }
+  .composer {
+    background:#fff; border:1px solid #dfe6f2; border-radius:24px; padding:14px 16px 12px;
+    box-shadow:0 20px 50px rgba(31,57,104,.10); display:flex; align-items:center; gap:10px;
+  }
+  .composer .text { flex:1; font-size:15px; min-height:24px; }
+  .send { width:38px;height:38px;border:0;border-radius:50%;background:var(--blue);color:#fff;font-size:18px;cursor:pointer; }
+  .chars { display:inline-flex; flex-wrap:wrap; }
+  .chars span { display:inline-block; will-change: transform, opacity, filter; }
+  .hint { margin:14px 0 0; color:#6b7688; font-size:12px; }
+  @media (prefers-reduced-motion: reduce) { .chars span { animation:none !important; } }
+</style>
+</head>
+<body>
+  <main class="demo">
+    <h1>文字消解 · 文字合成</h1>
+    <p class="lead">输入框里的文字逐字上浮、模糊、消散；同一批字在消息位置逐字重新凝聚成形。没有整段缩放，也没有替换感。</p>
+    <div class="column">
+      <div class="bubble"><div class="slot" id="target"></div></div>
+      <div class="composer">
+        <div class="text" id="source">把这句文字化成光送到上面</div>
+        <button class="send" id="send" aria-label="发送">↑</button>
+      </div>
+    </div>
+    <p class="hint">点发送键或按钮重播；减少动态偏好下直接显示结果。</p>
+  </main>
+<script>
+  const source = document.getElementById('source');
+  const target = document.getElementById('target');
+  const send = document.getElementById('send');
+  const TEXT = '把这句文字化成光送到上面';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function split(text) {
+    const holder = document.createElement('span');
+    holder.className = 'chars';
+    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+    for (const { segment } of segmenter.segment(text)) {
+      const span = document.createElement('span');
+      span.textContent = segment;
+      holder.append(span);
+    }
+    return holder;
+  }
+
+  function play() {
+    source.textContent = '';
+    target.textContent = '';
+    const holder = split(TEXT);
+    source.append(holder);
+    const spans = [...holder.children];
+    if (reduced) { target.textContent = TEXT; source.textContent = TEXT; return; }
+
+    const dissolve = spans.map((span, index) => span.animate([
+      { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0px)' },
+      { opacity: 0, transform: 'translateY(-22px) scale(.55)', filter: 'blur(6px)' }
+    ], { duration: 420, delay: index * 26, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }));
+
+    Promise.all(dissolve.map((a) => a.finished)).then(() => {
+      source.textContent = '';
+      const made = split(TEXT);
+      target.append(made);
+      const parts = [...made.children];
+      parts.forEach((span, index) => {
+        span.animate([
+          { opacity: 0, transform: 'translateY(10px) scale(1.18)', filter: 'blur(5px)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0px)' }
+        ], { duration: 420, delay: index * 24, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'both' });
+      });
+    });
+  }
+  send.addEventListener('click', play);
+  source.textContent = TEXT;
+</script>
+</body>
+</html>

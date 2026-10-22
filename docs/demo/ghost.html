@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Ghost transition</title>
+<style>
+  :root { --blue:#4176e6; --ghost:#FF4D45; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; padding:48px 0;
+    background: radial-gradient(1200px 620px at 50% -10%, #fff 0%, #eef3fb 55%, #e5ecf8 100%);
+    color:#182230; font:14px/1.6 ui-sans-serif,-apple-system,"SF Pro Text","PingFang SC",sans-serif;
+  }
+  .wrap { width:min(1000px, calc(100vw - 40px)); margin:0 auto; }
+  h1 { margin:0 0 6px; font-size:22px; letter-spacing:-.02em; }
+  .lead { margin:0 0 26px; color:#5b6676; }
+  .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+  .card { background:rgba(255,255,255,.8); border:1px solid #dfe6f2; border-radius:20px; padding:18px; box-shadow:0 18px 50px rgba(31,57,104,.08); }
+  .card h2 { margin:0 0 4px; font-size:16px; }
+  .card p { margin:0 0 14px; color:#6b7688; font-size:12px; }
+  .stage { position:relative; height:250px; border-radius:14px; background:#f7f9fd; border:1px solid #e8eef8; overflow:hidden; }
+  .bubble { position:absolute; top:18px; right:14px; max-width:76%; padding:9px 13px; border-radius:16px 16px 5px 16px; background:#fff; border:1px solid #dfe6f2; font-size:13px; min-height:34px; }
+  .composer { position:absolute; left:14px; right:14px; bottom:14px; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #dfe6f2; border-radius:999px; padding:7px 8px 7px 14px; }
+  .composer span { flex:1; font-size:13px; color:#3b4757; }
+  .send { width:30px;height:30px;border:0;border-radius:50%;background:var(--blue);color:#fff;font-size:15px;cursor:pointer; }
+  .ghost { position:absolute; width:46px; height:46px; pointer-events:none; opacity:0; filter: drop-shadow(0 6px 12px rgba(255,77,69,.35)); }
+  .ghost svg { width:100%; height:100%; display:block; }
+  .text { position:absolute; right:14px; top:18px; font-size:13px; opacity:0; }
+  @media (max-width:900px){ .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>小幽灵 · 三个形态</h1>
+    <p class="lead">红色半透明小幽灵从输入框升起，摇摆着飞向消息位置，抵达后化成文字。挑一个形态，我再接进设置。</p>
+    <div class="grid" id="grid"></div>
+  </div>
+<script>
+  const SHAPES = {
+    round: {
+      title: 'A · 圆润小幽灵',
+      desc: '圆顶、波浪下摆，半透明红，最像"小幽灵"。',
+      path: 'M30 5 C16 5 7 15 7 28 C7 38 11 44 14 49 L17 42 L21 50 L25 42 L29 50 L33 42 L37 50 L41 42 L44 49 C47 44 53 38 53 28 C53 15 44 5 30 5 Z',
+      eyes: true,
+    },
+    wisp: {
+      title: 'B · 飘带雾',
+      desc: '细长雾状飘带，更轻、更飘，几乎没有实体感。',
+      path: 'M30 4 C21 11 15 21 17 32 C19 43 25 50 30 55 C35 50 41 43 43 32 C45 21 39 11 30 4 Z',
+      eyes: false,
+    },
+    sketch: {
+      title: 'C · 简笔幽灵',
+      desc: '只有轮廓线，透明感最强，风格与前两者完全不同。',
+      path: 'M30 6 C17 6 9 15 9 27 C9 37 12 43 15 48 L18 42 L22 49 L26 42 L30 49 L34 42 L38 49 L42 42 L45 48 C48 43 51 37 51 27 C51 15 43 6 30 6 Z',
+      eyes: true,
+      stroke: true,
+    },
+  };
+  const grid = document.getElementById('grid');
+  const TEXT = '小幽灵把这句带过去';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const [key, shape] of Object.entries(SHAPES)) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<h2>${shape.title}</h2><p>${shape.desc}</p>
+      <div class="stage">
+        <div class="bubble"></div>
+        <div class="text">${TEXT}</div>
+        <div class="composer"><span>${TEXT}</span><button class="send" aria-label="发送">↑</button></div>
+        <div class="ghost"></div>
+      </div>`;
+    grid.append(card);
+    const stage = card.querySelector('.stage');
+    const ghost = card.querySelector('.ghost');
+    const bubble = card.querySelector('.bubble');
+    const text = card.querySelector('.text');
+    const send = card.querySelector('.send');
+    ghost.innerHTML = `<svg viewBox="0 0 60 60">
+      <defs><radialGradient id="g-${key}" cx="35%" cy="28%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity=".85"/>
+        <stop offset="45%" stop-color="#ff6b63" stop-opacity=".72"/>
+        <stop offset="100%" stop-color="#e8322a" stop-opacity=".5"/>
+      </radialGradient></defs>
+      <path d="${shape.path}" fill="${shape.stroke ? 'none' : `url(#g-${key})`}" stroke="${shape.stroke ? '#E8322A' : 'none'}" stroke-width="2" stroke-linejoin="round"/>
+      ${shape.eyes && !shape.stroke ? '<circle cx="24" cy="26" r="2.6" fill="#7a0f0c" opacity=".55"/><circle cx="36" cy="26" r="2.6" fill="#7a0f0c" opacity=".55"/>' : ''}
+    </svg>`;
+
+    send.addEventListener('click', () => {
+      bubble.textContent = '';
+      text.style.opacity = '0';
+      if (reduced) { bubble.textContent = TEXT; return; }
+      const from = stage.querySelector('.composer').getBoundingClientRect();
+      const to = bubble.getBoundingClientRect();
+      const startX = from.right - 46, startY = from.top - 6;
+      const endX = to.right - 46, endY = to.top + 4;
+      const midX = (startX + endX) / 2, midY = Math.min(startY, endY) - 70;
+      ghost.style.left = `${startX}px`; ghost.style.top = `${startY}px`;
+      ghost.animate([{ opacity: 0, transform: 'scale(.4) translateY(10px)' },
+                     { opacity: .95, transform: 'scale(1) translateY(0)' }], { duration: 260, easing: 'cubic-bezier(.2,.9,.3,1.2)', fill: 'forwards' });
+      const flight = ghost.animate([
+        { offset: 0, transform: 'translate(0px,0px) scale(1) rotate(0deg)' },
+        { offset: .28, transform: `translate(${midX - startX}px, ${midY - startY}px) scale(.92,1.12) rotate(-8deg)` },
+        { offset: .58, transform: `translate(${(midX + endX) / 2 - startX}px, ${(midY + endY) / 2 - startY}px) scale(1.14,.88) rotate(9deg)` },
+        { offset: 1, transform: `translate(${endX - startX}px, ${endY - startY}px) scale(.5,1.25) rotate(0deg)` },
+      ], { duration: 760, easing: 'cubic-bezier(.35,.1,.25,1)', fill: 'forwards' });
+      const wobble = ghost.animate([{ transform: 'rotate(-4deg)' }, { transform: 'rotate(4deg)' }, { transform: 'rotate(-4deg)' }],
+        { duration: 300, iterations: Infinity, delay: 200 });
+      flight.finished.then(() => {
+        wobble.cancel();
+        ghost.animate([{ opacity: .95, transform: 'scale(.5,1.25)' }, { opacity: 0, transform: 'scale(1.5)' }], { duration: 260, easing: 'ease-out', fill: 'forwards' })
+          .finished.then(() => { text.style.opacity = '1'; bubble.textContent = TEXT; ghost.getAnimations().forEach((a) => a.cancel()); });
+      });
+    });
+  }
+</script>
+</body>
+</html>
