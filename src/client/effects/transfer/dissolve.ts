@@ -7,7 +7,8 @@
  * per glyph, so the cost stays flat.
  */
 
-import { mix, smoother } from '../liquid-geometry.ts'
+import { smoother } from '../liquid-geometry.ts'
+import { revealBlur } from './reveal.ts'
 import type { TransferRenderer, TransferStage } from './types.ts'
 
 /** Build the dissolve mode renderer. */
@@ -40,22 +41,7 @@ export function createDissolveRenderer(): TransferRenderer {
 
     if (stage.target === null) return false
     if (resolveStart === null) resolveStart = t
-    // Act two: the landing copy sharpens out of blur as one soft body, and the
-    // glyphs settle in with a small staggered rise. Fading every glyph on its
-    // own would read as a hard cut once the blur is gone.
-    const resolve = smoother((t - resolveStart - 140) / 560)
-    stage.targetLayer.style.opacity = String(resolve)
-    stage.targetLayer.style.filter = `blur(${((1 - resolve) * 10).toFixed(2)}px)`
-    const targetCount = Math.max(1, stage.targetNodes.length - 1)
-    for (let i = 0; i < stage.targetNodes.length; i++) {
-      const node = stage.targetNodes[i]!
-      const glyph = stage.copyGlyphs[i]!
-      const p = smoother((resolve - (i / targetCount) * .18) / .82)
-      const x = mix(stage.arrival?.x ?? glyph.x, glyph.x + glyph.width / 2, p)
-      const rest = glyph.y + glyph.height / 2
-      const y = mix(stage.arrival?.y ?? rest, rest, p) - (1 - p) * 8
-      node.style.transform = `translate(${x - origin.x - glyph.width / 2}px, ${y - origin.y - glyph.height / 2}px) scale(${1.05 - .05 * p})`
-    }
+    const resolve = revealBlur(t, stage, resolveStart + 140, 560)
     return resolve >= 1
   }
 

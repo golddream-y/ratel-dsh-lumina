@@ -9,8 +9,29 @@
  */
 
 import { mix, smoother, smooth } from '../liquid-geometry.ts'
-import { arcPoint } from './shared.ts'
+import { revealFade } from './reveal.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
+
+/**
+ * A wind-blown position: the straight line from start to target plus two
+ * out-of-phase lateral waves and a slow bob, so the route is irregular instead
+ * of one clean arc.
+ *
+ * @param start - the release point.
+ * @param target - the landing point.
+ * @param fly - the eased flight progress.
+ * @param phase - the slow wind phase.
+ * @returns the point on the wandering route.
+ */
+function gust(start: Point, target: Point, fly: number, phase: number): Point {
+  const base = { x: mix(start.x, target.x, fly), y: mix(start.y, target.y, fly) }
+  const dx = target.x - start.x, dy = target.y - start.y
+  const length = Math.hypot(dx, dy) || 1
+  const nx = -dy / length, ny = dx / length
+  const lateral = Math.sin(fly * Math.PI * 2.6 + phase) * 10 + Math.sin(fly * Math.PI * 4.7 + phase * 1.7) * 5
+  const bob = Math.cos(fly * Math.PI * 1.9 + phase * .8) * 5
+  return { x: base.x + nx * lateral, y: base.y + ny * lateral + bob }
+}
 
 /** The soft top highlight. */
 const GHOST_HIGHLIGHT = 'M19 15 C23 11 29 9 34 10 C30 13 25 16 21 21 C20 19 19 17 19 15 Z'
@@ -73,9 +94,9 @@ export function createGhostRenderer(): TransferRenderer {
     gradient.setAttribute('cx', '36%')
     gradient.setAttribute('cy', '26%')
     const stops: Array<[string, string, string]> = [
-      ['0%', '#ffe9e7', '.95'],
-      ['38%', '#ff7a71', '.82'],
-      ['100%', '#e3261c', '.62'],
+      ['0%', '#ffe9e7', '.8'],
+      ['38%', '#ff7a71', '.62'],
+      ['100%', '#e3261c', '.4'],
     ]
     for (const [offset, color, opacity] of stops) {
       const stop = document.createElementNS(ns, 'stop')
@@ -88,7 +109,7 @@ export function createGhostRenderer(): TransferRenderer {
     const body = document.createElementNS(ns, 'path')
     body.setAttribute('d', ghostPath(0))
     body.setAttribute('fill', 'url(#lumina-ghost-fill)')
-    body.setAttribute('stroke', 'rgba(255, 235, 232, .5)')
+    body.setAttribute('stroke', 'rgba(255, 235, 232, .32)')
     body.setAttribute('stroke-width', '1')
     const shine = document.createElementNS(ns, 'path')
     shine.setAttribute('d', GHOST_HIGHLIGHT)
@@ -146,12 +167,17 @@ export function createGhostRenderer(): TransferRenderer {
 
   const render = (t: number, stage: TransferStage): boolean => {
     const { origin, edge } = stage
-    // The source text is taken in by the ghost.
+    // The source text is drawn towards the release point, without blur: the
+    // ghost takes it in rather than dissolving it.
+    const release: Point = { x: edge.x, y: edge.y - 8 }
     for (let i = 0; i < stage.sourceNodes.length; i++) {
       const node = stage.sourceNodes[i]!
-      const p = smooth((t - i * 4) / 220)
+      const glyph = stage.source.glyphs[i]!
+      const p = smooth((t - i * 4) / 240)
+      const x = mix(glyph.x + glyph.width / 2, release.x, p * .24)
+      const y = mix(glyph.y + glyph.height / 2, release.y, p * .24)
+      node.style.transform = `translate(${x - origin.x - glyph.width / 2}px, ${y - origin.y - glyph.height / 2}px) scale(${1 - .3 * p})`
       node.style.opacity = String(1 - p)
-      node.style.filter = `blur(${(p * 3).toFixed(2)}px)`
     }
     if (t >= 260 && !sourceHidden) {
       for (const node of stage.sourceNodes) node.style.opacity = '0'
@@ -162,36 +188,28 @@ export function createGhostRenderer(): TransferRenderer {
 
     const target: Point = stage.arrival ?? { x: edge.x, y: edge.y - 40 }
     const start: Point = { x: edge.x, y: edge.y - 8 }
-    // A slight bow, not a bounce: the ghost floats up and settles forward.
-    const via: Point = { x: (start.x + target.x) / 2, y: Math.min(start.y, target.y) - 16 }
+    const phase = t * .0035
     const rise = smoother((t - 80) / 200)
-    const fly = smoother((t - 200) / 620)
-    const arrive = smoother((t - 820) / 220)
-    const point = t < 200 ? start : arcPoint(start, via, target, fly)
-    const scale = (0.55 + 0.45 * rise) * (1 - 0.2 * arrive)
-    sprite.style.opacity = String(rise * (1 - arrive))
-    sprite.style.transform = `translate(${point.x - origin.x - 28}px, ${point.y - origin.y - 28}px) scale(${scale})`
-    sprite.style.filter = `drop-shadow(0 8px 14px rgba(232, 50, 42, ${(.32 * (1 - arrive)).toFixed(2)}))`
+    const fly = smoother((t - 200) / 640)
+    const arrive = smoother((t - 840) / 240)
+    const point = t < 200 ? start : gust(start, target, fly, phase)
+    // The body leans into the direction it is being pushed.
+    const ahead = gust(start, target, Math.min(1, fly + .04), phase)
+    const tilt = Math.max(-14, Math.min(14, Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180 / Math.PI))
+    const scale = (0.55 + 0.45 * rise) * (1 - 0.18 * arrive)
+    sprite.style.opacity = String((0.9 * rise) * (1 - arrive))
+    sprite.style.transform = `translate(${point.x - origin.x - 28}px, ${point.y - origin.y - 28}px) rotate(${tilt.toFixed(2)}deg) scale(${scale})`
+    sprite.style.filter = `drop-shadow(0 8px 14px rgba(232, 50, 42, ${(.24 * (1 - arrive)).toFixed(2)}))`
     if (trail !== null) {
-      // The mist follows the same path, a little behind the ghost.
-      const back = arcPoint(start, via, target, Math.max(0, fly - .14))
-      trail.style.opacity = String((0.26 * rise) * (1 - arrive))
+      // The mist follows the same wandering route, a little behind.
+      const back = gust(start, target, Math.max(0, fly - .15), phase - .4)
+      trail.style.opacity = String((0.24 * rise) * (1 - arrive))
       trail.style.transform = `translate(${back.x - origin.x - 32}px, ${back.y - origin.y - 32}px) scale(${(0.5 + 0.3 * rise) * (1 + 0.25 * arrive)})`
     }
 
     if (stage.target === null) return false
     if (resolveStart === null) resolveStart = t
-    const resolve = smooth((t - resolveStart - 60) / 380)
-    stage.targetLayer.style.filter = `blur(${((1 - resolve) * 8).toFixed(2)}px)`
-    for (let i = 0; i < stage.targetNodes.length; i++) {
-      const node = stage.targetNodes[i]!
-      const glyph = stage.copyGlyphs[i]!
-      const p = smooth((resolve - (i % 6) * .05) / .95)
-      const x = mix(target.x, glyph.x + glyph.width / 2, p)
-      const y = mix(target.y, glyph.y + glyph.height / 2, p)
-      node.style.opacity = String(p)
-      node.style.transform = `translate(${x - origin.x - glyph.width / 2}px, ${y - origin.y - glyph.height / 2}px) scale(${1.06 - .06 * p})`
-    }
+    const resolve = revealFade(t, stage, resolveStart + 40, 260)
     return arrive >= 1 && resolve >= 1
   }
 
