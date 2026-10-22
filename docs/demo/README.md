@@ -16,6 +16,7 @@ python3 -m http.server 8765 --directory docs/demo
 | --- | --- |
 | `index.html` | 原型入口与索引 |
 | `pulse.html` | M4 发送按钮按压 + 脉冲 + 卡片柔光 |
+| `typing.html` | M3 打字脉冲：光标呼吸 + 输入柔光 |
 
 原型页尽量复用正式实现的 CSS keyframes、时长和缓动；差异只在于用静态 mock DOM 代替客户端真实 DOM。
 最终验收仍以 desktop 客户端重启后的真实行为为准。

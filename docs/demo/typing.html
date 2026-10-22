@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Typing glow</title>
+<style>
+  :root {
+    --blue: #4176e6;
+    --blue-rgb: 65, 118, 230;
+    --caret-typing: 240ms;
+    --caret-idle: 1150ms;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(1200px 600px at 50% -10%, #fff 0%, #eef3fb 55%, #e5ecf8 100%);
+    color: #182230;
+    font: 14px/1.6 ui-sans-serif, -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
+  }
+  .demo { width: min(680px, calc(100vw - 40px)); }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.02em; }
+  .lead { margin: 0 0 22px; color: #5b6676; }
+  .composer {
+    position: relative;
+    background: #fff;
+    border: 1px solid #dfe6f2;
+    border-radius: 24px;
+    padding: 16px 16px 12px;
+    box-shadow: 0 20px 50px rgba(31, 57, 104, .10);
+  }
+  .input {
+    min-height: 84px;
+    outline: 0;
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.7;
+    caret-color: transparent;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .input:empty::before {
+    content: attr(data-placeholder);
+    color: #9aa6b8;
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+  .model { color: #6b7688; font-size: 12px; }
+  .actions { display: flex; gap: 8px; }
+  .ghost {
+    border: 0;
+    background: #eef3fb;
+    color: #3d4a5c;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .send {
+    width: 38px; height: 38px; border: 0; border-radius: 50%;
+    background: var(--blue); color: #fff; font-size: 18px; cursor: pointer;
+  }
+  #caret {
+    position: fixed;
+    display: none;
+    width: 2px;
+    border-radius: 1px;
+    background: linear-gradient(to bottom,
+      rgba(var(--blue-rgb), .2),
+      rgb(var(--blue-rgb)) 28%,
+      rgb(var(--blue-rgb)) 72%,
+      rgba(var(--blue-rgb), .2));
+    box-shadow: 0 0 8px rgba(var(--blue-rgb), .55);
+    pointer-events: none;
+    z-index: 2147483647;
+    animation: caret-breathe var(--caret-idle) ease-in-out infinite;
+  }
+  #ripple {
+    position: fixed;
+    width: 10px; height: 10px;
+    border: 1px solid rgba(var(--blue-rgb), .7);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(var(--blue-rgb), .5);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2147483647;
+    transform: translate(-50%, -50%) scale(.4);
+  }
+  #ripple[data-active] { animation: typing-ripple var(--caret-typing) ease-out; }
+  @keyframes caret-breathe {
+    0%, 100% { opacity: .7; }
+    50% { opacity: 1; }
+  }
+  @keyframes typing-ripple {
+    0% { opacity: .65; transform: translate(-50%, -50%) scale(.4); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+  }
+  .hint { margin: 16px 0 0; color: #6b7688; font-size: 12px; }
+  @media (prefers-reduced-motion: reduce) {
+    #caret, #ripple[data-active] { animation: none !important; }
+    #caret { opacity: 1; }
+    #ripple { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <main class="demo">
+    <h1>打字柔光</h1>
+    <p class="lead">光标保留呼吸；每次输入，在光标处扩散一圈柔光。不会给字符包 span，也不改选区。</p>
+    <div class="composer">
+      <div class="input" id="input" contenteditable="true" data-placeholder="在这里打字，看光标处的柔光…"></div>
+      <div class="row">
+        <span class="model">DeepSeek · Ratel Lumina</span>
+        <div class="actions">
+          <button class="ghost" type="button" id="demo">自动演示</button>
+          <button class="ghost" type="button" id="clear">清空</button>
+          <button class="send" type="button" aria-label="发送">↑</button>
+        </div>
+      </div>
+    </div>
+    <p class="hint">这是 M3 的“打字脉冲”原型；正式客户端重启后使用同一套节奏。</p>
+  </main>
+  <span id="caret" aria-hidden="true"></span>
+  <span id="ripple" aria-hidden="true"></span>
+  <script>
+    const input = document.getElementById('input');
+    const caret = document.getElementById('caret');
+    const ripple = document.getElementById('ripple');
+    let pulseTimer;
+
+    function caretRect() {
+      const selection = window.getSelection();
+      if (selection === null || selection.rangeCount !== 1 || !selection.isCollapsed) return null;
+      const range = selection.getRangeAt(0);
+      if (!input.contains(range.startContainer)) return null;
+      const rect = range.getBoundingClientRect();
+      return rect.height > 0 ? rect : null;
+    }
+
+    function updateCaret() {
+      const rect = caretRect();
+      if (rect === null) {
+        caret.style.display = 'none';
+        return;
+      }
+      caret.style.display = 'block';
+      caret.style.left = `${rect.left}px`;
+      caret.style.top = `${rect.top}px`;
+      caret.style.height = `${rect.height}px`;
+    }
+
+    function pulse() {
+      const rect = caretRect();
+      if (rect === null) return;
+      ripple.style.left = `${rect.left}px`;
+      ripple.style.top = `${rect.top + rect.height / 2}px`;
+      ripple.removeAttribute('data-active');
+      void ripple.offsetWidth;
+      ripple.setAttribute('data-active', '');
+      clearTimeout(pulseTimer);
+      pulseTimer = setTimeout(() => ripple.removeAttribute('data-active'), 340);
+    }
+
+    input.addEventListener('input', () => {
+      requestAnimationFrame(() => {
+        updateCaret();
+        pulse();
+      });
+    });
+    document.addEventListener('selectionchange', updateCaret);
+    window.addEventListener('resize', updateCaret);
+    document.addEventListener('scroll', updateCaret, true);
+    input.addEventListener('focus', updateCaret);
+    input.addEventListener('blur', () => { caret.style.display = 'none'; });
+
+    document.getElementById('clear').addEventListener('click', () => {
+      input.textContent = '';
+      input.focus();
+      updateCaret();
+    });
+
+    document.getElementById('demo').addEventListener('click', async () => {
+      input.textContent = '';
+      input.focus();
+      const text = '打字不是逐字包 span，而是在光标处留一圈光。';
+      for (const char of text) {
+        input.textContent += char;
+        const range = document.createRange();
+        range.selectNodeContents(input);
+        range.collapse(false);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        updateCaret();
+        pulse();
+        await new Promise((resolve) => setTimeout(resolve, 110));
+      }
+    });
+  </script>
+</body>
+</html>
