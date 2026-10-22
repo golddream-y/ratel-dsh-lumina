@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Send pulse preview</title>
+<style>
+  :root {
+    --lumina-brand: #FF3B30;
+    --lumina-brand-rgb: 255, 59, 48;
+    --lumina-blue: #4176e6;
+    --lumina-press: 140ms;
+    --lumina-flash: 520ms;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(1200px 600px at 50% -10%, #ffffff 0%, #eef3fb 55%, #e5ecf8 100%);
+    color: #182230;
+    font: 14px/1.6 ui-sans-serif, -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
+  }
+  .demo { width: min(680px, calc(100vw - 40px)); }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.02em; }
+  .lead { margin: 0 0 22px; color: #5b6676; }
+  .composer {
+    position: relative;
+    background: #fff;
+    border: 1px solid #dfe6f2;
+    border-radius: 24px;
+    padding: 16px 16px 12px;
+    box-shadow: 0 20px 50px rgba(31, 57, 104, .10);
+  }
+  .composer textarea {
+    width: 100%;
+    min-height: 74px;
+    resize: vertical;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 15px;
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+  .model { color: #6b7688; font-size: 12px; letter-spacing: .01em; }
+  .actions { display: flex; align-items: center; gap: 10px; }
+  .ghost {
+    border: 0;
+    background: #eef3fb;
+    color: #3d4a5c;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .send {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--lumina-blue);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    transform-origin: center;
+    transition: scale var(--lumina-press) cubic-bezier(.34, 1.56, .64, 1);
+    box-shadow: 0 8px 18px rgba(65, 118, 230, .26);
+  }
+  .send:active { scale: .88; }
+  .send[data-lumina-send-pulse] { animation: lumina-send-button-flash var(--lumina-flash) ease-out; }
+  .composer[data-lumina-sent] { animation: lumina-send-flash var(--lumina-flash) ease-out; }
+  @keyframes lumina-send-button-flash {
+    0% { box-shadow: 0 0 0 0 rgba(var(--lumina-brand-rgb), .5); scale: .88; }
+    100% { box-shadow: 0 0 0 12px rgba(var(--lumina-brand-rgb), 0); scale: 1; }
+  }
+  @keyframes lumina-send-flash {
+    0% { box-shadow: 0 0 0 0 rgba(var(--lumina-brand-rgb), .45); }
+    100% { box-shadow: 0 0 0 10px rgba(var(--lumina-brand-rgb), 0); }
+  }
+  .hint { margin: 16px 0 0; color: #6b7688; font-size: 12px; }
+  .hint kbd { background: #fff; border: 1px solid #dfe6f2; border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; }
+  @media (prefers-reduced-motion: reduce) {
+    .send { transition: none; }
+    .send[data-lumina-send-pulse], .composer[data-lumina-sent] { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="demo">
+    <h1>发送按钮脉冲</h1>
+    <p class="lead">当前实现：按压缩放 0.88 → 1，按钮外环 520ms；卡片同时有一次柔光。</p>
+    <div class="composer" id="composer">
+      <textarea placeholder="输入消息，点右侧发送…">测试发送按钮的脉冲效果</textarea>
+      <div class="row">
+        <span class="model">DeepSeek · Ratel Lumina</span>
+        <div class="actions">
+          <button class="ghost" type="button" id="again">再播一次</button>
+          <button class="send" type="button" id="send" aria-label="发送">↑</button>
+        </div>
+      </div>
+    </div>
+    <p class="hint">直接点蓝色发送按钮，或按 <kbd>再播一次</kbd>。这是独立预览页，不依赖客户端重启。</p>
+  </main>
+  <script>
+    const composer = document.getElementById('composer');
+    const send = document.getElementById('send');
+    let timer;
+    function pulse() {
+      clearTimeout(timer);
+      send.removeAttribute('data-lumina-send-pulse');
+      composer.removeAttribute('data-lumina-sent');
+      void send.offsetWidth;
+      send.setAttribute('data-lumina-send-pulse', '');
+      composer.setAttribute('data-lumina-sent', '');
+      timer = setTimeout(() => {
+        send.removeAttribute('data-lumina-send-pulse');
+        composer.removeAttribute('data-lumina-sent');
+      }, 520);
+    }
+    send.addEventListener('click', pulse);
+    document.getElementById('again').addEventListener('click', pulse);
+  </script>
+</body>
+</html>
