@@ -3,44 +3,40 @@
  * floats straight to the message trailing a puff of mist, and dissolves into
  * the text.
  *
- * The silhouette is a classic little ghost: a soft dome, a scalloped hem, two
- * big eyes and a highlight. The flight is a plain eased drift — no wobble, no
- * squash and no bouncing curve.
+ * The silhouette is a little ghost with a torn cloak: a stable dome and a
+ * ragged hem whose tips flutter independently. The body floats on a steady
+ * line; the restlessness lives in the cloth, not in the route.
  */
 
 import { mix, smoother, smooth } from '../liquid-geometry.ts'
 import { revealFade } from './reveal.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
 
-/**
- * A wind-blown position: the straight line from start to target plus two
- * out-of-phase lateral waves and a slow bob, so the route is irregular instead
- * of one clean arc.
- *
- * @param start - the release point.
- * @param target - the landing point.
- * @param fly - the eased flight progress.
- * @param phase - the slow wind phase.
- * @returns the point on the wandering route.
- */
-function gust(start: Point, target: Point, fly: number, phase: number): Point {
-  const base = { x: mix(start.x, target.x, fly), y: mix(start.y, target.y, fly) }
-  const dx = target.x - start.x, dy = target.y - start.y
-  const length = Math.hypot(dx, dy) || 1
-  const nx = -dy / length, ny = dx / length
-  const lateral = Math.sin(fly * Math.PI * 2.6 + phase) * 10 + Math.sin(fly * Math.PI * 4.7 + phase * 1.7) * 5
-  const bob = Math.cos(fly * Math.PI * 1.9 + phase * .8) * 5
-  return { x: base.x + nx * lateral, y: base.y + ny * lateral + bob }
-}
-
 /** The soft top highlight. */
 const GHOST_HIGHLIGHT = 'M19 15 C23 11 29 9 34 10 C30 13 25 16 21 21 C20 19 19 17 19 15 Z'
 
-/** The hem sample points, right to left, at the scallop tips and valleys. */
+/**
+ * The ragged cloak hem, right to left. The tips have different lengths so the
+ * edge reads as torn cloth rather than a regular scallop.
+ */
 const HEM = [
-  [51, 48], [46.5, 44.5], [42, 48], [37.5, 44.5], [33, 48],
-  [28.5, 44.5], [24, 48], [19.5, 44.5], [16, 48], [13, 45.5],
+  [52, 49], [48.5, 43.5], [45, 52], [41, 45], [37, 53.5], [33, 44.5],
+  [29, 52], [25, 46], [21, 54.5], [17, 45.5], [14, 50], [11.5, 46.5],
 ] as const
+
+/**
+ * One cloak point's wind flutter: two out-of-phase sines with a per-tip
+ * amplitude, so neighbouring tips never move together.
+ *
+ * @param index - the hem index.
+ * @param phase - the wind phase.
+ * @param amplitude - the base amplitude.
+ * @returns the offset.
+ */
+function flutter(index: number, phase: number, amplitude: number): number {
+  const strength = .55 + .45 * Math.sin(index * 2.3)
+  return (Math.sin(phase * 1.15 + index * 1.9) + Math.sin(phase * 2.35 + index * 3.1) * .45) * amplitude * strength
+}
 
 /**
  * The wind-blown silhouette.
@@ -53,17 +49,18 @@ const HEM = [
  * @returns the path data.
  */
 function ghostPath(t: number): string {
-  const phase = t * .012
-  const lean = Math.sin(phase * .7) * 2.2
-  const dome = `M 8 30 C 8 14 18 5 32 5 C 46 5 56 14 56 30 L 56 42`
+  const phase = t * .014
+  // The body barely leans; the cloth is what moves.
+  const lean = Math.sin(phase * .55) * 1.1
+  const dome = `M 8 30 C 8 14 18 5 32 5 C 46 5 56 14 56 30`
+  const right = `L 56 36 ${`L ${(55.2 + flutter(1, phase, 1.4)).toFixed(2)} ${(41 + flutter(2, phase, 1.6)).toFixed(2)}`}`
   const hem = HEM.map(([x, y], index) => {
-    const wave = Math.sin(phase + (index / (HEM.length - 1)) * Math.PI * 2.2)
-    const lift = Math.cos(phase * 1.1 + index * .55) * 2.1
-    const wx = x + wave * 3.2 + lean
-    const wy = y + lift
+    const wx = x + flutter(index, phase, 2.6) + lean
+    const wy = y + flutter(index + 4, phase, 3.1)
     return `L ${wx.toFixed(2)} ${wy.toFixed(2)}`
   }).join(' ')
-  return `${dome} ${hem} L 8 42 Z`
+  const left = `L ${(8.8 + flutter(2, phase, 1.3)).toFixed(2)} ${(40.5 + flutter(1, phase, 1.5)).toFixed(2)} L 8 34 Z`
+  return `${dome} ${right} ${hem} ${left}`
 }
 
 /** The blobs of the mist trail that follows the ghost. */
@@ -188,23 +185,22 @@ export function createGhostRenderer(): TransferRenderer {
 
     const target: Point = stage.arrival ?? { x: edge.x, y: edge.y - 40 }
     const start: Point = { x: edge.x, y: edge.y - 8 }
-    const phase = t * .0035
     const rise = smoother((t - 80) / 200)
     const fly = smoother((t - 200) / 640)
     const arrive = smoother((t - 840) / 240)
-    const point = t < 200 ? start : gust(start, target, fly, phase)
-    // The body leans into the direction it is being pushed.
-    const ahead = gust(start, target, Math.min(1, fly + .04), phase)
-    const tilt = Math.max(-14, Math.min(14, Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180 / Math.PI))
+    // The ghost floats on a steady line; all of the restlessness lives in the
+    // cloak. Only a barely visible bob keeps it from feeling mechanical.
+    const point = {
+      x: mix(start.x, target.x, fly),
+      y: mix(start.y, target.y, fly) + Math.sin(fly * Math.PI * 2) * 1.6,
+    }
     const scale = (0.55 + 0.45 * rise) * (1 - 0.18 * arrive)
     sprite.style.opacity = String((0.9 * rise) * (1 - arrive))
-    sprite.style.transform = `translate(${point.x - origin.x - 28}px, ${point.y - origin.y - 28}px) rotate(${tilt.toFixed(2)}deg) scale(${scale})`
+    sprite.style.transform = `translate(${point.x - origin.x - 28}px, ${point.y - origin.y - 28}px) scale(${scale})`
     sprite.style.filter = `drop-shadow(0 8px 14px rgba(232, 50, 42, ${(.24 * (1 - arrive)).toFixed(2)}))`
     if (trail !== null) {
-      // The mist follows the same wandering route, a little behind.
-      const back = gust(start, target, Math.max(0, fly - .15), phase - .4)
-      trail.style.opacity = String((0.24 * rise) * (1 - arrive))
-      trail.style.transform = `translate(${back.x - origin.x - 32}px, ${back.y - origin.y - 32}px) scale(${(0.5 + 0.3 * rise) * (1 + 0.25 * arrive)})`
+      trail.style.opacity = String((0.22 * rise) * (1 - arrive))
+      trail.style.transform = `translate(${mix(start.x, target.x, Math.max(0, fly - .12)) - origin.x - 32}px, ${mix(start.y, target.y, Math.max(0, fly - .12)) - origin.y - 32}px) scale(${(0.5 + 0.3 * rise) * (1 + 0.25 * arrive)})`
     }
 
     if (stage.target === null) return false
