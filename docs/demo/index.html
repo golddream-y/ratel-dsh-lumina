@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Motion Lab</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(1200px 700px at 50% -10%, #fff 0%, #eef3fb 58%, #e4ebf7 100%);
+    color: #182230;
+    font: 15px/1.65 ui-sans-serif, -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
+  }
+  main { width: min(980px, calc(100vw - 48px)); margin: 0 auto; padding: 64px 0 80px; }
+  .eyebrow { color: #4176e6; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+  h1 { margin: 8px 0 10px; font-size: clamp(34px, 5vw, 54px); line-height: 1.02; letter-spacing: -.04em; }
+  .lead { max-width: 640px; margin: 0; color: #5b6676; font-size: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 38px; }
+  .card {
+    display: block;
+    padding: 22px;
+    border: 1px solid #dfe6f2;
+    border-radius: 20px;
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 18px 50px rgba(31,57,104,.08);
+    color: inherit;
+    text-decoration: none;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: #b9c9e6; box-shadow: 0 24px 60px rgba(31,57,104,.12); }
+  .card h2 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.02em; }
+  .card p { margin: 0; color: #5b6676; font-size: 14px; }
+  .tag { display: inline-block; margin-top: 14px; padding: 4px 9px; border-radius: 999px; background: #eaf0ff; color: #315fc4; font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+  .card.disabled { cursor: default; opacity: .72; }
+  .card.disabled:hover { transform: none; border-color: #dfe6f2; box-shadow: 0 18px 50px rgba(31,57,104,.08); }
+  .footer { margin-top: 34px; color: #6b7688; font-size: 13px; }
+  code { background: #fff; border: 1px solid #dfe6f2; border-radius: 6px; padding: 1px 5px; font-size: 12px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } main { padding-top: 40px; } }
+</style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Ratel Lumina · Motion Lab</div>
+    <h1>动效原型，统一放在这里</h1>
+    <p class="lead">这是 Ratel Lumina 的独立原型入口，不依赖客户端登录和插件加载。每个页面都尽量使用与客户端同一套 CSS keyframes、时长和缓动。</p>
+
+    <section class="grid">
+      <a class="card" href="pulse.html">
+        <h2>发送按钮脉冲</h2>
+        <p>按压缩放 0.88 → 1，按钮外环 520ms；卡片同时有一次柔光。点按钮或“再播一次”查看。</p>
+        <span class="tag">M4 · PULSE</span>
+      </a>
+      <a class="card" href="pulse.html#composer">
+        <h2>输入框边缘光晕</h2>
+        <p>平时蓝色呼吸，发送/流式时切光弧旋转。当前预览页包含输入框与按钮上下文。</p>
+        <span class="tag">M2 · HALO</span>
+      </a>
+      <div class="card disabled">
+        <h2>光标</h2>
+        <p>官方蓝、柔和呼吸、fixed 跟随折叠选区；正式客户端重启后可在输入框和流式末尾看到。</p>
+        <span class="tag">M3 · CARET</span>
+      </div>
+      <div class="card disabled">
+        <h2>客户端实测</h2>
+        <p>原型只验证视觉；最终以 desktop 客户端重启后的真实 DOM 为准。</p>
+        <span class="tag">LIVE</span>
+      </div>
+    </section>
+
+    <p class="footer">本地预览：<code>python3 -m http.server 8765 --directory docs/demo</code> → <code>http://127.0.0.1:8765/</code></p>
+  </main>
+</body>
+</html>
