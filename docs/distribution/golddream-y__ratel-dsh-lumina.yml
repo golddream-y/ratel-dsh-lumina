@@ -1,0 +1,6 @@
+url: https://github.com/golddream-y/ratel-dsh-lumina
+name: golddream-y/ratel-dsh-lumina
+category: ui
+description:
+  en: 'Subtle motion for DeepSeek Harness, with composer glow, caret feedback and droplet, dissolve or ghost send transitions.'
+  zh: '为 DeepSeek Harness 添加输入框流光、光标反馈，以及水滴、文字消解和小幽灵发送转场。'
