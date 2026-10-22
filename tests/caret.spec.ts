@@ -79,6 +79,8 @@ describe('caret effect', () => {
     expect(css).toContain('animation: lumina-caret-breathe')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     expect(css).toContain('[data-lumina-caret="overlay"]')
+    expect(css).toContain('--dsw-alias-brand-primary-new-colorprimary-new-color')
+    expect(css).toContain('position: fixed')
     expect(css).not.toContain(':root')
   })
 
@@ -91,7 +93,7 @@ describe('caret effect', () => {
   })
 
   it('shows the overlay for a focused collapsed selection and restores the native caret on blur', () => {
-    const { card, input } = composerFixture()
+    const { input } = composerFixture()
     input.focus()
 
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
@@ -118,27 +120,26 @@ describe('caret effect', () => {
     const dispose = createCaretOverlay({
       document,
       window,
-      getCard: () => card,
       getInput: () => input,
     })
 
     document.dispatchEvent(new Event('selectionchange'))
 
-    const overlay = card.querySelector('.lumina-caret-overlay')
+    const overlay = document.body.querySelector('.lumina-caret-overlay')
     expect(overlay).not.toBeNull()
     expect(input.getAttribute('data-lumina-caret')).toBe('overlay')
     expect((overlay as HTMLElement).style.transform).toContain('translate3d')
 
     document.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-    expect(card.querySelector('.lumina-caret-overlay')).toBeNull()
+    expect(document.body.querySelector('.lumina-caret-overlay')).toBeNull()
     expect(input.hasAttribute('data-lumina-caret')).toBe(false)
 
     dispose()
   })
 
   it('does not show the overlay during IME composition', () => {
-    const { card, input } = composerFixture()
+    const { input } = composerFixture()
     input.focus()
     input.setAttribute('data-composer-composing', '')
 
@@ -157,13 +158,12 @@ describe('caret effect', () => {
     const dispose = createCaretOverlay({
       document,
       window,
-      getCard: () => card,
       getInput: () => input,
     })
 
     document.dispatchEvent(new Event('selectionchange'))
 
-    expect(card.querySelector('.lumina-caret-overlay')).toBeNull()
+    expect(document.body.querySelector('.lumina-caret-overlay')).toBeNull()
     expect(input.hasAttribute('data-lumina-caret')).toBe(false)
 
     dispose()

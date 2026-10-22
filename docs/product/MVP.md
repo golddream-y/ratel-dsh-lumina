@@ -71,7 +71,8 @@ Canvas / WebGL 路线，与"只动 transform/opacity、零运行时依赖"冲突
 
 | 变量 | 值 | 用途 |
 | --- | --- | --- |
-| `--lumina-brand` | `#FF3B30` | 图标、边框高光、光标、闪光 |
+| `--lumina-brand` | `#FF3B30` | 图标、字标、发送闪光 |
+| `--dsw-alias-brand-primary-new-colorprimary-new-color` | `#4176e6` | 输入框边缘、光标（官方蓝） |
 | `--lumina-brand-soft` | `#FFB3A8` | 流光渐变浅端 |
 | `--lumina-brand-deep` | `#8C1D12` | 字标肩部 |
 | `--lumina-brand-rgb` | `255, 59, 48` | `rgba(var(...), α)` |

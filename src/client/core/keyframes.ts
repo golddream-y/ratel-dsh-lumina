@@ -31,7 +31,7 @@ export const BORDER_ROTATE = `
 /** The breathing streaming caret. */
 export const CARET_BREATHE = `
 @keyframes lumina-caret-breathe {
-  0%, 100% { opacity: .35; }
+  0%, 100% { opacity: .7; }
   50% { opacity: 1; }
 }
 `

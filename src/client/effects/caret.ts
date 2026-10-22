@@ -31,28 +31,38 @@ export function caretCss(): string {
   const tail = withPseudo(cssSelector('streamingTail'), 'after')
   const blockCursor = cssSelector('lexicalCursor')
   const input = cssSelector('composerInput')
+  const blue = 'var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4176e6)'
 
   return `
 ${tail} {
   content: "";
   display: inline-block;
   width: 2px;
-  height: 1.1em;
+  height: 1.05em;
   margin-left: 2px;
   margin-right: -2px;
-  vertical-align: -0.15em;
+  vertical-align: -0.14em;
   border-radius: 1px;
-  background: var(--lumina-brand);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, ${blue} 18%, transparent),
+    ${blue} 28%,
+    ${blue} 72%,
+    color-mix(in srgb, ${blue} 18%, transparent)
+  );
+  box-shadow: 0 0 6px color-mix(in srgb, ${blue} 45%, transparent);
   animation: lumina-caret-breathe var(--lumina-caret-stream) ease-in-out infinite;
   pointer-events: none;
 }
 
 ${blockCursor} {
+  color: ${blue};
+  background-color: ${blue};
   animation: lumina-caret-breathe var(--lumina-caret-idle) ease-in-out infinite;
 }
 
 ${input} {
-  caret-color: var(--lumina-brand);
+  caret-color: ${blue};
 }
 
 ${input}[${OVERLAY_ATTRIBUTE}="overlay"] {
@@ -60,15 +70,22 @@ ${input}[${OVERLAY_ATTRIBUTE}="overlay"] {
 }
 
 .${OVERLAY_CLASS} {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   display: block;
   width: 2px;
   border-radius: 1px;
-  background: var(--lumina-brand);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, ${blue} 18%, transparent),
+    ${blue} 28%,
+    ${blue} 72%,
+    color-mix(in srgb, ${blue} 18%, transparent)
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, ${blue} 55%, transparent);
   pointer-events: none;
-  z-index: 2;
+  z-index: 2147483647;
   will-change: transform;
   animation: lumina-caret-breathe var(--lumina-caret-idle) ease-in-out infinite;
 }
@@ -94,8 +111,6 @@ export interface CaretOverlayOptions {
   document: Document
   /** The owning window. */
   window: Window
-  /** Resolve the composer card that will host the overlay. */
-  getCard: () => HTMLElement | null
   /** Resolve the editable input that owns the selection. */
   getInput: () => HTMLElement | null
 }
@@ -108,7 +123,7 @@ export interface CaretOverlayOptions {
  *   suppression attribute.
  */
 export function createCaretOverlay(options: CaretOverlayOptions): () => void {
-  const { document: doc, window: win, getCard, getInput } = options
+  const { document: doc, window: win, getInput } = options
   const overlay = doc.createElement('span')
   overlay.className = OVERLAY_CLASS
   overlay.setAttribute('aria-hidden', 'true')
@@ -134,34 +149,21 @@ export function createCaretOverlay(options: CaretOverlayOptions): () => void {
     currentInput = null
   }
 
-  const show = (
-    card: HTMLElement,
-    input: HTMLElement,
-    rect: DOMRect,
-    height: number,
-  ) => {
-    if (win.getComputedStyle(card).position === 'static') {
-      // The overlay is absolutely positioned; without a positioned card it
-      // would land relative to the wrong ancestor. Degrade to the native caret.
-      hide()
-      return
-    }
-    if (overlay.parentElement !== card) card.append(overlay)
+  const show = (input: HTMLElement, rect: DOMRect, height: number) => {
+    if (overlay.parentElement !== doc.body) doc.body.append(overlay)
     if (currentInput !== input) {
       currentInput?.removeAttribute(OVERLAY_ATTRIBUTE)
       currentInput = input
       input.setAttribute(OVERLAY_ATTRIBUTE, 'overlay')
     }
-    const cardRect = card.getBoundingClientRect()
     overlay.style.height = `${Math.max(height, 1)}px`
-    overlay.style.transform = `translate3d(${rect.left - cardRect.left}px, ${rect.top - cardRect.top}px, 0)`
+    overlay.style.transform = `translate3d(${rect.left}px, ${rect.top}px, 0)`
   }
 
   const update = () => {
     frame = null
-    const card = getCard()
     const input = getInput()
-    if (card === null || input === null) {
+    if (input === null) {
       hide()
       return
     }
@@ -221,7 +223,7 @@ export function createCaretOverlay(options: CaretOverlayOptions): () => void {
         : Number.isFinite(lineHeight)
           ? lineHeight
           : 20
-    show(card, input, rect, height)
+    show(input, rect, height)
   }
 
   const schedule = () => {
@@ -289,10 +291,6 @@ export function installCaret(
     createCaretOverlay({
       document: doc,
       window: win,
-      getCard: () => {
-        const card = queryTarget('composerCard', doc)
-        return card instanceof HTMLElement ? card : null
-      },
       getInput: () => {
         const input = queryTarget('composerInput', doc)
         return input instanceof HTMLElement ? input : null

@@ -1,10 +1,11 @@
 /**
  * M4 · button press and send flash.
  *
- * Press feedback is pure CSS on the composer's enabled buttons. The send
- * action adds two temporary attributes: one on the card (a halo) and one on
- * the primary send button (a short scale + ring pulse). The button pulse is
- * what makes the send control itself acknowledge the click.
+ * Press feedback is pure CSS on the composer's enabled buttons. A send does
+ * two things: the primary button pulses immediately on click, and a stream
+ * start adds a halo to the card. The click pulse is intentionally independent
+ * of the streaming observer so the button acknowledges the user even when the
+ * stream takes a moment to start.
  */
 
 import { cssSelector, queryTarget } from '../adapter/selector.ts'
@@ -60,48 +61,79 @@ ${card} button[${PULSE_ATTRIBUTE}] {
  *
  * @param streaming - the plugin's single streaming observer.
  * @param intensity - the active duration tier.
- * @returns a disposer removing the listeners, timer, attributes, and stylesheet.
+ * @returns a disposer removing the listeners, timers, attributes, and stylesheet.
  */
 export function installPress(streaming: StreamingState, intensity: Intensity): () => void {
   const disposeStyle = installStyle('press', pressCss())
-  let timer: ReturnType<typeof setTimeout> | undefined
+  const flashMs = durationMs(intensity, 'flash')
+  let cardTimer: ReturnType<typeof setTimeout> | undefined
+  let buttonTimer: ReturnType<typeof setTimeout> | undefined
   let flashed: Element | null = null
   let pulsed: Element | null = null
 
-  const clear = () => {
-    if (timer !== undefined) {
-      clearTimeout(timer)
-      timer = undefined
+  const clearCard = () => {
+    if (cardTimer !== undefined) {
+      clearTimeout(cardTimer)
+      cardTimer = undefined
     }
     flashed?.removeAttribute(SENT_ATTRIBUTE)
     flashed = null
+  }
+
+  const clearButton = () => {
+    if (buttonTimer !== undefined) {
+      clearTimeout(buttonTimer)
+      buttonTimer = undefined
+    }
     pulsed?.removeAttribute(PULSE_ATTRIBUTE)
     pulsed = null
+  }
+
+  const clear = () => {
+    clearCard()
+    clearButton()
+  }
+
+  const pulseButton = (button: Element) => {
+    clearButton()
+    pulsed = button
+    button.removeAttribute(PULSE_ATTRIBUTE)
+    void (button as HTMLElement).offsetWidth
+    button.setAttribute(PULSE_ATTRIBUTE, '')
+    buttonTimer = setTimeout(clearButton, flashMs)
   }
 
   const flash = () => {
     const card = queryTarget('composerCard')
     if (card === null) return
-    clear()
 
+    clearCard()
     flashed = card
     // Removing and forcing a reflow makes a repeated send replay the card halo.
     card.removeAttribute(SENT_ATTRIBUTE)
     void (card as HTMLElement).offsetWidth
     card.setAttribute(SENT_ATTRIBUTE, '')
+    cardTimer = setTimeout(clearCard, flashMs)
 
     // The primary send button is the last enabled button in the card.
     const buttons = card.querySelectorAll('button:not([disabled])')
     const send = buttons.item(buttons.length - 1)
-    if (send !== null) {
-      pulsed = send
-      send.removeAttribute(PULSE_ATTRIBUTE)
-      void (send as HTMLElement).offsetWidth
-      send.setAttribute(PULSE_ATTRIBUTE, '')
-    }
-
-    timer = setTimeout(clear, durationMs(intensity, 'flash'))
+    if (send !== null) pulseButton(send)
   }
+
+  const onClick = (event: Event) => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const card = target.closest('[data-composer-card]')
+    const button = target.closest('button')
+    if (card === null || button === null) return
+    if ((button as HTMLButtonElement).disabled) return
+    const buttons = card.querySelectorAll('button:not([disabled])')
+    if (buttons.item(buttons.length - 1) !== button) return
+    pulseButton(button)
+  }
+
+  document.addEventListener('click', onClick, true)
 
   const unsubscribe = streaming.subscribe((active) => {
     if (active) flash()
@@ -109,6 +141,7 @@ export function installPress(streaming: StreamingState, intensity: Intensity): (
 
   return () => {
     unsubscribe()
+    document.removeEventListener('click', onClick, true)
     clear()
     disposeStyle()
   }

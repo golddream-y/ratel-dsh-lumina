@@ -1,4 +1,4 @@
-# Ratel Lumina
+![Ratel Lumina — Let interaction glow. A concept illustration of subtle motion for DeepSeek Harness.](assets/readme/hero-en.webp)
 
 [![npm](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?logo=npm&color=cb3837)](https://www.npmjs.com/package/@ratel-works/dsh-lumina)
 
