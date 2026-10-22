@@ -18,6 +18,9 @@ describe('effect stylesheets', () => {
     expect(css).toContain(':active')
     expect(css).toContain('lumina-send-flash')
     expect(css).toContain('data-lumina-sent')
+    expect(css).toContain('data-lumina-send-pulse')
+    expect(css).toContain('lumina-send-button-flash')
+    expect(css).toContain('scale: .88')
   })
 
   it('plays the hero entrance with a brand glow', () => {

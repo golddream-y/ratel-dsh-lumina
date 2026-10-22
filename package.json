@@ -42,7 +42,7 @@
       "immediately": false
     },
     "catalog": {
-      "category": "theme",
+      "category": "ui",
       "summary": {
         "en": "Ratel Lumina — a light, breathing motion layer for the DeepSeek Harness client: brand, composer halo, caret, press feedback, hero entrance, and session activity.",
         "zh": "Ratel Lumina —— 为 DeepSeek Harness 客户端添加一层轻盈会呼吸的动效：品牌、输入框光晕、光标、按压反馈、首屏入场与会话进行中指示。"

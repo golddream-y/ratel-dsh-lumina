@@ -76,6 +76,14 @@ export const SESSION_SPIN = `
 }
 `
 
+/** The primary send button pulsing once after a message is sent. */
+export const SEND_BUTTON_FLASH = `
+@keyframes lumina-send-button-flash {
+  0% { box-shadow: 0 0 0 0 rgba(var(--lumina-brand-rgb), .5); scale: .88; }
+  100% { box-shadow: 0 0 0 12px rgba(var(--lumina-brand-rgb), 0); scale: 1; }
+}
+`
+
 /** The halo expanding once after a message is sent. */
 export const SEND_FLASH = `
 @keyframes lumina-send-flash {
@@ -96,4 +104,5 @@ export const ALL_KEYFRAMES = [
   SESSION_PULSE,
   SESSION_SPIN,
   SEND_FLASH,
+  SEND_BUTTON_FLASH,
 ].join('\n')
