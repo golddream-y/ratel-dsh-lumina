@@ -17,7 +17,7 @@ logic**, carries **no runtime dependencies**, and can be switched off completely
 | 4 | Button feedback & menu fade | `[data-composer-card] button` / `[data-menu-material]` | 2 — CSS on a data hook |
 | 5 | New-session hero entrance | `conversation.hero.brand.mark` | 1 — official slot |
 | 6 | Session activity indicator | `svg[data-state="ongoing"]` | 2 — CSS on a data hook |
-| 7 | Liquid send transition | Public submission identity + corresponding user text | 2 — temporary glyph decoration |
+| 7 | Send transition (droplet / dissolve / ghost) | Public submission identity + corresponding user text | 2 — temporary glyph decoration |
 
 ## Visual language
 
