@@ -26,6 +26,13 @@ export function cssSelector(id: TargetId): string {
     .join(',\n')
 }
 
+/** Match the enabled root when one of its semantic targets has a CSS state. */
+export function rootWithTarget(id: TargetId, state: ':focus' | ':focus-within'): string {
+  return TARGETS[id].selectors
+    .map((selector) => `${ROOT_SCOPE}:has(${selector}${state})`)
+    .join(',\n')
+}
+
 /**
  * Append a pseudo-element to every selector in a list.
  *

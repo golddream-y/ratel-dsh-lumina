@@ -1,79 +1,56 @@
-/**
- * M4 · button press and send flash.
- *
- * Press feedback is pure CSS on the composer's enabled buttons. A send does
- * two things: the primary button pulses immediately on click, and a stream
- * start adds a halo to the card. The click pulse is intentionally independent
- * of the streaming observer so the button acknowledges the user even when the
- * stream takes a moment to start.
- */
+/** M4 · restrained press, one acknowledgement per send, and menu fade-in. */
 
 import { cssSelector, queryTarget } from '../adapter/selector.ts'
 import type { StreamingState } from '../adapter/streaming.ts'
 import type { Intensity } from '../core/config.ts'
+import { prefersReducedMotion } from '../core/motion.ts'
 import { installStyle } from '../core/styles.ts'
 import { durationMs } from '../style/tokens.ts'
 
-/** The attribute that starts the card halo. */
-const SENT_ATTRIBUTE = 'data-lumina-sent'
-
-/** The attribute that starts the send-button pulse. */
 const PULSE_ATTRIBUTE = 'data-lumina-send-pulse'
-
-/** The fixed ring that survives the button's React re-render. */
 const RIPPLE_CLASS = 'lumina-send-ripple'
 
-/** The press/flash stylesheet. */
+/** The interaction baseline; menu positioning and native close timing stay owned by DSH. */
 export function pressCss(): string {
   const button = cssSelector('composerButton')
-  const card = cssSelector('composerCard')
-
+  const menu = cssSelector('menuSurface')
   return `
 ${button} {
-  transition: scale var(--lumina-press) cubic-bezier(.34, 1.56, .64, 1);
+  transition: scale var(--lumina-press) cubic-bezier(.22, 1, .36, 1);
   transform-origin: center;
 }
-
-${button}:active {
-  scale: .88;
+${button}:active { scale: .96; }
+${button}[${PULSE_ATTRIBUTE}] {
+  animation: lumina-send-button-flash var(--lumina-press) ease-out;
 }
-
-${card}[${SENT_ATTRIBUTE}] {
-  animation: lumina-send-flash var(--lumina-flash) ease-out;
+${menu} {
+  animation: lumina-menu-enter var(--lumina-menu) ease-out;
 }
-
-${card} button[${PULSE_ATTRIBUTE}] {
-  animation: lumina-send-button-flash var(--lumina-flash) ease-out;
+@keyframes lumina-menu-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
-.lumina-send-ripple {
+[data-lumina="on"] .lumina-send-ripple {
   position: fixed;
   top: 0;
   left: 0;
-  border: 1.5px solid color-mix(in srgb, var(--lumina-brand) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lumina-brand) 50%, transparent);
   border-radius: 50%;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--lumina-brand) 36%, transparent);
   opacity: 0;
   pointer-events: none;
   z-index: 2147483647;
-  transform: translate(-50%, -50%) scale(.55);
+  transform: translate(-50%, -50%) scale(.85);
 }
-
-.lumina-send-ripple[data-active] {
+[data-lumina="on"] .lumina-send-ripple[data-active] {
   animation: lumina-send-ripple var(--lumina-flash) ease-out;
 }
-
 @media (prefers-reduced-motion: reduce) {
-  ${button} {
-    transition: none;
-  }
-
-  ${card}[${SENT_ATTRIBUTE}],
-  ${card} button[${PULSE_ATTRIBUTE}] {
+  ${button} { transition: none; }
+  ${button}:active { scale: 1; }
+  ${button}[${PULSE_ATTRIBUTE}], ${menu}, ${menu}::before, ${menu}::after {
     animation: none;
   }
-
-  .lumina-send-ripple {
+  [data-lumina="on"] .lumina-send-ripple {
     animation: none !important;
     opacity: 0;
   }
@@ -81,133 +58,105 @@ ${card} button[${PULSE_ATTRIBUTE}] {
 `
 }
 
-/**
- * Install press feedback and the send flash.
- *
- * @param streaming - the plugin's single streaming observer.
- * @param intensity - the active duration tier.
- * @returns a disposer removing the listeners, timers, attributes, and stylesheet.
- */
-export function installPress(streaming: StreamingState, intensity: Intensity): () => void {
+/** Install visual listeners only: no submitting, cancelling or request state is changed. */
+export function installPress(streaming: StreamingState, intensity: Intensity, transferOwnsGesture: () => boolean = () => false, onTransferFallback?: (listener: () => void) => () => void): () => void {
   const disposeStyle = installStyle('press', pressCss())
-  const flashMs = durationMs(intensity, 'flash')
   const ripple = document.createElement('span')
   ripple.className = RIPPLE_CLASS
   ripple.setAttribute('aria-hidden', 'true')
   document.body.append(ripple)
-  let cardTimer: ReturnType<typeof setTimeout> | undefined
-  let buttonTimer: ReturnType<typeof setTimeout> | undefined
-  let rippleTimer: ReturnType<typeof setTimeout> | undefined
-  let flashed: Element | null = null
+  let timer: ReturnType<typeof setTimeout> | undefined
   let pulsed: Element | null = null
+  let clickAcknowledged = false
+  let running = document.documentElement.hasAttribute('data-lumina-streaming')
 
-  const clearCard = () => {
-    if (cardTimer !== undefined) {
-      clearTimeout(cardTimer)
-      cardTimer = undefined
-    }
-    flashed?.removeAttribute(SENT_ATTRIBUTE)
-    flashed = null
-  }
-
-  const clearButton = () => {
-    if (buttonTimer !== undefined) {
-      clearTimeout(buttonTimer)
-      buttonTimer = undefined
-    }
+  const clear = () => {
+    if (timer !== undefined) clearTimeout(timer)
+    timer = undefined
     pulsed?.removeAttribute(PULSE_ATTRIBUTE)
     pulsed = null
-  }
-
-  const clearRipple = () => {
-    if (rippleTimer !== undefined) {
-      clearTimeout(rippleTimer)
-      rippleTimer = undefined
-    }
     ripple.removeAttribute('data-active')
   }
 
-  const pulseSendRipple = (button: Element) => {
-    const rect = button.getBoundingClientRect()
-    if (rect.height <= 0) return
-    const size = Math.max(rect.width, rect.height) + 10
-    ripple.style.width = `${size}px`
-    ripple.style.height = `${size}px`
-    ripple.style.left = `${rect.left + rect.width / 2}px`
-    ripple.style.top = `${rect.top + rect.height / 2}px`
-    clearRipple()
-    void (ripple as HTMLElement).offsetWidth
-    ripple.setAttribute('data-active', '')
-    rippleTimer = setTimeout(clearRipple, flashMs)
-  }
-
-  const clear = () => {
-    clearCard()
-    clearButton()
-    clearRipple()
-  }
-
-  /** The primary send control is the rightmost enabled button in the card. */
+  // The existing host exposes no semantic send-button hook. Restrict this
+  // fallback to a visible enabled rightmost control while the composer is idle.
   const primaryButton = (card: Element): Element | null => {
     let primary: Element | null = null
     let right = -Infinity
-    for (const button of card.querySelectorAll('button:not([disabled])')) {
+    for (const button of card.querySelectorAll('button')) {
       const rect = button.getBoundingClientRect()
-      if (rect.width === 0 && rect.height === 0) continue
+      if (rect.width <= 0 || rect.height <= 0) continue
       if (rect.right > right) {
         right = rect.right
         primary = button
       }
     }
-    return primary
+    return primary !== null && !(primary as HTMLButtonElement).disabled ? primary : null
   }
 
-  const pulseButton = (button: Element) => {
-    clearButton()
+  const pulse = (button: Element) => {
+    if (prefersReducedMotion()) return
+    clear()
+    const rect = button.getBoundingClientRect()
     pulsed = button
-    button.removeAttribute(PULSE_ATTRIBUTE)
-    void (button as HTMLElement).offsetWidth
+    const size = Math.max(rect.width, rect.height) + 4
+    ripple.style.width = `${size}px`
+    ripple.style.height = `${size}px`
+    ripple.style.left = `${rect.left + rect.width / 2}px`
+    ripple.style.top = `${rect.top + rect.height / 2}px`
+    // Restart only the owned decoration, rather than forcing composer layout.
+    void ripple.offsetWidth
     button.setAttribute(PULSE_ATTRIBUTE, '')
-    buttonTimer = setTimeout(clearButton, flashMs)
-    pulseSendRipple(button)
-  }
-
-  const flash = () => {
-    const card = queryTarget('composerCard')
-    if (card === null) return
-
-    clearCard()
-    flashed = card
-    // Removing and forcing a reflow makes a repeated send replay the card halo.
-    card.removeAttribute(SENT_ATTRIBUTE)
-    void (card as HTMLElement).offsetWidth
-    card.setAttribute(SENT_ATTRIBUTE, '')
-    cardTimer = setTimeout(clearCard, flashMs)
-
-    const send = primaryButton(card)
-    if (send !== null) pulseButton(send)
+    ripple.setAttribute('data-active', '')
+    timer = setTimeout(clear, durationMs(intensity, 'flash'))
   }
 
   const onClick = (event: Event) => {
+    if (running || document.documentElement.dataset.lumina !== 'on') return
     const target = event.target
     if (!(target instanceof Element)) return
-    const card = target.closest('[data-composer-card]')
+    const card = target.closest(cssSelector('composerCard'))
     const button = target.closest('button')
-    if (card === null || button === null) return
-    if ((button as HTMLButtonElement).disabled) return
+    if (card === null || button === null || (button as HTMLButtonElement).disabled) return
     if (primaryButton(card) !== button) return
-    pulseButton(button)
+    clickAcknowledged = true
+    if (!transferOwnsGesture()) pulse(button)
   }
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    // Enter can mean newline under host preferences: only reset deduplication;
+    // a real stream start decides whether a keyboard send needs a visual pulse.
+    if (event.key !== 'Enter' || event.isComposing) return
+    if (event.target instanceof Element && event.target.closest(cssSelector('composerInput'))) {
+      clickAcknowledged = false
+    }
+  }
+  const releaseFallback = onTransferFallback?.(() => {
+    if (running || document.documentElement.dataset.lumina !== 'on') return
+    const card = queryTarget('composerCard')
+    const send = card ? primaryButton(card) : null
+    if (send) pulse(send)
+  })
   document.addEventListener('click', onClick, true)
-
+  document.addEventListener('keydown', onKeyDown, true)
   const unsubscribe = streaming.subscribe((active) => {
-    if (active) flash()
+    const started = active && !running
+    running = active
+    if (!started) return
+    const acknowledged = clickAcknowledged
+    clickAcknowledged = false
+    if (acknowledged || transferOwnsGesture() || document.documentElement.dataset.lumina !== 'on') return
+    const card = queryTarget('composerCard')
+    if (card === null) return
+    const send = primaryButton(card)
+    if (send !== null) pulse(send)
   })
 
   return () => {
+    releaseFallback?.()
     unsubscribe()
     document.removeEventListener('click', onClick, true)
+    document.removeEventListener('keydown', onKeyDown, true)
     clear()
     ripple.remove()
     disposeStyle()

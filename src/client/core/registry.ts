@@ -10,7 +10,7 @@
  */
 
 /** The effect ids Lumina ships. */
-export type EffectId = 'brand' | 'composerGlow' | 'caret' | 'press' | 'hero' | 'sessionActivity'
+export type EffectId = 'brand' | 'composerGlow' | 'caret' | 'press' | 'hero' | 'sessionActivity' | 'sendTransfer'
 
 /** What an effect returns when it installs successfully. */
 export type EffectHandle = (() => void) | void

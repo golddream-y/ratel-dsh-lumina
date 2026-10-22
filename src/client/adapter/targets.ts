@@ -11,6 +11,7 @@
 
 /** The semantic targets the effects can ask for. */
 export type TargetId =
+  | 'menuSurface'
   | 'composerCard'
   | 'composerInput'
   | 'composerButton'
@@ -48,6 +49,11 @@ function hasBox(element: Element): boolean {
  * one-line change here plus a fixture; effects never change.
  */
 export const TARGETS: Readonly<Record<TargetId, TargetDefinition>> = {
+  menuSurface: {
+    id: 'menuSurface',
+    kind: 'css',
+    selectors: ['[data-menu-material="translucent"]'],
+  },
   composerCard: {
     id: 'composerCard',
     kind: 'css',
@@ -100,4 +106,44 @@ export const TARGETS: Readonly<Record<TargetId, TargetDefinition>> = {
     ],
     validate: (element) => element.tagName.toLowerCase() === 'svg',
   },
+}
+
+/** Semantic DOM bridge for a request-id-correlated user node. No class names. */
+export function conversationRoot(sessionId: string): Element | null {
+  return [...document.querySelectorAll('[data-conversation-content][data-conversation-region="chat"]')]
+    .find((node) => node.getAttribute('data-conversation-session') === sessionId) ?? null
+}
+
+export function userNode(root: Element, key: string): Element | null {
+  return [...root.querySelectorAll('[data-chat-node-key], [data-chat-flow-key]')]
+    .find((node) => (node.getAttribute('data-chat-node-key') ?? node.getAttribute('data-chat-flow-key')) === key) ?? null
+}
+
+export function pendingEchoes(root: Element): Element[] {
+  return [...root.querySelectorAll('[data-submission-echo]')]
+}
+
+/** Match layout only after request identity is known; never establishes identity. */
+export function userTextRoot(node: Element, text: string): HTMLElement | null {
+  const expected = compactText(text)
+  const candidates = [...node.querySelectorAll<HTMLElement>('span, p, div')]
+    .filter((element) => !element.closest('[data-message-attachments], button') && compactText(element.innerText ?? element.textContent ?? '') === expected)
+  return candidates.find((element) => !candidates.some((other) => other !== element && element.contains(other))) ?? null
+}
+
+export function compactText(text: string): string {
+  return text.replace(/\s+/gu, '')
+}
+
+/** Rightmost visible control, with disabled controls retaining their position. */
+export function sendControl(card: Element): HTMLButtonElement | null {
+  const buttons = [...card.querySelectorAll<HTMLButtonElement>('button')]
+    .filter((node) => { const r = node.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+    .sort((a, b) => b.getBoundingClientRect().right - a.getBoundingClientRect().right)
+  return buttons[0] && !buttons[0].disabled ? buttons[0] : null
+}
+
+/** Keep glyph capture out of cursor decorations and accessibility-only text. */
+export function isGlyphDecoration(element: Element): boolean {
+  return element.closest('[aria-hidden="true"], [data-lexical-cursor]') !== null
 }

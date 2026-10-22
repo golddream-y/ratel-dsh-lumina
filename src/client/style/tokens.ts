@@ -16,9 +16,10 @@ export type DurationToken =
   | 'composer-stream'
   | 'caret-idle'
   | 'caret-stream'
-  | 'caret-typing'
+  | 'menu'
   | 'press'
   | 'flash'
+  | 'transfer'
   | 'hero'
   | 'hero-glow'
   | 'session'
@@ -28,43 +29,46 @@ export const DURATIONS: Readonly<
   Record<Intensity, Readonly<Record<DurationToken, number>>>
 > = {
   normal: {
-    'brand-sweep': 3600,
+    'brand-sweep': 9000,
     'composer-breathe': 3600,
     'composer-focus': 4000,
     'composer-stream': 2400,
     'caret-idle': 1150,
     'caret-stream': 720,
-    'caret-typing': 240,
+    menu: 140,
     press: 140,
-    flash: 520,
+    flash: 360,
+    transfer: 1150,
     hero: 320,
     'hero-glow': 900,
     session: 2400,
   },
   subtle: {
-    'brand-sweep': 6000,
+    'brand-sweep': 14000,
     'composer-breathe': 4800,
     'composer-focus': 6000,
     'composer-stream': 3600,
     'caret-idle': 1600,
     'caret-stream': 1000,
-    'caret-typing': 300,
+    menu: 180,
     press: 180,
-    flash: 620,
+    flash: 420,
+    transfer: 1350,
     hero: 420,
     'hero-glow': 1100,
     session: 3200,
   },
   vivid: {
-    'brand-sweep': 2600,
+    'brand-sweep': 6000,
     'composer-breathe': 2800,
     'composer-focus': 2800,
     'composer-stream': 1680,
     'caret-idle': 850,
     'caret-stream': 550,
-    'caret-typing': 190,
+    menu: 110,
     press: 110,
-    flash: 420,
+    flash: 280,
+    transfer: 1000,
     hero: 240,
     'hero-glow': 700,
     session: 1800,

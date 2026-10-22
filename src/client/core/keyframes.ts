@@ -9,8 +9,8 @@
 /** The idle composer edge breathing without moving. */
 export const BORDER_BREATHE = `
 @keyframes lumina-border-halo {
-  0%, 100% { opacity: .76; }
-  50% { opacity: .9; }
+  0%, 100% { opacity: .48; }
+  50% { opacity: 1; }
 }
 `
 
@@ -36,35 +36,27 @@ export const CARET_BREATHE = `
 }
 `
 
-/** The soft ring emitted at the caret when a character is typed. */
-export const TYPING_RIPPLE = `
-@keyframes lumina-typing-ripple {
-  0% { opacity: .65; transform: translate(-50%, -50%) scale(.4); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
-}
-`
-
 /** The soft ring left at the send button after a click. */
 export const SEND_RIPPLE = `
 @keyframes lumina-send-ripple {
-  0% { opacity: .6; transform: translate(-50%, -50%) scale(.55); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
+  0% { opacity: .4; transform: translate(-50%, -50%) scale(.85); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
 }
 `
 
 /** The light band sweeping across the brand wordmark. */
 export const WORDMARK_SWEEP = `
 @keyframes lumina-sweep {
-  from { transform: translateX(-100px); }
-  to { transform: translateX(392px); }
+  0%, 70% { transform: translateX(-100px); }
+  100% { transform: translateX(392px); }
 }
 `
 
 /** The new-session hero entrance. */
 export const HERO_IN = `
 @keyframes lumina-hero-in {
-  from { opacity: 0; transform: translateY(6px) scale(.92); filter: blur(6px); }
-  to { opacity: 1; transform: none; filter: blur(0); }
+  from { opacity: 0; transform: translateY(4px) scale(.98); }
+  to { opacity: 1; transform: none; }
 }
 `
 
@@ -95,16 +87,8 @@ export const SESSION_SPIN = `
 /** The primary send button pulsing once after a message is sent. */
 export const SEND_BUTTON_FLASH = `
 @keyframes lumina-send-button-flash {
-  0% { box-shadow: 0 0 0 0 rgba(var(--lumina-brand-rgb), .5); scale: .88; }
-  100% { box-shadow: 0 0 0 12px rgba(var(--lumina-brand-rgb), 0); scale: 1; }
-}
-`
-
-/** The halo expanding once after a message is sent. */
-export const SEND_FLASH = `
-@keyframes lumina-send-flash {
-  0% { box-shadow: 0 0 0 0 rgba(var(--lumina-brand-rgb), .45); }
-  100% { box-shadow: 0 0 0 10px rgba(var(--lumina-brand-rgb), 0); }
+  from { scale: .96; }
+  to { scale: 1; }
 }
 `
 
@@ -114,13 +98,11 @@ export const ALL_KEYFRAMES = [
   BORDER_SPIN,
   BORDER_ROTATE,
   CARET_BREATHE,
-  TYPING_RIPPLE,
   WORDMARK_SWEEP,
   HERO_IN,
   HERO_GLOW,
   SESSION_PULSE,
   SESSION_SPIN,
-  SEND_FLASH,
   SEND_BUTTON_FLASH,
   SEND_RIPPLE,
 ].join('\n')

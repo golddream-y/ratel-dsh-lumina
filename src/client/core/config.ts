@@ -28,6 +28,7 @@ export interface EffectFlags {
   readonly composerGlow: boolean
   readonly caret: boolean
   readonly press: boolean
+  readonly sendTransfer: boolean
   readonly hero: boolean
   readonly sessionActivity: boolean
 }
@@ -51,6 +52,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     composerGlow: true,
     caret: true,
     press: true,
+    sendTransfer: true,
     hero: true,
     sessionActivity: true,
   },
@@ -83,6 +85,7 @@ function readEffects(value: unknown): EffectFlags {
     composerGlow: readBoolean(source.composerGlow, DEFAULT_CONFIG.effects.composerGlow),
     caret: readBoolean(source.caret, DEFAULT_CONFIG.effects.caret),
     press: readBoolean(source.press, DEFAULT_CONFIG.effects.press),
+    sendTransfer: readBoolean(source.sendTransfer, DEFAULT_CONFIG.effects.sendTransfer),
     hero: readBoolean(source.hero, DEFAULT_CONFIG.effects.hero),
     sessionActivity: readBoolean(source.sessionActivity, DEFAULT_CONFIG.effects.sessionActivity),
   }

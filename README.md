@@ -6,7 +6,7 @@
 >
 > English | [中文](README.zh.md)
 
-Ratel Lumina adds six visual motions to the DSH Web / PWA / desktop client. It changes **no business
+Ratel Lumina adds seven visual motions to the DSH Web / PWA / desktop client. It changes **no business
 logic**, carries **no runtime dependencies**, and can be switched off completely.
 
 | # | Effect | Surface | Tier |
@@ -14,9 +14,10 @@ logic**, carries **no runtime dependencies**, and can be switched off completely
 | 1 | Brand mark & wordmark | `sidebar.brand.mark` / `sidebar.brand.name` | 1 — official slot |
 | 2 | Composer edge glow | `[data-composer-card]` | 2 — CSS on a data hook |
 | 3 | Streaming caret | `[data-lexical-cursor]` | 2 — CSS on a data hook |
-| 4 | Button press & send flash | `[data-composer-card] button` | 2 — CSS on a data hook |
+| 4 | Button feedback & menu fade | `[data-composer-card] button` / `[data-menu-material]` | 2 — CSS on a data hook |
 | 5 | New-session hero entrance | `conversation.hero.brand.mark` | 1 — official slot |
 | 6 | Session activity indicator | `svg[data-state="ongoing"]` | 2 — CSS on a data hook |
+| 7 | Liquid send transition | Public submission identity + corresponding user text | 2 — temporary glyph decoration |
 
 ## Visual language
 
@@ -104,7 +105,7 @@ licence terms that travel with it.
 | Brand wordmark shine | text shine / gradient text |
 | Composer edge glow | border glow |
 | Streaming caret | typewriter caret |
-| Button press and send flash | click acknowledgement |
+| Button feedback and menu fade | click acknowledgement |
 | New-session hero | blur-to-focus entrance |
 
 Particle and fluid cursor effects were evaluated and not adopted: they introduce a new visual entity

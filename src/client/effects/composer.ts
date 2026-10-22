@@ -1,100 +1,91 @@
-/** M2 · warm-to-cool composer edge, with a travelling highlight on focus/send. */
+/** M2 · static mixed-color rim, broad flowing light only while focused. */
 
 import { cssSelector } from '../adapter/selector.ts'
 import { installStyle } from '../core/styles.ts'
 
-/** Shared by the live composer and the settings miniature. */
+/** Shared by the live composer and the active settings miniature. */
 export function composerCss(
   card = cssSelector('composerCard'),
   focused = `${card}:focus-within`,
 ): string {
   return `
-@property --lumina-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
 ${card} {
   --lumina-edge-cool: var(--dsw-alias-brand-primary-new-colorprimary-new-color, var(--lumina-brand-soft));
-  --lumina-edge-warm: color-mix(in srgb, var(--lumina-brand) 42%, var(--lumina-hi, var(--lumina-brand-soft)));
-  --lumina-edge-ice: color-mix(in srgb, var(--lumina-edge-cool) 42%, var(--lumina-hi, var(--lumina-brand-soft)));
   --lumina-edge-light: var(--lumina-hi, var(--lumina-brand-soft));
+  --lumina-edge-warm: color-mix(in srgb, var(--lumina-brand) 48%, var(--lumina-edge-light));
+  --lumina-edge-ice: color-mix(in srgb, var(--lumina-edge-cool) 48%, var(--lumina-edge-light));
   position: relative;
   border-color: transparent !important;
-  box-shadow:
-    0 0 0 .5px color-mix(in srgb, var(--lumina-edge-light) 75%, transparent),
-    -4px 0 9px -5px color-mix(in srgb, var(--lumina-brand) 28%, transparent),
-    4px 0 9px -5px color-mix(in srgb, var(--lumina-edge-cool) 30%, transparent);
 }
 
 ${card}::before {
   content: "";
   position: absolute;
-  inset: -2px;
+  inset: -1px;
+  padding: 1.5px;
   border-radius: inherit;
-  border: 1px solid transparent;
-  padding: .75px;
-  /* Inner white core, travelling accent and pastel rim share one masked pseudo-element.
-     The highlight has a narrow head and a long translucent tail. */
-  background:
-    conic-gradient(from var(--lumina-angle, 0deg),
-      color-mix(in srgb, var(--lumina-edge-light) 28%, transparent) 0deg 40deg,
-      color-mix(in srgb, var(--lumina-edge-light) 42%, transparent) 65deg,
-      var(--lumina-edge-light) 88deg 94deg,
-      color-mix(in srgb, var(--lumina-edge-light) 68%, transparent) 106deg,
-      color-mix(in srgb, var(--lumina-edge-light) 28%, transparent) 155deg 360deg) padding-box,
-    conic-gradient(from var(--lumina-angle, 0deg),
-      transparent 0deg 52deg,
-      color-mix(in srgb, var(--lumina-edge-cool) 15%, transparent) 72deg,
-      color-mix(in srgb, var(--lumina-edge-cool) 48%, transparent) 88deg 94deg,
-      color-mix(in srgb, var(--lumina-edge-cool) 18%, transparent) 115deg,
-      transparent 160deg 360deg) border-box,
+  pointer-events: none;
+  /* A continuous rim, with a broad translucent wash fused into it.
+     There is no separate dot, capsule, head or object orbiting the card. */
+  background-image:
+    linear-gradient(110deg,
+      transparent 0% 24%,
+      color-mix(in srgb, var(--lumina-brand-soft) 65%, transparent) 36%,
+      var(--lumina-edge-light) 48% 52%,
+      color-mix(in srgb, var(--lumina-edge-cool) 65%, transparent) 64%,
+      transparent 76% 100%),
     linear-gradient(100deg,
       var(--lumina-edge-warm),
-      color-mix(in srgb, var(--lumina-brand-soft) 45%, var(--lumina-edge-light)) 28%,
-      color-mix(in srgb, var(--lumina-edge-ice) 65%, var(--lumina-edge-light)) 55%,
-      var(--lumina-edge-ice)) border-box;
+      color-mix(in srgb, var(--lumina-brand-soft) 65%, var(--lumina-edge-light)) 28%,
+      color-mix(in srgb, var(--lumina-edge-ice) 60%, var(--lumina-edge-light)) 58%,
+      var(--lumina-edge-ice));
+  background-size: 240% 100%, 100% 100%;
+  background-position: 160% 0, 0 0;
+  background-repeat: no-repeat;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  pointer-events: none;
-  opacity: .88;
-  animation: lumina-border-halo var(--lumina-composer-breathe) ease-in-out infinite;
+  opacity: .78;
+  animation: none;
 }
 
 ${focused} {
   box-shadow:
-    0 0 0 .5px color-mix(in srgb, var(--lumina-edge-light) 90%, transparent),
-    -5px 0 6px -4px color-mix(in srgb, var(--lumina-brand) 32%, transparent),
-    5px 0 6px -4px color-mix(in srgb, var(--lumina-edge-cool) 36%, transparent),
-    -7px 0 16px -8px color-mix(in srgb, var(--lumina-brand) 22%, transparent),
-    7px 0 16px -8px color-mix(in srgb, var(--lumina-edge-cool) 25%, transparent);
+    -8px 0 20px -6px color-mix(in srgb, var(--lumina-brand) 36%, transparent),
+    8px 0 20px -6px color-mix(in srgb, var(--lumina-edge-cool) 40%, transparent);
 }
-
 ${focused}::before {
-  opacity: .94;
-  animation: lumina-border-spin var(--lumina-composer-focus) linear infinite;
+  opacity: 1;
+  animation:
+    lumina-edge-wash calc(var(--lumina-composer-focus) * 1.5) linear infinite,
+    lumina-edge-breathe var(--lumina-composer-breathe) ease-in-out infinite;
+}
+${focused}:is([data-lumina-streaming="on"] *)::before {
+  animation-duration: calc(var(--lumina-composer-stream) * 1.5), var(--lumina-composer-breathe);
 }
 
-${card}:is([data-lumina-streaming="on"] *)::before {
-  opacity: .94;
-  animation: lumina-border-spin var(--lumina-composer-stream) linear infinite;
+@keyframes lumina-edge-wash {
+  from { background-position: 160% 0, 0 0; }
+  to { background-position: -160% 0, 0 0; }
+}
+@keyframes lumina-edge-breathe {
+  0%, 100% { opacity: .72; }
+  50% { opacity: 1; }
 }
 
 @supports not (mask-composite: exclude) {
-  ${card} { border-color: var(--lumina-edge-cool) !important; box-shadow: none; }
+  ${card} { border-color: var(--lumina-edge-ice) !important; }
   ${card}::before { content: none; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  ${card}, ${card}::before, ${card}::after,
-  ${focused}::before,
-  ${card}:is([data-lumina-streaming="on"] *)::before {
+  ${card}::before, ${focused}::before, ${focused}::after {
     animation: none;
   }
-  ${card}::before { opacity: .85; }
+  ${focused}::before {
+    background-position: 50% 0, 0 0;
+    opacity: .85;
+  }
 }
 `
 }

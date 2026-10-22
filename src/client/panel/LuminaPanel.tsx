@@ -12,9 +12,10 @@
  * rather than silently overwritten.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { LuminaConfig } from '../core/config.ts'
 import { DEFAULT_CONFIG } from '../core/config.ts'
+import { getTransferStatus, subscribeTransferStatus } from '../core/transfer-status.ts'
 
 /** The props the shell binds for a settings section entry. */
 export interface LuminaPanelProps {
@@ -31,6 +32,7 @@ const EFFECT_ROWS = [
   { id: 'brand', label: 'effectBrand', hint: 'effectBrandHint' },
   { id: 'composerGlow', label: 'effectComposerGlow', hint: 'effectComposerGlowHint' },
   { id: 'caret', label: 'effectCaret', hint: 'effectCaretHint' },
+  { id: 'sendTransfer', label: 'effectSendTransfer', hint: 'effectSendTransferHint' },
   { id: 'press', label: 'effectPress', hint: 'effectPressHint' },
   { id: 'hero', label: 'effectHero', hint: 'effectHeroHint' },
   { id: 'sessionActivity', label: 'effectSessionActivity', hint: 'effectSessionActivityHint' },
@@ -58,6 +60,7 @@ function sameConfig(left: LuminaConfig, right: LuminaConfig): boolean {
  */
 export function LuminaPanel(props: LuminaPanelProps) {
   const { t, save, useSettings } = props
+  const transferStatus = useSyncExternalStore(subscribeTransferStatus, getTransferStatus)
   const saved = useSettings((config) => config)
   const [draft, setDraft] = useState<LuminaConfig>(saved)
   const [message, setMessage] = useState<string | null>(null)
@@ -170,6 +173,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
 
       <section className="lumina-section">
         <span className="lumina-section-title">{t('effects')}</span>
+        <p className="lumina-row-hint" role="status">{t('transferStatusLabel')}: {t(`transferStatus_${transferStatus.code}`)} · {t('transferStarts')}: {transferStatus.starts}</p>
         {EFFECT_ROWS.map((row) => (
           <label key={row.id} className="lumina-row">
             <span className="lumina-row-text">

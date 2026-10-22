@@ -10,13 +10,15 @@ python3 -m http.server 8765 --directory docs/demo
 
 打开 <http://127.0.0.1:8765/>。
 
+现有 pulse / typing 页面保留为旧版选型存档；最新实现为单次发送光环、菜单淡入和输入时光标常亮。不要用旧页代替当前客户端验收。
+
 ## 页面
 
 | 页面 | 内容 |
 | --- | --- |
 | `index.html` | 原型入口与索引 |
-| `pulse.html` | M4 发送按钮按压 + 脉冲 + 卡片柔光 |
-| `typing.html` | M3 打字脉冲：光标呼吸 + 输入柔光 |
+| `pulse.html` | 旧版存档：0.88 缩放 + 520ms 光环 + 卡片柔光 |
+| `typing.html` | 旧版存档：逐键柔光；当前基线为输入常亮 360ms |
 
 原型页尽量复用正式实现的 CSS keyframes、时长和缓动；差异只在于用静态 mock DOM 代替客户端真实 DOM。
 最终验收仍以 desktop 客户端重启后的真实行为为准。

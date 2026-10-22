@@ -63,8 +63,8 @@ description: 当需要为某个交互挑选动效、给开发者 2–4 个带预
 | 辉光/流光 | React Bits Shiny / Magic UI Animated Shiny | 只抄渐变与 timing |
 | 故障 | React Bits Glitch | 两份错位文本 + clip-path |
 | 解密/乱码 | React Bits Decrypted | 逐字替换节奏 |
-| 打字反馈 | `local-typing` | 光标柔光环，不做 typewriter |
-| 发送/按压 | `local-pulse` | 按钮缩放 + 光环 |
+| 打字反馈 | `local-typing`（旧版存档） | 当前基线为输入常亮 360ms；柔光环仅存档 |
+| 发送/按压 | `local-pulse`（旧版存档） | 当前基线为单次 fixed 光环 360ms；旧页含卡片闪光 |
 | 入场/编排 | anime.js / GSAP SplitText | anime 可抄 stagger/timeline |
 
 ## 不要做

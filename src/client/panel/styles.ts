@@ -92,7 +92,7 @@ export function panelCss(): string {
   background: var(--dsw-alias-bg-layer-2);
 }
 
-/* The miniature composer: a 1.5px ring with the light travelling around it. */
+/* The miniature composer shares the continuous mixed rim and broad light wash. */
 .lumina-preview-composer {
   position: relative;
   width: 150px;

@@ -5,23 +5,25 @@ import { pressCss } from '../src/client/effects/press.ts'
 import { sessionCss } from '../src/client/effects/session.ts'
 
 describe('effect stylesheets', () => {
-  it('draws the composer glow as a masked conic ring', () => {
+  it('keeps a static mixed rim and blends a broad wash on focus', () => {
     const css = composerCss()
-    expect(css).toContain('@property --lumina-angle')
-    expect(css).toContain('conic-gradient')
+    expect(css).toContain('background-size: 240% 100%, 100% 100%')
     expect(css).toContain('mask-composite: exclude')
+    expect(css).not.toContain('offset-path')
+    expect(css).toContain(':focus-within')
+    expect(css).toContain('content: none')
     expect(css).toContain('::before')
   })
 
-  it('keeps press feedback and the send flash scoped to the composer', () => {
+  it('keeps send feedback local and adds a scoped menu fade', () => {
     const css = pressCss()
     expect(css).toContain(':active')
-    expect(css).toContain('lumina-send-flash')
-    expect(css).toContain('data-lumina-sent')
+    expect(css).not.toContain('lumina-send-flash')
+    expect(css).toContain('[data-menu-material="translucent"]')
     expect(css).toContain('data-lumina-send-pulse')
     expect(css).toContain('lumina-send-button-flash')
     expect(css).toContain('lumina-send-ripple')
-    expect(css).toContain('scale: .88')
+    expect(css).toContain('scale: .96')
   })
 
   it('plays the hero entrance with a brand glow', () => {

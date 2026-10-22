@@ -11,6 +11,7 @@
  */
 
 import { BrandMark, BrandName } from '../brand/artwork.tsx'
+import { rootWithTarget } from '../adapter/selector.ts'
 import { occupySlot } from '../core/slots.ts'
 
 /** The slots this effect occupies. */
@@ -71,6 +72,10 @@ ${declarations}
 .lumina-name { display: inline-flex; align-items: center; min-width: 0; height: 24px; overflow: hidden; }
 .lumina-name-svg { display: block; height: 100%; width: auto; }
 .lumina-shine { animation: lumina-sweep var(--lumina-brand-sweep) cubic-bezier(.45, 0, .55, 1) infinite; }
+${rootWithTarget('composerInput', ':focus')} .lumina-shine,
+[data-lumina-streaming="on"] .lumina-shine {
+  animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
   .lumina-shine { animation: none; }
 }`

@@ -10,8 +10,8 @@ python3 -m http.server 8765 --directory docs/demo
 | id | 意图 | 来源 | 许可证 | 预览 URL | 备注 |
 | --- | --- | --- | --- | --- | --- |
 | `local-motion-lab` | 总览 | 本项目 | — | <http://127.0.0.1:8765/> | 本地原型入口 |
-| `local-pulse` | send / press | 本项目 | — | <http://127.0.0.1:8765/pulse.html> | 发送按钮缩放 + 光环 |
-| `local-typing` | typing / keystroke | 本项目 | — | <http://127.0.0.1:8765/typing.html> | 光标柔光，不做 typewriter |
+| `local-pulse` | send / press | 本项目 | — | <http://127.0.0.1:8765/pulse.html> | 旧版存档：0.88 缩放 + 520ms + 卡片柔光；当前为单次 360ms 光环 |
+| `local-typing` | typing / keystroke | 本项目 | — | <http://127.0.0.1:8765/typing.html> | 旧版逐键柔光；当前为输入常亮 360ms、停顿呼吸 |
 | `anime-stagger` | enter / stagger / timeline / spring | anime.js | MIT | <https://animejs.com/> | 抄错峰和时间线，不引入 |
 | `gsap-splittext` | split / reveal / stagger / glow | GSAP SplitText | 免费商用，非 OSI | <https://gsap.com/docs/v3/Plugins/SplitText/> | 控制力最强；不引入 |
 | `textillate-shake` | shake / emphasis / error | Textillate | MIT | <https://jschr.github.io/textillate/> | jQuery 老库；只抄效果 |
@@ -31,5 +31,5 @@ python3 -m http.server 8765 --directory docs/demo
 - **fire** → `forging-fire` / `flame-text` 看视觉；实现优先 CSS 多层 `text-shadow` + `flicker`。
 - **glow** → `magicui-shiny` / `magicui-aurora` / `reactbits-shiny`；实现用 `text-shadow` 或 `background-clip`。
 - **glitch** → `reactbits-glitch`；实现用两份错位文本 + `clip-path`。
-- **typing** → `local-typing`；不要给输入框逐字包 span。
-- **send** → `local-pulse`；点击时按钮缩放 + 固定光环。
+- **typing** → `local-typing`（旧版存档）；当前基线是输入常亮 360ms，不做逐键柔光。
+- **send** → `local-pulse`（旧版存档）；当前基线是点击时单次 fixed 光环 360ms。

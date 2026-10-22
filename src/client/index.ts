@@ -25,6 +25,9 @@ import { ALL_KEYFRAMES } from './core/keyframes.ts'
 import { brandCss, installBrand } from './effects/brand.ts'
 import { installCaret } from './effects/caret.ts'
 import { installComposer } from './effects/composer.ts'
+import { reportTransferStatus } from './core/transfer-status.ts'
+import { installSendTransfer } from './effects/send-transfer.ts'
+import type { TransferBridge, TransferServices } from './adapter/send-transfer.ts'
 import { installPress } from './effects/press.ts'
 import { installHero } from './effects/hero.ts'
 import { installSessionActivity } from './effects/session.ts'
@@ -42,7 +45,7 @@ import { en, zh, LUMINA_LOCALE_NAMESPACE } from './locales.ts'
  * releases. A local shape keeps the build free of a version-coupled type
  * dependency while still pinning the three services we consume.
  */
-export interface LuminaClientContext {
+export interface LuminaClientContext extends TransferServices {
   /** The slot registry. */
   slots: {
     /**
@@ -65,7 +68,7 @@ export interface LuminaClientContext {
 }
 
 /** The services this module declares. `slots` is mandatory; the seat is withheld otherwise. */
-export const inject = ['slots', 'locale']
+export const inject = ['slots', 'locale', 'sessions', 'uiSession', 'uiConversation']
 
 /**
  * The attribute on `<html>` that carries the emergency stop.
@@ -136,6 +139,9 @@ function installEffects(
 ): () => void {
   const disposers: Array<() => void> = []
 
+  let transfer: TransferBridge | undefined
+  if (!config.master || !config.effects.sendTransfer) reportTransferStatus('disabled')
+
   // The base stylesheet is installed before the effects so a broken effect
   // still leaves the page in a coherent state.
   disposers.push(installStyle('base', baseCss(config)))
@@ -150,7 +156,11 @@ function installEffects(
         brand: () => installBrand(ctx),
         composerGlow: () => installComposer(),
         caret: () => installCaret(),
-        press: () => installPress(streaming, config.intensity),
+        sendTransfer: () => {
+          transfer = installSendTransfer(ctx, config.intensity)
+          return () => transfer?.dispose()
+        },
+        press: () => installPress(streaming, config.intensity, () => transfer?.ownsGesture() ?? false, (listener) => transfer?.onFallback(listener) ?? (() => {})),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),
       },

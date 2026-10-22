@@ -88,9 +88,10 @@ describe('settings panel', () => {
 
   it('renders the master switch and every effect row', () => {
     render(DEFAULT_CONFIG)
-    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(7)
+    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(8)
     expect(container.textContent).toContain('effectBrand')
     expect(container.textContent).toContain('effectHero')
+    expect(container.textContent).toContain('effectSendTransfer')
     expect(container.textContent).toContain('effectSessionActivity')
   })
 

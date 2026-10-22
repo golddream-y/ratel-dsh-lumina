@@ -4,7 +4,7 @@
 >
 > [English](README.md) | 中文
 
-Ratel Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐六处视觉动效。它**不改变任何业务逻辑**、
+Ratel Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐七处视觉动效。它**不改变任何业务逻辑**、
 **零运行时依赖**，并且**可以完全关掉**。
 
 | # | 效果 | 落点 | 层级 |
@@ -12,9 +12,10 @@ Ratel Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐六处视觉动效�
 | 1 | 品牌图标与字标 | `sidebar.brand.mark` / `sidebar.brand.name` | 1 · 官方 slot |
 | 2 | 输入框边缘流光 | `[data-composer-card]` | 2 · CSS 钩子 |
 | 3 | 打字机光标 | `[data-lexical-cursor]` | 2 · CSS 钩子 |
-| 4 | 按钮按压与发送闪光 | `[data-composer-card] button` | 2 · CSS 钩子 |
+| 4 | 按钮反馈与菜单淡入 | `[data-composer-card] button` / `[data-menu-material]` | 2 · CSS 钩子 |
 | 5 | 新会话首屏入场 | `conversation.hero.brand.mark` | 1 · 官方 slot |
 | 6 | 会话进行中指示 | `svg[data-state="ongoing"]` | 2 · CSS 钩子 |
+| 7 | 发送文字水滴转场 | 公开提交身份 + 对应用户消息 | 2 · 临时字形装饰层 |
 
 ## 视觉语言
 
@@ -47,7 +48,7 @@ dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
 | P0 | 骨架、装载链、品牌 slot、设置页 | 已完成（19 项测试） |
-| MVP | 六个效果 + 钩子自检 | 进行中，见 [MVP](docs/product/MVP.md) |
+| MVP | 七个效果 + 钩子自检 | 进行中，见 [MVP](docs/product/MVP.md) |
 | 后续阶段 | ratel 资产、部署默认、官方设置卡片 | 规划 |
 
 ## 目录结构
@@ -100,7 +101,7 @@ npm run install:local web
 | 品牌字标流光 | 文字流光 / 渐变文字 |
 | 输入框边缘流光 | 边框光 |
 | 打字机光标 | 打字机光标 |
-| 按钮按压与发送闪光 | 点击确认 |
+| 按钮反馈与菜单淡入 | 点击确认 |
 | 新会话首屏入场 | 由模糊到清晰入场 |
 
 粒子/流体类光标效果经评估**未采用**：引入新的视觉实体、需要持续逐帧计算，超出本产品范围。
