@@ -15,7 +15,7 @@ Ratel Lumina 为 DSH 的 Web / PWA / 桌面端客户端补齐七处视觉动效�
 | 4 | 按钮反馈与菜单淡入 | `[data-composer-card] button` / `[data-menu-material]` | 2 · CSS 钩子 |
 | 5 | 新会话首屏入场 | `conversation.hero.brand.mark` | 1 · 官方 slot |
 | 6 | 会话进行中指示 | `svg[data-state="ongoing"]` | 2 · CSS 钩子 |
-| 7 | 发送文字水滴转场 | 公开提交身份 + 对应用户消息 | 2 · 临时字形装饰层 |
+| 7 | 发送转场（水滴 / 文字消解 / 小幽灵） | 公开提交身份 + 对应用户消息 | 2 · 临时字形装饰层 |
 
 ## 视觉语言
 
