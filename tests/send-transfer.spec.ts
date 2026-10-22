@@ -141,7 +141,11 @@ describe('send transfer identity and lifecycle', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
   it('fills the new default without discarding existing switches', () => {
-    expect(parseConfig(JSON.stringify({ version: 1, effects: { press: false } })).effects).toMatchObject({ press: false, sendTransfer: true })
-    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransfer: false } })).effects.sendTransfer).toBe(false)
+    expect(parseConfig(JSON.stringify({ version: 1, effects: { press: false } })).effects).toMatchObject({ press: false, sendTransition: 'dissolve' })
+    // The first release stored a boolean switch: true becomes the liquid mode.
+    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransfer: true } })).effects.sendTransition).toBe('liquid')
+    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransfer: false } })).effects.sendTransition).toBe('off')
+    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransition: 'ghost' } })).effects.sendTransition).toBe('ghost')
+    expect(parseConfig(JSON.stringify({ version: 1, effects: { sendTransition: 'nope' } })).effects.sendTransition).toBe('dissolve')
   })
 })

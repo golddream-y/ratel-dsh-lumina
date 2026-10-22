@@ -140,7 +140,7 @@ function installEffects(
   const disposers: Array<() => void> = []
 
   let transfer: TransferBridge | undefined
-  if (!config.master || !config.effects.sendTransfer) reportTransferStatus('disabled')
+  if (!config.master || config.effects.sendTransition === 'off') reportTransferStatus('disabled')
 
   // The base stylesheet is installed before the effects so a broken effect
   // still leaves the page in a coherent state.
@@ -150,14 +150,17 @@ function installEffects(
     runEffects(
       {
         master: config.master,
-        enabled: (id: EffectId) => config.effects[id],
+        enabled: (id: EffectId) => id === 'sendTransition'
+          ? config.effects.sendTransition !== 'off'
+          : config.effects[id],
       },
       {
         brand: () => installBrand(ctx),
         composerGlow: () => installComposer(),
         caret: () => installCaret(),
-        sendTransfer: () => {
-          transfer = installSendTransfer(ctx, config.intensity)
+        sendTransition: () => {
+          const mode = config.effects.sendTransition
+          transfer = installSendTransfer(ctx, mode === 'off' ? 'dissolve' : mode, config.intensity)
           return () => transfer?.dispose()
         },
         press: () => installPress(streaming, config.intensity, () => transfer?.ownsGesture() ?? false, (listener) => transfer?.onFallback(listener) ?? (() => {})),

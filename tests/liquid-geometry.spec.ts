@@ -39,4 +39,10 @@ describe('water merges into the composer edge before detaching', () => {
     expect(css).not.toContain('color: var(--lumina-brand);')
     expect(css).toContain('prefers-reduced-motion')
   })
+  it('carries the layers every mode needs', () => {
+    const css = transferCss()
+    expect(css).toContain('.lumina-transfer-layer')
+    expect(css).toContain('.lumina-transfer-ghost')
+    expect(css).toContain('.lumina-transfer-glyph')
+  })
 })

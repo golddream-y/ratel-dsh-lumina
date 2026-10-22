@@ -13,8 +13,8 @@
  */
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import type { LuminaConfig } from '../core/config.ts'
-import { DEFAULT_CONFIG } from '../core/config.ts'
+import type { LuminaConfig, TransferMode } from '../core/config.ts'
+import { DEFAULT_CONFIG, TRANSFER_MODES } from '../core/config.ts'
 import { getTransferStatus, subscribeTransferStatus } from '../core/transfer-status.ts'
 
 /** The props the shell binds for a settings section entry. */
@@ -32,7 +32,6 @@ const EFFECT_ROWS = [
   { id: 'brand', label: 'effectBrand', hint: 'effectBrandHint' },
   { id: 'composerGlow', label: 'effectComposerGlow', hint: 'effectComposerGlowHint' },
   { id: 'caret', label: 'effectCaret', hint: 'effectCaretHint' },
-  { id: 'sendTransfer', label: 'effectSendTransfer', hint: 'effectSendTransferHint' },
   { id: 'press', label: 'effectPress', hint: 'effectPressHint' },
   { id: 'hero', label: 'effectHero', hint: 'effectHeroHint' },
   { id: 'sessionActivity', label: 'effectSessionActivity', hint: 'effectSessionActivityHint' },
@@ -49,6 +48,7 @@ function sameConfig(left: LuminaConfig, right: LuminaConfig): boolean {
   if (left.master !== right.master) return false
   if (left.brand !== right.brand) return false
   if (left.intensity !== right.intensity) return false
+  if (left.effects.sendTransition !== right.effects.sendTransition) return false
   return EFFECT_ROWS.every((row) => left.effects[row.id] === right.effects[row.id])
 }
 
@@ -85,6 +85,14 @@ export function LuminaPanel(props: LuminaPanelProps) {
     setDraft((current) => ({
       ...current,
       effects: { ...current.effects, [id]: enabled },
+    }))
+    setMessage(null)
+  }
+
+  const editTransfer = (mode: TransferMode) => {
+    setDraft((current) => ({
+      ...current,
+      effects: { ...current.effects, sendTransition: mode },
     }))
     setMessage(null)
   }
@@ -174,6 +182,27 @@ export function LuminaPanel(props: LuminaPanelProps) {
       <section className="lumina-section">
         <span className="lumina-section-title">{t('effects')}</span>
         <p className="lumina-row-hint" role="status">{t('transferStatusLabel')}: {t(`transferStatus_${transferStatus.code}`)} · {t('transferStarts')}: {transferStatus.starts}</p>
+        <div className="lumina-field">
+          <span className="lumina-row-title">{t('effectSendTransfer')}</span>
+          <span className="lumina-row-hint">{t('effectSendTransferHint')}</span>
+          <div className="lumina-segmented" role="radiogroup" aria-label={t('effectSendTransfer')}>
+            {TRANSFER_MODES.map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={draft.effects.sendTransition === mode}
+                className="lumina-segment"
+                data-active={draft.effects.sendTransition === mode ? 'true' : undefined}
+                disabled={!draft.master}
+                onClick={() => editTransfer(mode)}
+              >
+                {t(`transferMode${mode.charAt(0).toUpperCase()}${mode.slice(1)}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {EFFECT_ROWS.map((row) => (
           <label key={row.id} className="lumina-row">
             <span className="lumina-row-text">

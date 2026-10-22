@@ -22,13 +22,24 @@ export type BrandPreset = 'ratel' | 'deepseek'
 /** Motion intensity tiers; maps to a duration multiplier. */
 export type Intensity = 'subtle' | 'normal' | 'vivid'
 
+/**
+ * The send transition modes.
+ *
+ * `off` keeps the send free of any decoration; the other three replace the
+ * message feedback with a distinct transition.
+ */
+export type TransferMode = 'off' | 'liquid' | 'dissolve' | 'ghost'
+
+/** The modes a user can pick, in settings order. */
+export const TRANSFER_MODES: readonly TransferMode[] = ['off', 'liquid', 'dissolve', 'ghost']
+
 /** Per-effect switches. The keys are the effect ids used across the codebase. */
 export interface EffectFlags {
   readonly brand: boolean
   readonly composerGlow: boolean
   readonly caret: boolean
   readonly press: boolean
-  readonly sendTransfer: boolean
+  readonly sendTransition: TransferMode
   readonly hero: boolean
   readonly sessionActivity: boolean
 }
@@ -52,7 +63,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     composerGlow: true,
     caret: true,
     press: true,
-    sendTransfer: true,
+    sendTransition: 'dissolve',
     hero: true,
     sessionActivity: true,
   },
@@ -78,6 +89,18 @@ function readIntensity(value: unknown): Intensity {
   return INTENSITIES.includes(value as Intensity) ? (value as Intensity) : DEFAULT_CONFIG.intensity
 }
 
+/**
+ * Read the send transition mode.
+ *
+ * The first release stored a boolean switch; `true` becomes the liquid mode
+ * and `false` becomes `off`, so an existing install keeps its behaviour.
+ */
+function readTransferMode(value: unknown, legacy: unknown): TransferMode {
+  if (typeof value === 'boolean') return value ? 'liquid' : 'off'
+  if (typeof legacy === 'boolean') return legacy ? 'liquid' : 'off'
+  return TRANSFER_MODES.includes(value as TransferMode) ? (value as TransferMode) : DEFAULT_CONFIG.effects.sendTransition
+}
+
 function readEffects(value: unknown): EffectFlags {
   const source = isRecord(value) ? value : {}
   return {
@@ -85,7 +108,7 @@ function readEffects(value: unknown): EffectFlags {
     composerGlow: readBoolean(source.composerGlow, DEFAULT_CONFIG.effects.composerGlow),
     caret: readBoolean(source.caret, DEFAULT_CONFIG.effects.caret),
     press: readBoolean(source.press, DEFAULT_CONFIG.effects.press),
-    sendTransfer: readBoolean(source.sendTransfer, DEFAULT_CONFIG.effects.sendTransfer),
+    sendTransition: readTransferMode(source.sendTransition, source.sendTransfer),
     hero: readBoolean(source.hero, DEFAULT_CONFIG.effects.hero),
     sessionActivity: readBoolean(source.sessionActivity, DEFAULT_CONFIG.effects.sessionActivity),
   }
