@@ -76,12 +76,14 @@ describe('ghost pickup and handover', () => {
     const hood = stage.root.querySelector('[data-ghost-part="hood"]')!
     const cloak = stage.root.querySelector('[data-ghost-part="cloak"]')!
     expect(hood).not.toBeNull(); expect(cloak).not.toBeNull()
+    expect(stage.root.querySelector('[data-ghost-part=loose-collar]')).not.toBeNull()
+    expect(stage.root.querySelector('[data-ghost-part=scythe]')).not.toBeNull()
     const hoodPath = hood.getAttribute('d'), cloakPath = cloak.getAttribute('d')
     renderer.render(430, stage)
     expect(hood.getAttribute('d')).toBe(hoodPath)
     expect(cloak.getAttribute('d')).not.toBe(cloakPath)
     const sprite = stage.root.querySelector<SVGSVGElement>('.lumina-transfer-ghost')!
-    expect(sprite.style.transform).toContain('rotate(10deg)')
+    expect(sprite.style.transform).toContain('rotate(6deg)')
     expect(stage.ink.lastElementChild).toBe(sprite)
     expect(Number(sprite.style.opacity)).toBeLessThan(1)
     renderer.dispose?.(stage)

@@ -9,7 +9,7 @@ import type { Point, TransferRenderer, TransferStage } from './types.ts'
 const HOOD = 'M20 31 C18 24 22 13 33 7 C39 3 44 5 44 10 C48 13 51 18 52 24 C53 30 48 35 42 37 C32 39 24 36 20 31 Z'
 const FACE = 'M33 18 C37 14 44 15 48 21 C51 26 47 32 42 33 C36 34 31 30 31 25 C31 22 31 20 33 18 Z'
 const HIGHLIGHT = 'M23 23 C24 17 30 10 37 8 C32 13 29 17 27 25 Z'
-const TEAR_LENGTHS = [5, 9, 6, 13, 8, 16, 10, 18, 12, 20, 15, 22]
+const TEAR_LENGTHS = [2.5, 4.5, 2, 4, 3, 6, 3, 4.5, 2.5, 7, 3.5, 5]
 const FLIGHT_AT = 300
 const FLIGHT_MS = 540
 const LAND_MS = 240
@@ -25,12 +25,12 @@ function flutter(index: number, phase: number): number {
 /** Twelve curved, unequal tears behind the shoulder; the hood is separate. */
 function cloakPath(t: number): string {
   const phase = t * .006
-  const path = ['M22 28 C16 29 10 34 8 39 L5 43']
+  const path = ['M22 28 C15 28 8 33 6 39 C4 43 3 46 2 49']
   // Draw left to right so every curled tip stays inside its own cloth strip.
-  const width = 44 / TEAR_LENGTHS.length
+  const width = 47 / TEAR_LENGTHS.length
   for (let i = 0; i < TEAR_LENGTHS.length; i++) {
-    const x = 5 + i * width
-    const y = 43 - 2 * i / (TEAR_LENGTHS.length - 1)
+    const x = 2 + i * width
+    const y = 49 - 6 * i / (TEAR_LENGTHS.length - 1)
     const wind = flutter(i, phase)
     const tipX = x + width * .5 + Math.max(-.8, Math.min(.8, flutter(i + 3, phase) * .7))
     const tipY = y + TEAR_LENGTHS[TEAR_LENGTHS.length - 1 - i]! + wind * 2.2
@@ -53,9 +53,9 @@ export function createGhostRenderer(): TransferRenderer {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
     svg.setAttribute('class', 'lumina-transfer-ghost')
-    svg.setAttribute('viewBox', '0 0 64 72')
-    svg.setAttribute('width', '60'); svg.setAttribute('height', '68')
-    Object.assign(svg.style, { position: 'absolute', left: '0', top: '0', overflow: 'visible', transformOrigin: '35.625px 21.72px', filter: 'drop-shadow(0 4px 7px color-mix(in srgb, var(--lumina-ghost-tint) 16%, transparent))' })
+    svg.setAttribute('viewBox', '0 0 72 72')
+    svg.setAttribute('width', '68'); svg.setAttribute('height', '68')
+    Object.assign(svg.style, { position: 'absolute', left: '0', top: '0', overflow: 'visible', transformOrigin: '35.889px 21.72px', filter: 'drop-shadow(0 4px 7px color-mix(in srgb, var(--lumina-ghost-tint) 16%, transparent))' })
     const defs = document.createElementNS(ns, 'defs')
     const fill = document.createElementNS(ns, 'linearGradient')
     const id = `lumina-ghost-fill-${++sequence}`
@@ -82,14 +82,32 @@ export function createGhostRenderer(): TransferRenderer {
     cloth.setAttribute('data-cloak-tips', '12')
     cloth.setAttribute('stroke', 'color-mix(in srgb, var(--lumina-hi) 32%, transparent)')
     cloth.setAttribute('stroke-width', '.6')
-    const folds = path('folds', 'M23 33 C23 42 16 50 14 57 M34 35 C31 44 26 49 25 56 M44 34 C42 39 42 44 43 48', 'none', '.24')
+    const folds = path('folds', 'M19 40 Q16 44 15 48 M33 43 Q29 45 28 49', 'none', '.24')
     folds.setAttribute('stroke', 'var(--lumina-ghost-shade)'); folds.setAttribute('stroke-width', '.9')
     const hood = path('hood', HOOD, `url(#${id})`)
-    const face = path('face', FACE, 'var(--lumina-ghost-void)', '.76')
+    const face = path('face', FACE, 'var(--lumina-ghost-void)', '.66')
     const edge = path('hood-rim', 'M32 18 C37 14 44 15 48 21', 'none', '.4')
     edge.setAttribute('stroke', 'var(--lumina-hi)'); edge.setAttribute('stroke-width', '1')
-    svg.append(cloth, folds, hood, face, edge, path('highlight', HIGHLIGHT, 'var(--lumina-hi)', '.28'))
-    for (const [cx, cy, rx, ry] of [[38, 23.5, 2, 2.6], [45.5, 23, 1.35, 2.1]]) {
+    const tool = document.createElementNS(ns, 'g')
+    tool.setAttribute('data-ghost-part', 'scythe')
+    const handle = path('handle', 'M60 33 L50 59', 'none', '.62')
+    handle.setAttribute('stroke', 'var(--lumina-ghost-shade)'); handle.setAttribute('stroke-width', '1.5'); handle.setAttribute('stroke-linecap', 'round')
+    const blade = path('blade', 'M60 33 C65 24 60 17 51 19 C58 21 60 26 56 31 Z', 'var(--lumina-hi)', '.72')
+    blade.setAttribute('stroke', 'var(--lumina-ghost-shade)'); blade.setAttribute('stroke-width', '.65')
+    tool.append(handle, blade)
+    const collar = path('loose-collar', 'M17 31 C23 35 33 39 42 37 Q47 36 49 33 Q47 41 39 42 C29 42 21 38 17 34 Z', 'var(--lumina-ghost-soft)', '.22')
+    const smile = path('smile', 'M38.5 29 Q41 31 43.5 28.5', 'none', '.65')
+    smile.setAttribute('stroke', 'var(--lumina-hi)'); smile.setAttribute('stroke-width', '.85'); smile.setAttribute('stroke-linecap', 'round')
+    svg.append(tool, cloth, folds, hood, collar, face, edge, path('highlight', HIGHLIGHT, 'var(--lumina-hi)', '.28'), smile)
+    for (const [cx, cy, rx, ry, part] of [[34.5, 28.5, 2.4, 1.25, 'blush'], [47.5, 27.5, 1.6, 1, 'blush'], [53.5, 49.5, 2.5, 2, 'hand']] as const) {
+      const detail = document.createElementNS(ns, 'ellipse')
+      detail.setAttribute('data-ghost-part', part)
+      detail.setAttribute('cx', String(cx)); detail.setAttribute('cy', String(cy))
+      detail.setAttribute('rx', String(rx)); detail.setAttribute('ry', String(ry))
+      detail.setAttribute('fill', 'var(--lumina-ghost-soft)'); detail.setAttribute('opacity', part === 'hand' ? '.7' : '.25')
+      svg.append(detail)
+    }
+    for (const [cx, cy, rx, ry] of [[38, 23.5, 2.2, 2.7], [45.5, 23, 1.6, 2.2]]) {
       const eye = document.createElementNS(ns, 'ellipse')
       eye.setAttribute('cx', String(cx)); eye.setAttribute('cy', String(cy))
       eye.setAttribute('rx', String(rx)); eye.setAttribute('ry', String(ry))
@@ -136,7 +154,7 @@ export function createGhostRenderer(): TransferRenderer {
     }
     cloak?.setAttribute('d', cloakPath(t))
     sprite.style.opacity = String(.9 * rise * (1 - arrive))
-    sprite.style.transform = `translate(${point.x - stage.origin.x - 35.625}px, ${point.y - stage.origin.y - 21.72}px) rotate(10deg)`
+    sprite.style.transform = `translate(${point.x - stage.origin.x - 35.889}px, ${point.y - stage.origin.y - 21.72}px) rotate(6deg)`
     if (trail) {
       const lag = flightStart === null ? 0 : smoother((t - flightStart - 85) / FLIGHT_MS)
       trail.style.opacity = String(.2 * rise * (1 - arrive))
