@@ -12,10 +12,38 @@ import { mix, smoother, smooth } from '../liquid-geometry.ts'
 import { arcPoint } from './shared.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
 
-/** The ghost silhouette: dome, scalloped hem, drawn at 64×64. */
-const GHOST_PATH = 'M32 5 C17 5 7 16 7 30 C7 40 10 46 13 52 L17 45 L22 53 L27 45 L32 53 L37 45 L42 53 L47 45 L51 52 C54 46 57 40 57 30 C57 16 47 5 32 5 Z'
 /** The soft top highlight. */
 const GHOST_HIGHLIGHT = 'M19 15 C23 11 29 9 34 10 C30 13 25 16 21 21 C20 19 19 17 19 15 Z'
+
+/** The hem sample points, right to left, at the scallop tips and valleys. */
+const HEM = [
+  [51, 48], [46.5, 44.5], [42, 48], [37.5, 44.5], [33, 48],
+  [28.5, 44.5], [24, 48], [19.5, 44.5], [16, 48], [13, 45.5],
+] as const
+
+/**
+ * The wind-blown silhouette.
+ *
+ * The dome stays stable while the hem travels on a slow sine, so the body
+ * ripples like cloth in a breeze instead of bouncing. The whole figure also
+ * leans a hair with the gust.
+ *
+ * @param t - the normalized timeline position.
+ * @returns the path data.
+ */
+function ghostPath(t: number): string {
+  const phase = t * .012
+  const lean = Math.sin(phase * .7) * 2.2
+  const dome = `M 8 30 C 8 14 18 5 32 5 C 46 5 56 14 56 30 L 56 42`
+  const hem = HEM.map(([x, y], index) => {
+    const wave = Math.sin(phase + (index / (HEM.length - 1)) * Math.PI * 2.2)
+    const lift = Math.cos(phase * 1.1 + index * .55) * 2.1
+    const wx = x + wave * 3.2 + lean
+    const wy = y + lift
+    return `L ${wx.toFixed(2)} ${wy.toFixed(2)}`
+  }).join(' ')
+  return `${dome} ${hem} L 8 42 Z`
+}
 
 /** The blobs of the mist trail that follows the ghost. */
 const TRAIL = [
@@ -27,6 +55,7 @@ const TRAIL = [
 /** Build the ghost mode renderer. */
 export function createGhostRenderer(): TransferRenderer {
   let sprite: SVGSVGElement | null = null
+  let bodyPath: SVGPathElement | null = null
   let trail: HTMLElement | null = null
   let sourceHidden = false
   let resolveStart: number | null = null
@@ -57,7 +86,7 @@ export function createGhostRenderer(): TransferRenderer {
     }
     defs.append(gradient)
     const body = document.createElementNS(ns, 'path')
-    body.setAttribute('d', GHOST_PATH)
+    body.setAttribute('d', ghostPath(0))
     body.setAttribute('fill', 'url(#lumina-ghost-fill)')
     body.setAttribute('stroke', 'rgba(255, 235, 232, .5)')
     body.setAttribute('stroke-width', '1')
@@ -94,8 +123,8 @@ export function createGhostRenderer(): TransferRenderer {
       return node
     }
     svg.append(defs, body, shine, eye(24), eye(40), glint(23), glint(39), blush(17), blush(47))
-    stage.ink.append(svg)
     sprite = svg
+    bodyPath = body
 
     const puff = document.createElement('div')
     puff.className = 'lumina-transfer-mist'
@@ -110,7 +139,8 @@ export function createGhostRenderer(): TransferRenderer {
       node.style.animationDuration = blob.duration
       puff.append(node)
     }
-    stage.ink.append(puff)
+    // Trail first, ghost second: the mist must sit behind the silhouette.
+    stage.ink.append(puff, svg)
     trail = puff
   }
 
@@ -128,6 +158,7 @@ export function createGhostRenderer(): TransferRenderer {
       sourceHidden = true
     }
     if (sprite === null) return false
+    bodyPath?.setAttribute('d', ghostPath(t))
 
     const target: Point = stage.arrival ?? { x: edge.x, y: edge.y - 40 }
     const start: Point = { x: edge.x, y: edge.y - 8 }
@@ -143,9 +174,9 @@ export function createGhostRenderer(): TransferRenderer {
     sprite.style.filter = `drop-shadow(0 8px 14px rgba(232, 50, 42, ${(.32 * (1 - arrive)).toFixed(2)}))`
     if (trail !== null) {
       // The mist follows the same path, a little behind the ghost.
-      const back = arcPoint(start, via, target, Math.max(0, fly - .08))
-      trail.style.opacity = String((0.48 * rise) * (1 - arrive))
-      trail.style.transform = `translate(${back.x - origin.x - 32}px, ${back.y - origin.y - 32}px) scale(${(0.6 + 0.4 * rise) * (1 + 0.3 * arrive)})`
+      const back = arcPoint(start, via, target, Math.max(0, fly - .14))
+      trail.style.opacity = String((0.26 * rise) * (1 - arrive))
+      trail.style.transform = `translate(${back.x - origin.x - 32}px, ${back.y - origin.y - 32}px) scale(${(0.5 + 0.3 * rise) * (1 + 0.25 * arrive)})`
     }
 
     if (stage.target === null) return false
@@ -167,6 +198,7 @@ export function createGhostRenderer(): TransferRenderer {
   const dispose = (stage: TransferStage) => {
     sprite?.remove()
     sprite = null
+    bodyPath = null
     trail?.remove()
     trail = null
     stage.targetLayer.style.filter = ''
