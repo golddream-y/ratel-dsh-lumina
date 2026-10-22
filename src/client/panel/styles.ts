@@ -56,6 +56,7 @@ export function panelCss(): string {
 
 .lumina-segmented {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 2px;
   margin-top: 8px;
   padding: 2px;
@@ -72,12 +73,22 @@ export function panelCss(): string {
   color: var(--dsw-alias-label-secondary);
   background: transparent;
   cursor: pointer;
+  white-space: nowrap;
 }
 .lumina-segment:hover { color: var(--dsw-alias-label-primary); }
+/* The selected chip is marked with a brand tint and a ring: the theme's own
+   layer tokens are too close to the group background to read as selected. */
 .lumina-segment[data-active='true'] {
   color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-layer-4);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--lumina-brand) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lumina-brand) 45%, transparent);
 }
+.lumina-segment:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--lumina-brand) 60%, transparent);
+  outline-offset: 1px;
+}
+.lumina-segment:disabled { opacity: .45; cursor: default; }
 
 .lumina-switch { accent-color: var(--lumina-brand); width: 16px; height: 16px; flex-shrink: 0; }
 .lumina-switch:disabled { opacity: .45; }
