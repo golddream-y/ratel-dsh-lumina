@@ -1,7 +1,7 @@
 {
   "name": "@ratel-works/dsh-lumina",
-  "version": "0.1.0",
-  "description": "Ratel Lumina — motion enhancement layer for the DeepSeek Harness client: brand mark, composer edge glow, streaming caret, button press, new-session hero, and session activity.",
+  "version": "0.2.0",
+  "description": "Ratel Lumina — motion enhancement for DeepSeek Harness: composer glow, caret, press feedback, and droplet, dissolve or ghost send transitions.",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -25,7 +25,10 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
-    "assets/readme/hero-zh-CN.webp"
+    "assets/readme/hero-zh-CN.webp",
+    "assets/readme/hero-en.webp",
+    "CHANGELOG.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "dsh": {
     "bundle": {
@@ -44,8 +47,8 @@
     "catalog": {
       "category": "ui",
       "summary": {
-        "en": "Ratel Lumina — a light, breathing motion layer for the DeepSeek Harness client: brand, composer halo, caret, press feedback, hero entrance, and session activity.",
-        "zh": "Ratel Lumina —— 为 DeepSeek Harness 客户端添加一层轻盈会呼吸的动效：品牌、输入框光晕、光标、按压反馈、首屏入场与会话进行中指示。"
+        "en": "Subtle motion for DeepSeek Harness, with composer glow, caret feedback and droplet, dissolve or ghost send transitions.",
+        "zh": "为 DeepSeek Harness 添加输入框流光、光标反馈，以及水滴、文字消解和小幽灵发送转场。"
       },
       "capabilities": [
         "slots",

@@ -47,12 +47,16 @@ dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 
 Then restart the client — plugins are read from the manifest at startup and are not hot-reloaded.
 
+## 0.2.0 update
+
+Send transitions now offer droplet, dissolve and ghost modes, with droplet as the default. Existing mode choices are preserved. Settings apply immediately; code upgrades require a full client restart. See the [changelog](CHANGELOG.md) for details.
+
 ## Status
 
 | Stage | Scope | State |
 | --- | --- | --- |
 | P0 | Skeleton, loading chain, brand slot, settings page | done (19 tests) |
-| MVP | Six effects + hook self-check | in progress — see [MVP](docs/product/MVP.md) |
+| MVP | Seven effects + hook self-check | in progress — see [MVP](docs/product/MVP.md) |
 | Next stage | ratel asset, deployment defaults, official settings card | planned |
 
 ## Repository layout
