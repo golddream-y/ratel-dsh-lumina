@@ -63,7 +63,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     composerGlow: true,
     caret: true,
     press: true,
-    sendTransition: 'dissolve',
+    sendTransition: 'liquid',
     hero: true,
     sessionActivity: true,
   },

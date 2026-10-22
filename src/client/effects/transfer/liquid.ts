@@ -1,7 +1,7 @@
 /** The liquid mode: gather, fuse, edge merge, detach, arc flight, unfold. */
 
 import { cssSelector } from '../../adapter/selector.ts'
-import { clamp, liquidFrame, mix, smooth } from '../liquid-geometry.ts'
+import { clamp, liquidFrame, smooth } from '../liquid-geometry.ts'
 import type { TransferRenderer, TransferStage } from './types.ts'
 
 let sequence = 0
@@ -19,7 +19,6 @@ interface LiquidNodes {
   surfaceHalf: number
   sourceHidden: boolean
   lastBlur: number
-  targetDone: boolean[]
 }
 
 /** Build the liquid mode renderer. */
@@ -111,9 +110,13 @@ export function createLiquidRenderer(): TransferRenderer {
     glint.setAttribute('stroke-width', '1.8')
     stage.ink.append(glass)
 
+    // Text is a coherent block in liquid mode. Only the liquid shapes use goo.
+    stage.sourceLayer.style.filter = ''
+    stage.targetLayer.style.filter = ''
+    stage.targetLayer.style.opacity = '0'
     nodes = {
       svg, group, surface, neck, drop, surfaceLine, dropLine, glint, blur,
-      surfaceHalf, sourceHidden: false, lastBlur: -1, targetDone: [],
+      surfaceHalf, sourceHidden: false, lastBlur: -1,
     }
   }
 
@@ -129,16 +132,15 @@ export function createLiquidRenderer(): TransferRenderer {
     stage.root.setAttribute('data-liquid-radius', radius.toFixed(3))
     stage.root.setAttribute('data-liquid-connected', String(state.connected))
     stage.root.setAttribute('data-liquid-edge', `${edge.x},${edge.y}`)
-    stage.ink.style.opacity = String(1 - .26 * smooth((t - 150) / 120) * (1 - smooth(unfold)))
+    stage.ink.style.opacity = '1'
 
-    for (let i = 0; i < stage.sourceNodes.length && t < 250; i++) {
+    // Preserve layout within the paragraph while the entire copy folds into
+    // the drop. Per-glyph scatter/rotation belongs to other modes.
+    stage.sourceLayer.style.transformOrigin = `${hub.x - origin.x}px ${hub.y - origin.y}px`
+    stage.sourceLayer.style.transform = `scale(${1 - smooth(gather)})`
+    for (let i = 0; i < stage.sourceNodes.length && !n.sourceHidden; i++) {
       const g = stage.source.glyphs[i]!, node = stage.sourceNodes[i]!
-      const p = smooth((gather - (i % 7) * .014) / .916)
-      const x = mix(g.x + g.width / 2, hub.x, p)
-      const y = mix(g.y + g.height / 2, hub.y, p) - Math.sin(p * Math.PI) * (8 + (i % 3) * 5)
-      const scale = Math.max(.001, (1 - p) * .66 + .34 * (1 - smooth((t - 180) / 100)))
-      node.style.transform = `translate(${x - origin.x - g.width / 2}px, ${y - origin.y - g.height / 2}px) scale(${scale}) rotate(${Math.sin(p * Math.PI) * ((i % 2) ? 10 : -10)}deg)`
-      node.style.color = `color-mix(in srgb, ${g.color} ${100 - smooth((t - 80) / 140) * 100}%, var(--lumina-water-depth))`
+      node.style.transform = `translate(${g.x - origin.x}px, ${g.y - origin.y}px)`
       node.style.opacity = '1'
     }
     if (t >= 250 && !n.sourceHidden) {
@@ -192,16 +194,15 @@ export function createLiquidRenderer(): TransferRenderer {
       n.lastBlur = quantizedBlur
     }
 
-    if (stage.target && unfold > 0) {
+    if (stage.target && arrival && unfold > 0) {
+      const p = smooth(unfold)
+      stage.targetLayer.style.opacity = '1'
+      stage.targetLayer.style.transformOrigin = `${arrival.x - origin.x}px ${arrival.y - origin.y}px`
+      stage.targetLayer.style.transform = `translate(${dx - arrival.x}px, ${dy - arrival.y}px) scale(${p})`
       for (let i = 0; i < stage.targetNodes.length; i++) {
-        if (n.targetDone[i]) continue
         const g = stage.copyGlyphs[i]!, node = stage.targetNodes[i]!
-        const p = smooth((unfold - (i % 5) * .012) / .952)
-        const x = mix(dx, g.x + g.width / 2, p), y = mix(dy, g.y + g.height / 2, p)
         node.style.opacity = '1'
-        node.style.transform = `translate(${x - origin.x - g.width / 2}px, ${y - origin.y - g.height / 2}px) scale(${Math.max(.001, p)})`
-        node.style.color = `color-mix(in srgb, var(--lumina-water-depth) ${100 - p * 100}%, ${g.color})`
-        if (p >= 1) n.targetDone[i] = true
+        node.style.transform = `translate(${g.x - origin.x}px, ${g.y - origin.y}px)`
       }
     }
     const card = stage.source.element.closest(cssSelector('composerCard'))

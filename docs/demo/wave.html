@@ -19,14 +19,22 @@
   .card h2 { margin:0 0 4px; font-size:16px; }
   .card p { margin:0 0 14px; color:#6b7688; font-size:12px; }
   .field { position:relative; }
-  .field textarea {
-    width:100%; min-height:90px; resize:vertical; border:1px solid #dfe6f2; border-radius:16px;
+  .field .input {
+    position:relative; z-index:1;
+    width:100%; min-height:90px; border:1px solid #dfe6f2; border-radius:16px;
     padding:14px 16px; font:inherit; font-size:16px; line-height:1.7; outline:0; background:#fff; color:#182230;
+    white-space:pre-wrap; overflow-wrap:anywhere;
   }
-  .stream { position:relative; min-height:86px; padding:14px 16px; border:1px solid #dfe6f2; border-radius:16px; background:#fff; font-size:16px; line-height:1.8; }
-  .spark { position:absolute; border-radius:50%; pointer-events:none; mix-blend-mode:screen; background:radial-gradient(circle, rgba(255,59,48,.55), rgba(255,59,48,0) 70%); animation:spark .62s ease-out forwards; }
-  .spark.blue { background:radial-gradient(circle, rgba(65,118,230,.55), rgba(65,118,230,0) 70%); }
-  @keyframes spark { from { opacity:.9; transform:scale(.25);} to { opacity:0; transform:scale(1.6);} }
+  .field .input:empty::before { content:attr(data-placeholder); color:#9aa6b8; }
+  .stream { position:relative; z-index:1; min-height:86px; padding:14px 16px; border:1px solid #dfe6f2; border-radius:16px; background:#fff; font-size:16px; line-height:1.8; }
+  /* The light is a blurred copy of the glyph itself, drawn above the text:
+     the character looks lit from within, while the real text stays crisp. */
+  .spark { position:absolute; z-index:2; pointer-events:none; white-space:pre;
+    filter:blur(3px);
+    animation:spark .55s ease-out forwards; }
+  .spark.red { color:rgba(255,59,48,.95); }
+  .spark.blue { color:rgba(65,118,230,.95); }
+  @keyframes spark { from { opacity:1; } to { opacity:0; } }
   .hint { color:#6b7688; font-size:12px; }
 </style>
 </head>
@@ -39,7 +47,7 @@
       <h2>输入框</h2>
       <p>在这里打字，每输入一个字，字上就冒出一小片光。</p>
       <div class="field" id="fieldInput">
-        <textarea id="input" placeholder="打字试试…"></textarea>
+        <div class="input" id="input" contenteditable="true" data-placeholder="打字试试…"></div>
       </div>
     </section>
 
@@ -58,62 +66,76 @@
   const stream = document.getElementById('stream');
   const fieldStream = document.getElementById('fieldStream');
   const TEXT = '光沿着刚出现的字一个一个传过去';
+  const MAX_LIGHTS = 10;
 
-  function sparkAt(field, element, index, total, blue) {
+  function addLight(field, element, rect, char, index, blue) {
     const node = document.createElement('span');
-    node.className = blue ? 'spark blue' : 'spark';
-    const rect = element.getBoundingClientRect();
+    node.className = blue ? 'spark blue' : 'spark red';
+    node.textContent = char;
     const box = field.getBoundingClientRect();
-    const size = Math.max(rect.height, 18) * 1.9;
-    node.style.width = `${size}px`;
-    node.style.height = `${size}px`;
-    node.style.left = `${rect.left - box.left + rect.width / 2 - size / 2}px`;
-    node.style.top = `${rect.top - box.top + rect.height / 2 - size / 2}px`;
-    node.style.animationDelay = `${index * 55}ms`;
+    const style = getComputedStyle(element);
+    node.style.font = style.font;
+    node.style.color = blue ? 'rgba(65,118,230,.95)' : 'rgba(255,59,48,.95)';
+    node.style.left = `${rect.left - box.left}px`;
+    node.style.top = `${rect.top - box.top}px`;
+    node.style.width = `${rect.width}px`;
+    node.style.height = `${rect.height}px`;
+    node.style.lineHeight = `${rect.height}px`;
+    node.style.animationDelay = `${index * 45}ms`;
     field.append(node);
-    setTimeout(() => node.remove(), 700 + index * 55);
+    // Never let the lights pile up.
+    while (field.querySelectorAll('.spark').length > MAX_LIGHTS) {
+      field.querySelector('.spark').remove();
+    }
+    setTimeout(() => node.remove(), 560 + index * 45);
   }
 
-  function lightLast(field, element, count, blue) {
-    const text = element.value ?? element.textContent ?? '';
+  /** Light the characters in [from, to) of an element's visible text. */
+  function lightRange(field, element, from, to, blue) {
+    const text = element.innerText ?? element.textContent ?? '';
     const chars = [...text];
-    const from = Math.max(0, chars.length - count);
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-    const nodes = [];
+    const textNodes = [];
     let node;
-    while ((node = walker.nextNode())) nodes.push(node);
+    while ((node = walker.nextNode())) textNodes.push(node);
     let seen = 0;
-    for (const textNode of nodes) {
+    let lit = 0;
+    for (const textNode of textNodes) {
       const value = textNode.textContent ?? '';
       for (let i = 0; i < value.length; i += 1) {
-        if (seen >= from && seen < chars.length) {
+        if (seen >= from && seen < to) {
           const range = document.createRange();
           range.setStart(textNode, i);
           range.setEnd(textNode, i + 1);
           const rect = range.getBoundingClientRect();
-          if (rect.width > 0) sparkAt(field, { getBoundingClientRect: () => rect }, seen - from, count, blue);
+          if (rect.width > 0) { addLight(field, element, rect, chars[seen] ?? '', lit, blue); lit += 1; }
         }
         seen += 1;
       }
     }
+    return chars.length;
   }
 
+  let typedCount = 0;
   input.addEventListener('input', () => {
-    const count = [...(input.value ?? '')].length;
-    if (!count) return;
-    lightLast(fieldInput, input, 6, false);
+    const count = [...(input.innerText ?? '')].length;
+    if (count === typedCount) return;
+    const from = Math.min(typedCount, count);
+    typedCount = count;
+    if (count > from) lightRange(fieldInput, input, from, count, false);
   });
 
   async function playStream() {
     stream.textContent = '';
+    let seen = 0;
     for (let i = 1; i <= TEXT.length; i += 1) {
       stream.textContent = TEXT.slice(0, i);
-      lightLast(fieldStream, stream, 1, true);
+      const count = [...(stream.innerText ?? '')].length;
+      if (count > seen) lightRange(fieldStream, stream, seen, count, true);
+      seen = count;
       await new Promise((resolve) => setTimeout(resolve, 70));
     }
   }
   document.getElementById('play').addEventListener('click', playStream);
   playStream();
 </script>
-</body>
-</html>

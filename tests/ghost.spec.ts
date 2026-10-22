@@ -70,20 +70,32 @@ describe('ghost pickup and handover', () => {
     revealBlur(300, stage, 0, 560)
     expect(stage.targetNodes.every(n => n.style.opacity === '1')).toBe(true)
   })
-  it('keeps the hood fixed while the cloak changes and the trail stays behind', () => {
+  it('keeps the face and continuous front fixed while only the lower cloth changes', () => {
     const { renderer, stage } = fixture()
     renderer.render(0, stage)
-    const hood = stage.root.querySelector('[data-ghost-part="hood"]')!
+    const face = stage.root.querySelector('[data-ghost-part="face"]')!
     const cloak = stage.root.querySelector('[data-ghost-part="cloak"]')!
-    expect(hood).not.toBeNull(); expect(cloak).not.toBeNull()
-    expect(stage.root.querySelector('[data-ghost-part=loose-collar]')).not.toBeNull()
+    expect(face).not.toBeNull(); expect(cloak).not.toBeNull()
+    expect(stage.root.querySelector('[data-ghost-part=loose-collar]')).toBeNull()
+    expect(stage.root.querySelector('[data-ghost-part=hood]')).toBeNull()
     expect(stage.root.querySelector('[data-ghost-part=scythe]')).not.toBeNull()
-    const hoodPath = hood.getAttribute('d'), cloakPath = cloak.getAttribute('d')
+    const facePath = face.getAttribute('d'), cloakPath = cloak.getAttribute('d')!
+    const front = cloakPath.split('C51')[0]
+    const folds = stage.root.querySelector('[data-ghost-part=folds]')!
+    const foldsPath = folds.getAttribute('d')
     renderer.render(430, stage)
-    expect(hood.getAttribute('d')).toBe(hoodPath)
+    expect(face.getAttribute('d')).toBe(facePath)
+    expect(cloak.getAttribute('d')!.split('C51')[0]).toBe(front)
+    expect(folds.getAttribute('d')).not.toBe(foldsPath)
     expect(cloak.getAttribute('d')).not.toBe(cloakPath)
     const sprite = stage.root.querySelector<SVGSVGElement>('.lumina-transfer-ghost')!
     expect(sprite.style.transform).toContain('rotate(6deg)')
+    const body = stage.root.querySelector('[data-ghost-part=body]')!
+    const proportions = body.getAttribute('transform')
+    renderer.render(960, stage)
+    expect(body.getAttribute('transform')).toBe(proportions)
+    expect(sprite.style.transform).not.toContain('scale')
+    expect(face.getAttribute('d')).toBe(facePath)
     expect(stage.ink.lastElementChild).toBe(sprite)
     expect(Number(sprite.style.opacity)).toBeLessThan(1)
     renderer.dispose?.(stage)

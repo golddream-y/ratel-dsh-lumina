@@ -1,50 +1,53 @@
 /**
- * A three-quarter hooded ghost carries the text up and right. Its heading is
- * fixed; only the torn lower cloak catches the wind. No whole-body wobble.
+ * A neckless, one-piece ghost carries the text up and right. Its face and
+ * front stay fixed; only the soft lower hem catches the wind.
  */
 import { mix, smoother } from '../liquid-geometry.ts'
 import { revealFade } from './reveal.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
 
-const HOOD = 'M20 31 C18 24 22 13 33 7 C39 3 44 5 44 10 C48 13 51 18 52 24 C53 30 48 35 42 37 C32 39 24 36 20 31 Z'
-const FACE = 'M33 18 C37 14 44 15 48 21 C51 26 47 32 42 33 C36 34 31 30 31 25 C31 22 31 20 33 18 Z'
-const HIGHLIGHT = 'M23 23 C24 17 30 10 37 8 C32 13 29 17 27 25 Z'
-const TEAR_LENGTHS = [2.5, 4.5, 2, 4, 3, 6, 3, 4.5, 2.5, 7, 3.5, 5]
+// One continuous upper contour: no chin pinch, collar seam or shoulder notch.
+const CROWN = 'M43 5 C50 5 55 15 55 28 C55 37 56 49 52 58'
+const FACE = 'M36 16 C41 12 48 15 50 21 C52 27 48 32 43 33 C37 34 33 30 33 25 C33 21 33 18 36 16 Z'
+const HIGHLIGHT = 'M25 22 C29 13 35 8 42 8 C37 12 34 18 31 24 Q27 24 25 22 Z'
 const FLIGHT_AT = 300
 const FLIGHT_MS = 540
 const LAND_MS = 240
 let sequence = 0
 
-/** A travelling wind with a small independent flutter per cloth tip. */
-function flutter(index: number, phase: number): number {
-  const strength = .65 + .35 * Math.abs(Math.sin(index * 1.7))
-  return strength * (Math.sin(phase * (1 + (index % 4) * .07) - index * .58)
-    + .35 * Math.sin(phase * (1.6 + (index % 3) * .09) + index * 2.1))
+/** Wind changes only the lower cloth, never the crown, face or front panel. */
+function cloakPath(t: number): string {
+  const wave = (phase: number) => Math.sin(t * .006 + phase)
+  const a = wave(0), b = wave(1.5), c = wave(3), d = wave(4.5)
+  return `${CROWN}
+    C51 62 47 64 43 62
+    C40 ${61 + a * .7} 41 ${64 + a} 35 ${64 + a}
+    C30 ${64 + a} 29 ${62 + b * .6} 28 ${61 + b * .6}
+    C26 ${59 + b} 25 ${63 + b} 21 ${62 + b}
+    C16 ${62 + b} 14 ${59 + c} 13 ${57 + c}
+    C12 ${55 + c} 10 ${59 + c} 8 ${57 + c}
+    C4 ${55 + d} 4 ${52 + d} 5 ${51 + d}
+    C7 ${48 + d} 2 ${49 + d} 1 ${51 + d}
+    C-1 ${48 + d} 2 45 6 43
+    C13 39 20 32 24 24
+    C29 15 34 5 43 5 Z`
 }
 
-/** Twelve curved, unequal tears behind the shoulder; the hood is separate. */
-function cloakPath(t: number): string {
-  const phase = t * .006
-  const path = ['M22 28 C15 28 8 33 6 39 C4 43 3 46 2 49']
-  // Draw left to right so every curled tip stays inside its own cloth strip.
-  const width = 47 / TEAR_LENGTHS.length
-  for (let i = 0; i < TEAR_LENGTHS.length; i++) {
-    const x = 2 + i * width
-    const y = 49 - 6 * i / (TEAR_LENGTHS.length - 1)
-    const wind = flutter(i, phase)
-    const tipX = x + width * .5 + Math.max(-.8, Math.min(.8, flutter(i + 3, phase) * .7))
-    const tipY = y + TEAR_LENGTHS[TEAR_LENGTHS.length - 1 - i]! + wind * 2.2
-    const curl = flutter(i + 2, phase) * .9
-    path.push(`C ${(x + .3).toFixed(2)} ${(y + 4).toFixed(2)} ${(tipX + curl).toFixed(2)} ${(tipY - 2).toFixed(2)} ${tipX.toFixed(2)} ${tipY.toFixed(2)}`)
-    path.push(`C ${(tipX - curl).toFixed(2)} ${(tipY - 1).toFixed(2)} ${(x + width - .4).toFixed(2)} ${(y + 3).toFixed(2)} ${(x + width).toFixed(2)} ${(y - .18).toFixed(2)}`)
-  }
-  path.push('C51 37 47 32 43 30 C36 26 27 25 22 28 Z')
-  return path.join(' ')
+/** Broad cloth folds start well below the face, without outlining a neck. */
+function foldsPath(t: number): string {
+  const wave = Math.sin(t * .006)
+  return `M26 38 C22 47 14 ${54 + wave} 6 ${51 + wave}
+    C17 ${56 + wave} 23 47 26 38 Z
+    M39 41 C34 51 30 ${60 - wave} 25 ${62 - wave}
+    C34 ${60 - wave} 37 48 39 41 Z
+    M48 47 C48 55 46 ${60 + wave} 43 62
+    C49 ${62 + wave} 50 54 48 47 Z`
 }
 
 export function createGhostRenderer(): TransferRenderer {
   let sprite: SVGSVGElement | null = null
   let cloak: SVGPathElement | null = null
+  let folds: SVGPathElement | null = null
   let trail: HTMLElement | null = null
   let flightStart: number | null = null
   let sourceDone = false
@@ -79,14 +82,12 @@ export function createGhostRenderer(): TransferRenderer {
       return node
     }
     const cloth = path('cloak', cloakPath(0), `url(#${id})`)
-    cloth.setAttribute('data-cloak-tips', '12')
+    cloth.setAttribute('data-cloak-lobes', '4')
     cloth.setAttribute('stroke', 'color-mix(in srgb, var(--lumina-hi) 32%, transparent)')
     cloth.setAttribute('stroke-width', '.6')
-    const folds = path('folds', 'M19 40 Q16 44 15 48 M33 43 Q29 45 28 49', 'none', '.24')
-    folds.setAttribute('stroke', 'var(--lumina-ghost-shade)'); folds.setAttribute('stroke-width', '.9')
-    const hood = path('hood', HOOD, `url(#${id})`)
+    const drape = path('folds', foldsPath(0), 'var(--lumina-ghost-shade)', '.13')
     const face = path('face', FACE, 'var(--lumina-ghost-void)', '.66')
-    const edge = path('hood-rim', 'M32 18 C37 14 44 15 48 21', 'none', '.4')
+    const edge = path('hood-rim', 'M36 16 C41 12 48 15 50 21', 'none', '.4')
     edge.setAttribute('stroke', 'var(--lumina-hi)'); edge.setAttribute('stroke-width', '1')
     const tool = document.createElementNS(ns, 'g')
     tool.setAttribute('data-ghost-part', 'scythe')
@@ -95,11 +96,16 @@ export function createGhostRenderer(): TransferRenderer {
     const blade = path('blade', 'M60 33 C65 24 60 17 51 19 C58 21 60 26 56 31 Z', 'var(--lumina-hi)', '.72')
     blade.setAttribute('stroke', 'var(--lumina-ghost-shade)'); blade.setAttribute('stroke-width', '.65')
     tool.append(handle, blade)
-    const collar = path('loose-collar', 'M17 31 C23 35 33 39 42 37 Q47 36 49 33 Q47 41 39 42 C29 42 21 38 17 34 Z', 'var(--lumina-ghost-soft)', '.22')
     const smile = path('smile', 'M38.5 29 Q41 31 43.5 28.5', 'none', '.65')
     smile.setAttribute('stroke', 'var(--lumina-hi)'); smile.setAttribute('stroke-width', '.85'); smile.setAttribute('stroke-linecap', 'round')
-    svg.append(tool, cloth, folds, hood, collar, face, edge, path('highlight', HIGHLIGHT, 'var(--lumina-hi)', '.28'), smile)
-    for (const [cx, cy, rx, ry, part] of [[34.5, 28.5, 2.4, 1.25, 'blush'], [47.5, 27.5, 1.6, 1, 'blush'], [53.5, 49.5, 2.5, 2, 'hand']] as const) {
+    // Keep the approved full cape width throughout pickup, flight and landing.
+    // Widen the continuous cloth around its front edge without stretching the face.
+    const body = document.createElementNS(ns, 'g')
+    body.setAttribute('data-ghost-part', 'body')
+    body.setAttribute('transform', 'translate(-6.6 0) scale(1.12 1)')
+    body.append(cloth, drape, path('highlight', HIGHLIGHT, 'var(--lumina-hi)', '.28'))
+    svg.append(body, face, edge, smile, tool)
+    for (const [cx, cy, rx, ry, part] of [[36.5, 28.5, 2.4, 1.25, 'blush'], [47.5, 27.5, 1.6, 1, 'blush'], [53.5, 49.5, 2.5, 2, 'hand']] as const) {
       const detail = document.createElementNS(ns, 'ellipse')
       detail.setAttribute('data-ghost-part', part)
       detail.setAttribute('cx', String(cx)); detail.setAttribute('cy', String(cy))
@@ -123,7 +129,7 @@ export function createGhostRenderer(): TransferRenderer {
       puff.append(blob)
     }
     stage.ink.append(puff, svg)
-    sprite = svg; cloak = cloth; trail = puff
+    sprite = svg; cloak = cloth; folds = drape; trail = puff
     stage.targetLayer.style.opacity = '0'
   }
 
@@ -153,6 +159,7 @@ export function createGhostRenderer(): TransferRenderer {
       sourceDone = t >= 280
     }
     cloak?.setAttribute('d', cloakPath(t))
+    folds?.setAttribute('d', foldsPath(t))
     sprite.style.opacity = String(.9 * rise * (1 - arrive))
     sprite.style.transform = `translate(${point.x - stage.origin.x - 35.889}px, ${point.y - stage.origin.y - 21.72}px) rotate(6deg)`
     if (trail) {
@@ -167,7 +174,7 @@ export function createGhostRenderer(): TransferRenderer {
 
   const dispose = (stage: TransferStage) => {
     sprite?.remove(); trail?.remove()
-    sprite = null; cloak = null; trail = null
+    sprite = null; cloak = null; folds = null; trail = null
     stage.targetLayer.style.filter = ''
   }
   return { enter, render, dispose }
