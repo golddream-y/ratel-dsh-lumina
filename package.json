@@ -1,7 +1,7 @@
 {
   "name": "@ratel-works/dsh-lumina",
   "version": "0.2.0",
-  "description": "Ratel Lumina — motion enhancement for DeepSeek Harness: composer glow, caret, press feedback, and droplet, dissolve or ghost send transitions.",
+  "description": "Customizable motion for DeepSeek Harness: composer glow, send transitions and streaming feedback, with per-effect controls and reduced-motion support.",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -47,8 +47,8 @@
     "catalog": {
       "category": "ui",
       "summary": {
-        "en": "Subtle motion for DeepSeek Harness, with composer glow, caret feedback and droplet, dissolve or ghost send transitions.",
-        "zh": "为 DeepSeek Harness 添加输入框流光、光标反馈，以及水滴、文字消解和小幽灵发送转场。"
+        "en": "Customizable composer glow, send transitions and streaming feedback for DeepSeek Harness, with reduced-motion support.",
+        "zh": "为 DeepSeek Harness 提供可调节的输入框流光、发送转场与流式反馈，支持效果开关并跟随系统减少动态设置。"
       },
       "capabilities": [
         "slots",
@@ -72,7 +72,7 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
-    "@deepseek-ai/dsh": ">=0.2.0-rc.2 <0.3.0-0",
+    "@deepseek-ai/dsh": ">=0.2.0-rc.2 <0.2.1 || >=0.2.1-rc.2 <0.3.0-0",
     "react": "^18.3.1"
   },
   "peerDependenciesMeta": {

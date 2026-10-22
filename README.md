@@ -1,122 +1,80 @@
 ![Ratel Lumina — Let interaction glow. A concept illustration of subtle motion for DeepSeek Harness.](assets/readme/hero-en.webp)
 
-[![npm](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?logo=npm&color=cb3837)](https://www.npmjs.com/package/@ratel-works/dsh-lumina)
+# Ratel Lumina
 
-> **Ratel Lumina（Lumina 流光）** — a motion enhancement layer for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) client.
->
-> English | [中文](README.zh.md)
+English · [中文](README.zh.md) · [npm](https://www.npmjs.com/package/@ratel-works/dsh-lumina) · [Changelog](CHANGELOG.md)
 
-Ratel Lumina adds seven visual motions to the DSH Web / PWA / desktop client. It changes **no business
-logic**, carries **no runtime dependencies**, and can be switched off completely.
+**A smoother flow from composing a message to sending it and reading the reply.**
 
-| # | Effect | Surface | Tier |
-| --- | --- | --- | --- |
-| 1 | Brand mark & wordmark | `sidebar.brand.mark` / `sidebar.brand.name` | 1 — official slot |
-| 2 | Composer edge glow | `[data-composer-card]` | 2 — CSS on a data hook |
-| 3 | Streaming caret | `[data-lexical-cursor]` | 2 — CSS on a data hook |
-| 4 | Button feedback & menu fade | `[data-composer-card] button` / `[data-menu-material]` | 2 — CSS on a data hook |
-| 5 | New-session hero entrance | `conversation.hero.brand.mark` | 1 — official slot |
-| 6 | Session activity indicator | `svg[data-state="ongoing"]` | 2 — CSS on a data hook |
-| 7 | Send transition (droplet / dissolve / ghost) | Public submission identity + corresponding user text | 2 — temporary glyph decoration |
+Ratel Lumina adds customizable motion to [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). A soft glow marks the focused composer, messages travel as a droplet, a dissolve or a little ghost, and caret feedback follows the reply. These details give everyday conversations a continuous visual rhythm.
 
-## Visual language
+Works with the DSH desktop and Web / PWA clients. Adjust the motion to your preference or switch it off at any time.
 
-The poster sets the direction: **light, not strokes**.
+## Why Lumina
 
-- Edges are thin gradients with a soft halo, never a hard outline;
-- cool blue as the base, a little warm coral for the breath;
-- motion reads as a band of light, never competing with content or layout;
-- large editorial type, white glass, restrained negative space.
+- **Connected feedback.** The composer, send button, message transition and streaming caret share a consistent use of light and timing.
+- **A choice of expression.** Send with a droplet, dissolve or ghost transition, or turn transitions off and keep the lighter feedback.
+- **Control over the motion.** Choose an intensity, color preset and individual effects. Saved settings apply immediately.
+- **Your workflow stays intact.** Lumina does not change models, requests or message content, delay submission, or block typing, clicking and selection.
+- **Lightweight and optional.** Built with CSS and native SVG, without an additional animation framework. A master switch turns it off, and system reduced-motion preferences are respected.
 
-## Design principles
+## In use
 
-1. **Upgrade safety over effect count.** A missing effect is better than a patch that breaks next
-   release.
-2. **Degrade silently.** If a hook is renamed upstream, the effect stops — nothing breaks.
-3. **Never fight interaction.** Decoration layers are `pointer-events: none`, always.
-4. **Accessibility by default.** The system "reduce motion" preference is honored and cannot be
-   switched off.
-5. **Zero runtime dependencies.** No gsap, no three.js, no framer-motion.
-6. **One switch to remove everything.** A settings toggle, one data attribute, or uninstall.
+| Moment | Feedback |
+| --- | --- |
+| Composing | A mixed-color rim, with a soft halo and flowing light when focused |
+| Pressing send | Press feedback and a brief light pulse |
+| Sending a message | Droplet, dissolve or ghost transition, or no transition |
+| Waiting for a reply | Streaming caret feedback and session activity indication |
+| Opening a new conversation | Brand and hero entrance motion |
 
-## Install
+### Choose a send transition
+
+**Droplet** is the default. The text gathers into a drop, merges with the composer edge, detaches, travels to the message and unfolds as a coherent block.
+
+**Dissolve** disperses the characters and resolves the message from blur into clear text.
+
+**Ghost** carries the text with a rounded, one-piece little spirit. Its cape hem flutters while it floats, then the message fades in as a whole on arrival.
+
+Existing valid mode choices are preserved when the plugin is updated.
+
+## Install and update
+
+Install DeepSeek Harness first, then add Lumina to the profile you use:
 
 ```sh
 dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 ```
 
-Then restart the client — plugins are read from the manifest at startup and are not hot-reloaded.
+Replace `<profile>` with your profile, such as `desktop` or `web`. Run the same command to update, then **fully quit and reopen the client** to load the new plugin code.
 
-## 0.2.0 update
+The current development and verification baseline is DSH `0.2.1-rc.2`. Client updates can change the UI interfaces used by the effects, so compatibility needs to be checked again after an upgrade.
 
-Send transitions now offer droplet, dissolve and ghost modes, with droplet as the default. Existing mode choices are preserved. Settings apply immediately; code upgrades require a full client restart. See the [changelog](CHANGELOG.md) for details.
+## Settings
 
-## Status
+Open **Lumina / 流光** in DSH settings to choose a send transition, intensity and color preset, or disable individual effects. Save your changes to apply them immediately, without restarting.
 
-| Stage | Scope | State |
-| --- | --- | --- |
-| P0 | Skeleton, loading chain, brand slot, settings page | done (19 tests) |
-| MVP | Seven effects + hook self-check | in progress — see [MVP](docs/product/MVP.md) |
-| Next stage | ratel asset, deployment defaults, official settings card | planned |
+Turn off the master switch to restore the original interface. When system reduced motion is enabled, Lumina reduces or disables animations automatically.
 
-## Repository layout
+Saved settings apply immediately; installing or updating plugin code requires a full client restart.
 
-```
-src/               plugin source (host half + browser half)
-tests/             vitest specs, including the loading-chain proof
-tools/             install and probe scripts
-docs/product/      product requirements and the current MVP delivery scope
-docs/engineering/  engineering plan, verified API surface, settings page design
-.agents/           agent notes and the dsh-lumina-dev skill
-```
+## Documentation and development
 
-## Documentation
+- [Changelog](CHANGELOG.md): release changes and verification scope.
+- [Motion demos](docs/demo/README.md): interaction studies and design prototypes; these are not all shipped client effects.
+- [Product and implementation](docs/product/MVP.md): scope, design and engineering documentation.
+- [Publishing and listing](docs/engineering/发布.md): npm releases and plugin-list submissions.
 
-- [Product requirements](docs/product/产品需求.md) — boundaries and long-term scope
-- [MVP](docs/product/MVP.md) — current delivery scope, adaptation list, implementation order
-- [Architecture](docs/engineering/架构设计.md) — layers, dependency direction, the adaptation layer
-- [Technical design](docs/engineering/技术详细设计.md) — L0–L4 implementation contracts, adapter, test gates
-- [Engineering plan](docs/engineering/工程规划.md)
-- [Verified official API surface](docs/engineering/官方API面.md)
-- [Settings page design](docs/engineering/设置页设计.md)
-- [Publishing](docs/engineering/发布.md) — npm release and plugin-shop discovery
-- [Motion material library](docs/reference/动效素材库.md) — reference-only sources (anime.js, GSAP, React Bits, …)
-
-## Development
+Local development checks:
 
 ```sh
 npm install
 npm run typecheck
-npm run build
 npm test
-npm run install:local web
+npm run build
+npm run install:local -- web
 ```
-
-After a client upgrade, run `node tools/verify-hooks.mjs` in the client console to check that every
-`data-*` hook the effects rely on still exists.
-
-## Design references
-
-Motion is built on web platform primitives — CSS transitions, keyframes, and inline SVG masks.
-
-Several effects are **adapted from** components published on [reactbits.dev](https://reactbits.dev)
-(MIT + Commons Clause). Adapted code keeps its original copyright and licence header, and every
-adapted file is listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) with its source and the
-licence terms that travel with it.
-
-| Lumina effect | Adapted from |
-| --- | --- |
-| Brand wordmark shine | text shine / gradient text |
-| Composer edge glow | border glow |
-| Streaming caret | typewriter caret |
-| Button feedback and menu fade | click acknowledgement |
-| New-session hero | blur-to-focus entrance |
-
-Particle and fluid cursor effects were evaluated and not adopted: they introduce a new visual entity
-and require continuous frame work, which falls outside this product's scope.
 
 ## License
 
-MIT. The reactbits study notes are **not** redistributed with this package; see
-`THIRD_PARTY_NOTICES.md` (Chinese) for the full licence analysis.
-
+The project uses the MIT license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party sources and additional license terms.
