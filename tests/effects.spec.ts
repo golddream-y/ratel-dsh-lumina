@@ -20,6 +20,7 @@ describe('effect stylesheets', () => {
     expect(css).toContain('data-lumina-sent')
     expect(css).toContain('data-lumina-send-pulse')
     expect(css).toContain('lumina-send-button-flash')
+    expect(css).toContain('lumina-send-ripple')
     expect(css).toContain('scale: .88')
   })
 

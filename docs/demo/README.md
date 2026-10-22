@@ -19,3 +19,5 @@ python3 -m http.server 8765 --directory docs/demo
 
 原型页尽量复用正式实现的 CSS keyframes、时长和缓动；差异只在于用静态 mock DOM 代替客户端真实 DOM。
 最终验收仍以 desktop 客户端重启后的真实行为为准。
+
+动效素材（只读参考、不引入）见 [动效素材库](../reference/动效素材库.md)。

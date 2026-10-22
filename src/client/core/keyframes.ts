@@ -36,6 +36,22 @@ export const CARET_BREATHE = `
 }
 `
 
+/** The soft ring emitted at the caret when a character is typed. */
+export const TYPING_RIPPLE = `
+@keyframes lumina-typing-ripple {
+  0% { opacity: .65; transform: translate(-50%, -50%) scale(.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+}
+`
+
+/** The soft ring left at the send button after a click. */
+export const SEND_RIPPLE = `
+@keyframes lumina-send-ripple {
+  0% { opacity: .6; transform: translate(-50%, -50%) scale(.55); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
+}
+`
+
 /** The light band sweeping across the brand wordmark. */
 export const WORDMARK_SWEEP = `
 @keyframes lumina-sweep {
@@ -98,6 +114,7 @@ export const ALL_KEYFRAMES = [
   BORDER_SPIN,
   BORDER_ROTATE,
   CARET_BREATHE,
+  TYPING_RIPPLE,
   WORDMARK_SWEEP,
   HERO_IN,
   HERO_GLOW,
@@ -105,4 +122,5 @@ export const ALL_KEYFRAMES = [
   SESSION_SPIN,
   SEND_FLASH,
   SEND_BUTTON_FLASH,
+  SEND_RIPPLE,
 ].join('\n')

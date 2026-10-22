@@ -20,6 +20,9 @@ const SENT_ATTRIBUTE = 'data-lumina-sent'
 /** The attribute that starts the send-button pulse. */
 const PULSE_ATTRIBUTE = 'data-lumina-send-pulse'
 
+/** The fixed ring that survives the button's React re-render. */
+const RIPPLE_CLASS = 'lumina-send-ripple'
+
 /** The press/flash stylesheet. */
 export function pressCss(): string {
   const button = cssSelector('composerButton')
@@ -43,6 +46,23 @@ ${card} button[${PULSE_ATTRIBUTE}] {
   animation: lumina-send-button-flash var(--lumina-flash) ease-out;
 }
 
+.lumina-send-ripple {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border: 1.5px solid color-mix(in srgb, var(--lumina-brand) 78%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--lumina-brand) 36%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+  transform: translate(-50%, -50%) scale(.55);
+}
+
+.lumina-send-ripple[data-active] {
+  animation: lumina-send-ripple var(--lumina-flash) ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ${button} {
     transition: none;
@@ -51,6 +71,11 @@ ${card} button[${PULSE_ATTRIBUTE}] {
   ${card}[${SENT_ATTRIBUTE}],
   ${card} button[${PULSE_ATTRIBUTE}] {
     animation: none;
+  }
+
+  .lumina-send-ripple {
+    animation: none !important;
+    opacity: 0;
   }
 }
 `
@@ -66,8 +91,13 @@ ${card} button[${PULSE_ATTRIBUTE}] {
 export function installPress(streaming: StreamingState, intensity: Intensity): () => void {
   const disposeStyle = installStyle('press', pressCss())
   const flashMs = durationMs(intensity, 'flash')
+  const ripple = document.createElement('span')
+  ripple.className = RIPPLE_CLASS
+  ripple.setAttribute('aria-hidden', 'true')
+  document.body.append(ripple)
   let cardTimer: ReturnType<typeof setTimeout> | undefined
   let buttonTimer: ReturnType<typeof setTimeout> | undefined
+  let rippleTimer: ReturnType<typeof setTimeout> | undefined
   let flashed: Element | null = null
   let pulsed: Element | null = null
 
@@ -89,9 +119,47 @@ export function installPress(streaming: StreamingState, intensity: Intensity): (
     pulsed = null
   }
 
+  const clearRipple = () => {
+    if (rippleTimer !== undefined) {
+      clearTimeout(rippleTimer)
+      rippleTimer = undefined
+    }
+    ripple.removeAttribute('data-active')
+  }
+
+  const pulseSendRipple = (button: Element) => {
+    const rect = button.getBoundingClientRect()
+    if (rect.height <= 0) return
+    const size = Math.max(rect.width, rect.height) + 10
+    ripple.style.width = `${size}px`
+    ripple.style.height = `${size}px`
+    ripple.style.left = `${rect.left + rect.width / 2}px`
+    ripple.style.top = `${rect.top + rect.height / 2}px`
+    clearRipple()
+    void (ripple as HTMLElement).offsetWidth
+    ripple.setAttribute('data-active', '')
+    rippleTimer = setTimeout(clearRipple, flashMs)
+  }
+
   const clear = () => {
     clearCard()
     clearButton()
+    clearRipple()
+  }
+
+  /** The primary send control is the rightmost enabled button in the card. */
+  const primaryButton = (card: Element): Element | null => {
+    let primary: Element | null = null
+    let right = -Infinity
+    for (const button of card.querySelectorAll('button:not([disabled])')) {
+      const rect = button.getBoundingClientRect()
+      if (rect.width === 0 && rect.height === 0) continue
+      if (rect.right > right) {
+        right = rect.right
+        primary = button
+      }
+    }
+    return primary
   }
 
   const pulseButton = (button: Element) => {
@@ -101,6 +169,7 @@ export function installPress(streaming: StreamingState, intensity: Intensity): (
     void (button as HTMLElement).offsetWidth
     button.setAttribute(PULSE_ATTRIBUTE, '')
     buttonTimer = setTimeout(clearButton, flashMs)
+    pulseSendRipple(button)
   }
 
   const flash = () => {
@@ -115,9 +184,7 @@ export function installPress(streaming: StreamingState, intensity: Intensity): (
     card.setAttribute(SENT_ATTRIBUTE, '')
     cardTimer = setTimeout(clearCard, flashMs)
 
-    // The primary send button is the last enabled button in the card.
-    const buttons = card.querySelectorAll('button:not([disabled])')
-    const send = buttons.item(buttons.length - 1)
+    const send = primaryButton(card)
     if (send !== null) pulseButton(send)
   }
 
@@ -128,8 +195,7 @@ export function installPress(streaming: StreamingState, intensity: Intensity): (
     const button = target.closest('button')
     if (card === null || button === null) return
     if ((button as HTMLButtonElement).disabled) return
-    const buttons = card.querySelectorAll('button:not([disabled])')
-    if (buttons.item(buttons.length - 1) !== button) return
+    if (primaryButton(card) !== button) return
     pulseButton(button)
   }
 
@@ -143,6 +209,7 @@ export function installPress(streaming: StreamingState, intensity: Intensity): (
     unsubscribe()
     document.removeEventListener('click', onClick, true)
     clear()
+    ripple.remove()
     disposeStyle()
   }
 }

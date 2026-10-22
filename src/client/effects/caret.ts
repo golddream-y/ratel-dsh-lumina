@@ -94,12 +94,36 @@ ${input}[${OVERLAY_ATTRIBUTE}="overlay"] {
   animation-duration: var(--lumina-caret-stream);
 }
 
+.lumina-typing-ripple {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border: 1px solid color-mix(in srgb, ${blue} 70%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px color-mix(in srgb, ${blue} 50%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+  transform: translate(-50%, -50%) scale(.4);
+}
+
+.lumina-typing-ripple[data-active] {
+  animation: lumina-typing-ripple var(--lumina-caret-typing) ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ${tail},
   ${blockCursor},
   .${OVERLAY_CLASS} {
     animation: none !important;
     opacity: 1;
+  }
+
+  .lumina-typing-ripple {
+    animation: none !important;
+    opacity: 0;
   }
 }
 `
@@ -276,6 +300,140 @@ export function createCaretOverlay(options: CaretOverlayOptions): () => void {
 }
 
 /**
+ * Install the per-keystroke ripple.
+ *
+ * The ripple is deliberately an overlay: wrapping characters would break the
+ * editor, selection, copy, and markdown reconciliation. Instead one reusable
+ * fixed-position ring is placed at the caret (input) or the streaming tail
+ * (assistant output) and restarted on each character mutation.
+ *
+ * @param doc - the owning document.
+ * @param win - the owning window.
+ * @returns a disposer removing the listener, observer, and ripple.
+ */
+function installTypingFeedback(doc: Document, win: Window): () => void {
+  const ripple = doc.createElement('span')
+  ripple.className = 'lumina-typing-ripple'
+  ripple.setAttribute('aria-hidden', 'true')
+  doc.body.append(ripple)
+
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let frame: number | null = null
+  let pending: 'input' | 'stream' | null = null
+
+  const raf =
+    win.requestAnimationFrame?.bind(win) ??
+    ((callback: FrameRequestCallback): number => {
+      callback(0)
+      return 0
+    })
+  const cancel =
+    win.cancelAnimationFrame?.bind(win) ??
+    ((handle: number): void => {
+      void handle
+    })
+
+  const showAt = (left: number, top: number, height: number) => {
+    if (!Number.isFinite(left) || !Number.isFinite(top) || height <= 0) return
+    ripple.style.left = `${left}px`
+    ripple.style.top = `${top + height / 2}px`
+    ripple.removeAttribute('data-active')
+    void (ripple as HTMLElement).offsetWidth
+    ripple.setAttribute('data-active', '')
+    if (timer !== undefined) clearTimeout(timer)
+    timer = setTimeout(() => {
+      ripple.removeAttribute('data-active')
+      timer = undefined
+    }, 340)
+  }
+
+  const pulseInput = () => {
+    const overlay = doc.querySelector(`.${OVERLAY_CLASS}`)
+    if (!(overlay instanceof HTMLElement)) return
+    const rect = overlay.getBoundingClientRect()
+    showAt(rect.left, rect.top, rect.height)
+  }
+
+  const pulseStream = () => {
+    const tail = queryTarget('streamingTail', doc)
+    if (!(tail instanceof HTMLElement)) return
+    const range = doc.createRange()
+    try {
+      range.selectNodeContents(tail)
+      range.collapse(false)
+    } catch {
+      return
+    }
+    const rect = range.getBoundingClientRect()
+    if (rect.height <= 0) {
+      const block = tail.getBoundingClientRect()
+      showAt(block.right, block.top, block.height)
+      return
+    }
+    showAt(rect.right, rect.top, rect.height)
+  }
+
+  const flush = () => {
+    frame = null
+    const kind = pending
+    pending = null
+    if (kind === 'input') pulseInput()
+    if (kind === 'stream') pulseStream()
+  }
+
+  const schedule = (kind: 'input' | 'stream') => {
+    pending = kind
+    if (frame !== null) return
+    frame = raf(flush)
+  }
+
+  const onInput = (event: Event) => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const input = target.closest('[data-composer-input]')
+    if (input === null) return
+    if (
+      input.hasAttribute('data-composer-composing') ||
+      input.closest('[data-composer-composing]') !== null
+    ) {
+      return
+    }
+    schedule('input')
+  }
+
+  const Observer = globalThis.MutationObserver
+  const observer =
+    typeof Observer === 'function'
+      ? new Observer((mutations) => {
+          if (!doc.documentElement.hasAttribute('data-lumina-streaming')) return
+          for (const mutation of mutations) {
+            const target =
+              mutation.target.nodeType === Node.ELEMENT_NODE
+                ? (mutation.target as Element)
+                : mutation.target.parentElement
+            if (target?.closest('[data-streaming]') !== null) {
+              schedule('stream')
+              return
+            }
+          }
+        })
+      : undefined
+  observer?.observe(doc.body, { subtree: true, characterData: true, childList: true })
+
+  doc.addEventListener('input', onInput, true)
+
+  return () => {
+    doc.removeEventListener('input', onInput, true)
+    observer?.disconnect()
+    if (timer !== undefined) clearTimeout(timer)
+    if (frame !== null) cancel(frame)
+    frame = null
+    pending = null
+    ripple.remove()
+  }
+}
+
+/**
  * Install the caret effect.
  *
  * @param doc - the owning document (injectable for tests).
@@ -288,6 +446,7 @@ export function installCaret(
 ): () => void {
   const disposers: Array<() => void> = [
     installStyle('caret', caretCss()),
+    installTypingFeedback(doc, win),
     createCaretOverlay({
       document: doc,
       window: win,

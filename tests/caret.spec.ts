@@ -81,6 +81,8 @@ describe('caret effect', () => {
     expect(css).toContain('[data-lumina-caret="overlay"]')
     expect(css).toContain('--dsw-alias-brand-primary-new-colorprimary-new-color')
     expect(css).toContain('position: fixed')
+    expect(css).toContain('lumina-typing-ripple')
+    expect(css).toContain('--lumina-caret-typing')
     expect(css).not.toContain(':root')
   })
 
@@ -88,8 +90,10 @@ describe('caret effect', () => {
     const dispose = installCaret(document, window)
     const tag = document.querySelector('style[data-plugin="ratel-lumina"][data-effect="caret"]')
     expect(tag).not.toBeNull()
+    expect(document.querySelector('.lumina-typing-ripple')).not.toBeNull()
     dispose()
     expect(document.querySelector('style[data-effect="caret"]')).toBeNull()
+    expect(document.querySelector('.lumina-typing-ripple')).toBeNull()
   })
 
   it('shows the overlay for a focused collapsed selection and restores the native caret on blur', () => {

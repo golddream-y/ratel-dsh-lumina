@@ -16,6 +16,7 @@ export type DurationToken =
   | 'composer-stream'
   | 'caret-idle'
   | 'caret-stream'
+  | 'caret-typing'
   | 'press'
   | 'flash'
   | 'hero'
@@ -33,6 +34,7 @@ export const DURATIONS: Readonly<
     'composer-stream': 2400,
     'caret-idle': 1150,
     'caret-stream': 720,
+    'caret-typing': 240,
     press: 140,
     flash: 520,
     hero: 320,
@@ -46,6 +48,7 @@ export const DURATIONS: Readonly<
     'composer-stream': 3600,
     'caret-idle': 1600,
     'caret-stream': 1000,
+    'caret-typing': 300,
     press: 180,
     flash: 620,
     hero: 420,
@@ -59,6 +62,7 @@ export const DURATIONS: Readonly<
     'composer-stream': 1680,
     'caret-idle': 850,
     'caret-stream': 550,
+    'caret-typing': 190,
     press: 110,
     flash: 420,
     hero: 240,

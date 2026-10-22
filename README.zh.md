@@ -73,6 +73,7 @@ docs/engineering/  工程规划、官方 API 面、设置页设计、发布流�
 | [官方 API 面](docs/engineering/官方API面.md) | 已验证的 slot 契约、模块表、钩子清单 |
 | [设置页设计](docs/engineering/设置页设计.md) | 设置页落点、页面结构与向官方卡片通道的迁移路径 |
 | [发布流程](docs/engineering/发布.md) | npm 发版、scope/registry 前置条件与插件商店发现 |
+| [动效素材库](docs/reference/动效素材库.md) | 只读参考：anime.js、GSAP、Textillate、React Bits 等；抄思路不引入 |
 
 ## 开发
 
