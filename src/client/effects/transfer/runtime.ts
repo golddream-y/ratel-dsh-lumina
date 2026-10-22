@@ -117,7 +117,8 @@ export function runTransfer(
     edge,
     origin,
     pad,
-    duration: durationMs(intensity, 'transfer'),
+    // The dissolve needs room for two acts, the mist for its flight.
+    duration: Math.round(durationMs(intensity, 'transfer') * (mode === 'dissolve' ? 1.25 : mode === 'mist' ? 1.1 : 1)),
     intensity,
     mask,
   }
