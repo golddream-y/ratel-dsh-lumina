@@ -4,6 +4,8 @@ export const TRANSFER_TIME = 1150
 export const FLIGHT_START = 710
 export const clamp = (value: number) => Math.max(0, Math.min(1, value))
 export const smooth = (value: number) => { const p = clamp(value); return p * p * (3 - 2 * p) }
+/** Smootherstep: zero velocity and zero acceleration at both ends. */
+export const smoother = (value: number) => { const p = clamp(value); return p * p * p * (p * (p * 6 - 15) + 10) }
 export const mix = (a: number, b: number, p: number) => a + (b - a) * p
 
 export function liquidFrame(t: number, hub: Point, edge: Point, arrival: Point, landingStart = FLIGHT_START) {

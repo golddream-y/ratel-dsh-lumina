@@ -104,6 +104,16 @@ describe('send transfer identity and lifecycle', () => {
     expect(target.closest('[data-conversation-region="composer"]')).toBeNull()
     expect(target.textContent).toBe('same')
   })
+  it('hides the local echo before the submission is confirmed', async () => {
+    const f = setup()
+    f.send.click()
+    // The host paints the local echo on the submit frame, before any pending
+    // entry is confirmed. It must not be visible in the meantime.
+    document.querySelector('[data-conversation-content]')!.insertAdjacentHTML('beforeend', '<div data-submission-echo=""><span>same</span></div>')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const echo = document.querySelector('[data-submission-echo]')!
+    expect(echo.hasAttribute('data-lumina-transfer-pending')).toBe(true)
+  })
   it('never selects an ambiguous pending echo or an ambiguous rpcId', () => {
     const f = setup()
     f.chat.set({ order: [], nodes: new Map() })

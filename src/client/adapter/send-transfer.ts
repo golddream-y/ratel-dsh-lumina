@@ -15,6 +15,15 @@ export interface ChatSnapshot {
   order: readonly string[]
   nodes: { get(key: string): { data?: { source?: { kind?: string; rpcId?: string } } } | undefined }
 }
+/** A captured gesture with its provisional echo mask. */
+interface Candidate {
+  source: GlyphSnapshot
+  time: number
+  wallTime: number
+  pending: Set<HTMLElement>
+  observer: MutationObserver
+}
+
 export interface TransferServices {
   sessions?: {
     binding(id: string): { session: ReadFace<SessionSnapshot> } | undefined
@@ -36,7 +45,12 @@ export interface TransferRequest {
   source: GlyphSnapshot
   target(): HTMLElement | null
   fallback(): void
+  /** Called once the transition settles, so provisional state can be released. */
+  onSettled?: () => void
 }
+
+/** The attribute that hides a local echo before the transition starts. */
+const PENDING_ATTRIBUTE = 'data-lumina-transfer-pending'
 export interface TransferBridge {
   ownsGesture(): boolean
   onFallback(listener: () => void): () => void
@@ -68,14 +82,20 @@ export function installTransferBridge(
   let face: ReadFace<SessionSnapshot> | undefined
   let chat: ReadFace<ChatSnapshot | undefined> | undefined
   let releaseSession = () => {}
-  const candidates: { source: GlyphSnapshot; time: number; wallTime: number }[] = []
+  const candidates: Candidate[] = []
   let ownsUntil = 0
   let candidateTimer: ReturnType<typeof setTimeout> | undefined
   let bindingTimer: ReturnType<typeof setTimeout> | undefined
   const timers = new Set<ReturnType<typeof setTimeout>>()
   const seen = new Set<string>()
   const active = new Set<() => void>()
+  const clearPending = (candidate: Candidate) => {
+    candidate.observer.disconnect()
+    for (const node of candidate.pending) node.removeAttribute(PENDING_ATTRIBUTE)
+    candidate.pending.clear()
+  }
   const cancel = () => {
+    for (const candidate of candidates) clearPending(candidate)
     candidates.length = 0; ownsUntil = 0
     clearTimeout(candidateTimer)
     clearTimeout(bindingTimer)
@@ -87,7 +107,7 @@ export function installTransferBridge(
   const expireCandidates = () => {
     clearTimeout(candidateTimer)
     const now = performance.now()
-    while (candidates[0] && now - candidates[0].time >= 1500) candidates.shift()
+    while (candidates[0] && now - candidates[0].time >= 1500) clearPending(candidates.shift()!)
     if (candidates[0]) candidateTimer = setTimeout(expireCandidates, Math.max(1, 1500 - (now - candidates[0].time)))
   }
   const update = () => {
@@ -105,12 +125,13 @@ export function installTransferBridge(
       if (index < 0) { if (candidates.length) reportTransferStatus('unmatched'); continue }
       const prepared = candidates.splice(index, 1)[0]!
       expireCandidates()
+      const release = () => clearPending(prepared)
       if (active.size >= 2) { fallback(); continue }
       if (prefersReducedMotion()) continue
       const owner = sessionId
       const requestId = submission.requestId
       reportTransferStatus('confirmed')
-      const stop = start({ requestId, source: prepared.source, fallback, target: () => {
+      const stop = start({ requestId, source: prepared.source, fallback, onSettled: release, target: () => {
         if (sessionId !== owner) return null
         const root = conversationRoot(owner)
         if (!root) return null
@@ -133,7 +154,7 @@ export function installTransferBridge(
         const node = userNode(root, key)
         return node ? userTextRoot(node, submission.text) : null
       } })
-      if (!stop) fallback()
+      if (!stop) { release(); fallback() }
       if (stop) {
         active.add(stop)
         const timer = setTimeout(() => { stop(); active.delete(stop); timers.delete(timer) }, 2100)
@@ -198,7 +219,20 @@ export function installTransferBridge(
     if (!source) { reportTransferStatus('snapshot'); return }
     expireCandidates()
     if (candidates.length >= 2) { fallback(); return }
-    candidates.push({ source, time: performance.now(), wallTime: Date.now() })
+    const candidate: Candidate = { source, time: performance.now(), wallTime: Date.now(), pending: new Set(), observer: new MutationObserver(() => {}) }
+    // The host paints the local echo as soon as the submission is accepted,
+    // which is before the pending entry is confirmed. Hide that echo right
+    // away so the bubble never flashes before the transition starts.
+    candidate.observer = new MutationObserver(() => {
+      for (const echo of document.querySelectorAll<HTMLElement>('[data-submission-echo]')) {
+        if (echo.closest('[data-conversation-region="composer"]') !== null) continue
+        if (candidate.pending.has(echo)) continue
+        echo.setAttribute(PENDING_ATTRIBUTE, '')
+        candidate.pending.add(echo)
+      }
+    })
+    candidate.observer.observe(document.body, { childList: true, subtree: true })
+    candidates.push(candidate)
     expireCandidates()
     ownsUntil = performance.now() + 1500
     reportTransferStatus('captured')

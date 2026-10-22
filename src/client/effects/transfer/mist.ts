@@ -3,7 +3,7 @@
  * message and dissolves into the text.
  */
 
-import { mix, smooth } from '../liquid-geometry.ts'
+import { mix, smoother, smooth } from '../liquid-geometry.ts'
 import { arcPoint } from './shared.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
 
@@ -58,9 +58,9 @@ export function createMistRenderer(): TransferRenderer {
     const target: Point = stage.arrival ?? { x: edge.x, y: edge.y - 40 }
     const start: Point = { x: edge.x, y: edge.y - 6 }
     const via: Point = { x: (start.x + target.x) / 2, y: Math.min(start.y, target.y) - 58 }
-    const appear = smooth((t - 90) / 170)
-    const fly = smooth((t - 250) / 540)
-    const disperse = smooth((t - 800) / 220)
+    const appear = smoother((t - 90) / 190)
+    const fly = smoother((t - 250) / 560)
+    const disperse = smoother((t - 800) / 240)
     const point = t < 250 ? start : arcPoint(start, via, target, fly)
     const wobble = Math.sin((t - 250) / 160) * 5
     const stretch = Math.sin(fly * Math.PI) * 0.12

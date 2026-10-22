@@ -19,6 +19,7 @@ export type { TransferMode } from './transfer/types.ts'
 export function transferCss(): string {
   return `
 [data-lumina="on"] [${MASK}] { opacity: 0 !important; }
+[data-lumina="on"] [data-lumina-transfer-pending] { opacity: 0 !important; }
 [data-lumina="off"] .lumina-transfer { display: none; }
 [data-lumina="on"] .lumina-transfer {
   position: absolute; pointer-events: none; user-select: none; z-index: 2147483646;

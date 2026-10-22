@@ -143,6 +143,7 @@ export function runTransfer(
     masked.clear()
     if (card.getAttribute('data-lumina-transfer') === id) card.removeAttribute('data-lumina-transfer')
     renderer.dispose?.(stage)
+    request.onSettled?.()
     root.remove()
     stage.targetNodes = []
     stage.sourceNodes.length = 0
