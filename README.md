@@ -1,5 +1,7 @@
 # Ratel Lumina
 
+[![npm](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?logo=npm&color=cb3837)](https://www.npmjs.com/package/@ratel-works/dsh-lumina)
+
 > **Ratel Lumina（Lumina 流光）** — a motion enhancement layer for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) client.
 >
 > English | [中文](README.zh.md)
