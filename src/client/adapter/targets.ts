@@ -120,15 +120,27 @@ export function userNode(root: Element, key: string): Element | null {
 }
 
 export function pendingEchoes(root: Element): Element[] {
+  // Queue-dock rows also carry `data-submission-echo`; only chat-region
+  // echoes are message landing targets.
   return [...root.querySelectorAll('[data-submission-echo]')]
+    .filter((node) => node.closest('[data-conversation-region="composer"]') === null)
 }
 
 /** Match layout only after request identity is known; never establishes identity. */
 export function userTextRoot(node: Element, text: string): HTMLElement | null {
   const expected = compactText(text)
+  if (!expected) return null
   const candidates = [...node.querySelectorAll<HTMLElement>('span, p, div')]
     .filter((element) => !element.closest('[data-message-attachments], button') && compactText(element.innerText ?? element.textContent ?? '') === expected)
-  return candidates.find((element) => !candidates.some((other) => other !== element && element.contains(other))) ?? null
+  if (!candidates.length) return null
+  // The deepest match is the text run; the outermost one is the message bubble.
+  // Masking the bubble would leave its background behind in the transcript.
+  const deepest = candidates.filter((element) => !candidates.some((other) => other !== element && element.contains(other)))
+  const area = (element: HTMLElement) => {
+    const rect = element.getBoundingClientRect()
+    return rect.width * rect.height
+  }
+  return deepest.sort((a, b) => area(a) - area(b))[0] ?? null
 }
 
 export function compactText(text: string): string {

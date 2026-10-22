@@ -144,6 +144,10 @@ export function animateTransfer(request: TransferRequest, duration = TRANSFER_TI
   card.setAttribute('data-lumina-transfer', id)
   const masked = new Set<HTMLElement>()
   const mask = (node: HTMLElement) => {
+    // Never hide a painted surface: masking a bubble would leave its
+    // background behind in the transcript.
+    const background = getComputedStyle(node).backgroundColor
+    if (background !== 'rgba(0, 0, 0, 0)' && background !== 'transparent') return
     if (!node.hasAttribute(MASK) || node.getAttribute(MASK) === id) { node.setAttribute(MASK, id); masked.add(node) }
   }
   if ((source.element.innerText ?? source.element.textContent ?? '') === source.text) mask(source.element)

@@ -84,6 +84,26 @@ describe('send transfer identity and lifecycle', () => {
     f.session.set({ pendingSubmissions: [{ requestId: 'r1', placement: 'transcript', text: 'same' }] })
     expect(f.jobs.map((job) => job.requestId)).toEqual(['r1'])
   })
+  it('lands on the text run, not on the message bubble', () => {
+    const f = setup()
+    document.querySelector('[data-chat-node-key="first"]')!.innerHTML = '<div class="bubble"><span>same</span></div>'
+    f.chat.set({ order: ['first'], nodes: new Map([['first', { data: { source: { kind: 'user', rpcId: 'r1' } } }]]) })
+    f.send.click()
+    f.session.set({ pendingSubmissions: [{ requestId: 'r1', placement: 'transcript', text: 'same' }] })
+    const target = f.jobs[0]!.target()!
+    expect(target.tagName).toBe('SPAN')
+    expect(target.closest('.bubble')).not.toBeNull()
+  })
+  it('uses the unique chat echo and ignores queue-dock echoes', () => {
+    const f = setup()
+    document.querySelector('[data-conversation-content]')!.insertAdjacentHTML('beforeend',
+      '<div data-conversation-region="composer"><div data-submission-echo="">same</div></div><div data-submission-echo=""><span>same</span></div>')
+    f.send.click()
+    f.session.set({ pendingSubmissions: [{ requestId: 'r1', placement: 'transcript', text: 'same' }] })
+    const target = f.jobs[0]!.target()!
+    expect(target.closest('[data-conversation-region="composer"]')).toBeNull()
+    expect(target.textContent).toBe('same')
+  })
   it('never selects an ambiguous pending echo or an ambiguous rpcId', () => {
     const f = setup()
     f.chat.set({ order: [], nodes: new Map() })
