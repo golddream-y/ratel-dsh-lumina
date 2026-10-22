@@ -1,222 +1,156 @@
 /**
- * The ghost mode: a small translucent red ghost rises from the composer edge,
- * floats straight to the message trailing a puff of mist, and dissolves into
- * the text.
- *
- * The silhouette is a little ghost with a torn cloak: a stable dome and a
- * ragged hem whose tips flutter independently. The body floats on a steady
- * line; the restlessness lives in the cloth, not in the route.
+ * A three-quarter hooded ghost carries the text up and right. Its heading is
+ * fixed; only the torn lower cloak catches the wind. No whole-body wobble.
  */
-
-import { mix, smoother, smooth } from '../liquid-geometry.ts'
+import { mix, smoother } from '../liquid-geometry.ts'
 import { revealFade } from './reveal.ts'
 import type { Point, TransferRenderer, TransferStage } from './types.ts'
 
-/** The soft top highlight. */
-const GHOST_HIGHLIGHT = 'M19 15 C23 11 29 9 34 10 C30 13 25 16 21 21 C20 19 19 17 19 15 Z'
+const HOOD = 'M20 31 C18 24 22 13 33 7 C39 3 44 5 44 10 C48 13 51 18 52 24 C53 30 48 35 42 37 C32 39 24 36 20 31 Z'
+const FACE = 'M33 18 C37 14 44 15 48 21 C51 26 47 32 42 33 C36 34 31 30 31 25 C31 22 31 20 33 18 Z'
+const HIGHLIGHT = 'M23 23 C24 17 30 10 37 8 C32 13 29 17 27 25 Z'
+const TEAR_LENGTHS = [5, 9, 6, 13, 8, 16, 10, 18, 12, 20, 15, 22]
+const FLIGHT_AT = 300
+const FLIGHT_MS = 540
+const LAND_MS = 240
+let sequence = 0
 
-/**
- * The ragged cloak hem, right to left. The tips have different lengths so the
- * edge reads as torn cloth rather than a regular scallop.
- */
-const HEM = [
-  [52, 49], [48.5, 43.5], [45, 52], [41, 45], [37, 53.5], [33, 44.5],
-  [29, 52], [25, 46], [21, 54.5], [17, 45.5], [14, 50], [11.5, 46.5],
-] as const
-
-/**
- * One cloak point's wind flutter: two out-of-phase sines with a per-tip
- * amplitude, so neighbouring tips never move together.
- *
- * @param index - the hem index.
- * @param phase - the wind phase.
- * @param amplitude - the base amplitude.
- * @returns the offset.
- */
-function flutter(index: number, phase: number, amplitude: number): number {
-  const strength = .55 + .45 * Math.sin(index * 2.3)
-  return (Math.sin(phase * 1.15 + index * 1.9) + Math.sin(phase * 2.35 + index * 3.1) * .45) * amplitude * strength
+/** A travelling wind with a small independent flutter per cloth tip. */
+function flutter(index: number, phase: number): number {
+  const strength = .65 + .35 * Math.abs(Math.sin(index * 1.7))
+  return strength * (Math.sin(phase * (1 + (index % 4) * .07) - index * .58)
+    + .35 * Math.sin(phase * (1.6 + (index % 3) * .09) + index * 2.1))
 }
 
-/**
- * The wind-blown silhouette.
- *
- * The dome stays stable while the hem travels on a slow sine, so the body
- * ripples like cloth in a breeze instead of bouncing. The whole figure also
- * leans a hair with the gust.
- *
- * @param t - the normalized timeline position.
- * @returns the path data.
- */
-function ghostPath(t: number): string {
-  const phase = t * .014
-  // The body barely leans; the cloth is what moves.
-  const lean = Math.sin(phase * .55) * 1.1
-  const dome = `M 8 30 C 8 14 18 5 32 5 C 46 5 56 14 56 30`
-  const right = `L 56 36 ${`L ${(55.2 + flutter(1, phase, 1.4)).toFixed(2)} ${(41 + flutter(2, phase, 1.6)).toFixed(2)}`}`
-  const hem = HEM.map(([x, y], index) => {
-    const wx = x + flutter(index, phase, 2.6) + lean
-    const wy = y + flutter(index + 4, phase, 3.1)
-    return `L ${wx.toFixed(2)} ${wy.toFixed(2)}`
-  }).join(' ')
-  const left = `L ${(8.8 + flutter(2, phase, 1.3)).toFixed(2)} ${(40.5 + flutter(1, phase, 1.5)).toFixed(2)} L 8 34 Z`
-  return `${dome} ${right} ${hem} ${left}`
+/** Twelve curved, unequal tears behind the shoulder; the hood is separate. */
+function cloakPath(t: number): string {
+  const phase = t * .006
+  const path = ['M22 28 C16 29 10 34 8 39 L5 43']
+  // Draw left to right so every curled tip stays inside its own cloth strip.
+  const width = 44 / TEAR_LENGTHS.length
+  for (let i = 0; i < TEAR_LENGTHS.length; i++) {
+    const x = 5 + i * width
+    const y = 43 - 2 * i / (TEAR_LENGTHS.length - 1)
+    const wind = flutter(i, phase)
+    const tipX = x + width * .5 + Math.max(-.8, Math.min(.8, flutter(i + 3, phase) * .7))
+    const tipY = y + TEAR_LENGTHS[TEAR_LENGTHS.length - 1 - i]! + wind * 2.2
+    const curl = flutter(i + 2, phase) * .9
+    path.push(`C ${(x + .3).toFixed(2)} ${(y + 4).toFixed(2)} ${(tipX + curl).toFixed(2)} ${(tipY - 2).toFixed(2)} ${tipX.toFixed(2)} ${tipY.toFixed(2)}`)
+    path.push(`C ${(tipX - curl).toFixed(2)} ${(tipY - 1).toFixed(2)} ${(x + width - .4).toFixed(2)} ${(y + 3).toFixed(2)} ${(x + width).toFixed(2)} ${(y - .18).toFixed(2)}`)
+  }
+  path.push('C51 37 47 32 43 30 C36 26 27 25 22 28 Z')
+  return path.join(' ')
 }
 
-/** The blobs of the mist trail that follows the ghost. */
-const TRAIL = [
-  { x: 16, y: 22, w: 30, h: 26, delay: '0s', duration: '2.4s' },
-  { x: 4, y: 28, w: 24, h: 22, delay: '-1.1s', duration: '3s' },
-  { x: 28, y: 30, w: 22, h: 20, delay: '-1.8s', duration: '2.2s' },
-]
-
-/** Build the ghost mode renderer. */
 export function createGhostRenderer(): TransferRenderer {
   let sprite: SVGSVGElement | null = null
-  let bodyPath: SVGPathElement | null = null
+  let cloak: SVGPathElement | null = null
   let trail: HTMLElement | null = null
-  let sourceHidden = false
-  let resolveStart: number | null = null
+  let flightStart: number | null = null
+  let sourceDone = false
 
   const enter = (stage: TransferStage) => {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
     svg.setAttribute('class', 'lumina-transfer-ghost')
-    svg.setAttribute('viewBox', '0 0 64 64')
-    svg.setAttribute('width', '56')
-    svg.setAttribute('height', '56')
+    svg.setAttribute('viewBox', '0 0 64 72')
+    svg.setAttribute('width', '60'); svg.setAttribute('height', '68')
+    Object.assign(svg.style, { position: 'absolute', left: '0', top: '0', overflow: 'visible', transformOrigin: '35.625px 21.72px', filter: 'drop-shadow(0 4px 7px color-mix(in srgb, var(--lumina-ghost-tint) 16%, transparent))' })
     const defs = document.createElementNS(ns, 'defs')
-    const gradient = document.createElementNS(ns, 'radialGradient')
-    gradient.id = 'lumina-ghost-fill'
-    gradient.setAttribute('cx', '36%')
-    gradient.setAttribute('cy', '26%')
-    const stops: Array<[string, string, string]> = [
-      ['0%', '#ffe9e7', '.8'],
-      ['38%', '#ff7a71', '.62'],
-      ['100%', '#e3261c', '.4'],
-    ]
-    for (const [offset, color, opacity] of stops) {
+    const fill = document.createElementNS(ns, 'linearGradient')
+    const id = `lumina-ghost-fill-${++sequence}`
+    fill.id = id
+    fill.setAttribute('x1', '90%'); fill.setAttribute('y1', '0%')
+    fill.setAttribute('x2', '0%'); fill.setAttribute('y2', '100%')
+    for (const [offset, color, opacity] of [
+      ['0%', 'var(--lumina-ghost-soft)', '.8'],
+      ['45%', 'var(--lumina-ghost-tint)', '.62'],
+      ['100%', 'var(--lumina-ghost-shade)', '.4'],
+    ]) {
       const stop = document.createElementNS(ns, 'stop')
-      stop.setAttribute('offset', offset)
-      stop.setAttribute('stop-color', color)
-      stop.setAttribute('stop-opacity', opacity)
-      gradient.append(stop)
+      stop.setAttribute('offset', offset!); stop.setAttribute('stop-color', color!); stop.setAttribute('stop-opacity', opacity!)
+      fill.append(stop)
     }
-    defs.append(gradient)
-    const body = document.createElementNS(ns, 'path')
-    body.setAttribute('d', ghostPath(0))
-    body.setAttribute('fill', 'url(#lumina-ghost-fill)')
-    body.setAttribute('stroke', 'rgba(255, 235, 232, .32)')
-    body.setAttribute('stroke-width', '1')
-    const shine = document.createElementNS(ns, 'path')
-    shine.setAttribute('d', GHOST_HIGHLIGHT)
-    shine.setAttribute('fill', '#ffffff')
-    shine.setAttribute('opacity', '.35')
-    const eye = (cx: number) => {
-      const node = document.createElementNS(ns, 'ellipse')
-      node.setAttribute('cx', String(cx))
-      node.setAttribute('cy', '27')
-      node.setAttribute('rx', '3.2')
-      node.setAttribute('ry', '4')
-      node.setAttribute('fill', '#5c0d09')
-      node.setAttribute('opacity', '.82')
+    defs.append(fill); svg.append(defs)
+    const path = (part: string, d: string, color: string, opacity = '1') => {
+      const node = document.createElementNS(ns, 'path')
+      node.setAttribute('data-ghost-part', part); node.setAttribute('d', d)
+      node.setAttribute('fill', color); node.setAttribute('opacity', opacity)
       return node
     }
-    const glint = (cx: number) => {
-      const node = document.createElementNS(ns, 'circle')
-      node.setAttribute('cx', String(cx))
-      node.setAttribute('cy', '25.4')
-      node.setAttribute('r', '1.05')
-      node.setAttribute('fill', '#fff')
-      node.setAttribute('opacity', '.9')
-      return node
+    const cloth = path('cloak', cloakPath(0), `url(#${id})`)
+    cloth.setAttribute('data-cloak-tips', '12')
+    cloth.setAttribute('stroke', 'color-mix(in srgb, var(--lumina-hi) 32%, transparent)')
+    cloth.setAttribute('stroke-width', '.6')
+    const folds = path('folds', 'M23 33 C23 42 16 50 14 57 M34 35 C31 44 26 49 25 56 M44 34 C42 39 42 44 43 48', 'none', '.24')
+    folds.setAttribute('stroke', 'var(--lumina-ghost-shade)'); folds.setAttribute('stroke-width', '.9')
+    const hood = path('hood', HOOD, `url(#${id})`)
+    const face = path('face', FACE, 'var(--lumina-ghost-void)', '.76')
+    const edge = path('hood-rim', 'M32 18 C37 14 44 15 48 21', 'none', '.4')
+    edge.setAttribute('stroke', 'var(--lumina-hi)'); edge.setAttribute('stroke-width', '1')
+    svg.append(cloth, folds, hood, face, edge, path('highlight', HIGHLIGHT, 'var(--lumina-hi)', '.28'))
+    for (const [cx, cy, rx, ry] of [[38, 23.5, 2, 2.6], [45.5, 23, 1.35, 2.1]]) {
+      const eye = document.createElementNS(ns, 'ellipse')
+      eye.setAttribute('cx', String(cx)); eye.setAttribute('cy', String(cy))
+      eye.setAttribute('rx', String(rx)); eye.setAttribute('ry', String(ry))
+      eye.setAttribute('fill', 'var(--lumina-hi)'); eye.setAttribute('opacity', '.88')
+      svg.append(eye)
     }
-    const blush = (cx: number) => {
-      const node = document.createElementNS(ns, 'circle')
-      node.setAttribute('cx', String(cx))
-      node.setAttribute('cy', '35')
-      node.setAttribute('r', '3.1')
-      node.setAttribute('fill', '#fff')
-      node.setAttribute('opacity', '.16')
-      return node
-    }
-    svg.append(defs, body, shine, eye(24), eye(40), glint(23), glint(39), blush(17), blush(47))
-    sprite = svg
-    bodyPath = body
-
     const puff = document.createElement('div')
     puff.className = 'lumina-transfer-mist'
-    for (const blob of TRAIL) {
-      const node = document.createElement('span')
-      node.className = 'lumina-transfer-mist-blob'
-      node.style.left = `${blob.x}px`
-      node.style.top = `${blob.y}px`
-      node.style.width = `${blob.w}px`
-      node.style.height = `${blob.h}px`
-      node.style.animationDelay = blob.delay
-      node.style.animationDuration = blob.duration
-      puff.append(node)
+    for (const [x, y, size, delay] of [[10, 23, 27, 0], [2, 31, 23, -1.1], [22, 33, 21, -1.8]]) {
+      const blob = document.createElement('span')
+      blob.className = 'lumina-transfer-mist-blob'
+      Object.assign(blob.style, { left: `${x}px`, top: `${y}px`, width: `${size}px`, height: `${size}px`, animationDelay: `${delay}s` })
+      puff.append(blob)
     }
-    // Trail first, ghost second: the mist must sit behind the silhouette.
     stage.ink.append(puff, svg)
-    trail = puff
+    sprite = svg; cloak = cloth; trail = puff
+    stage.targetLayer.style.opacity = '0'
   }
 
   const render = (t: number, stage: TransferStage): boolean => {
-    const { origin, edge } = stage
-    // The source text is drawn towards the release point, without blur: the
-    // ghost takes it in rather than dissolving it.
-    const release: Point = { x: edge.x, y: edge.y - 8 }
-    for (let i = 0; i < stage.sourceNodes.length; i++) {
-      const node = stage.sourceNodes[i]!
-      const glyph = stage.source.glyphs[i]!
-      const p = smooth((t - i * 4) / 240)
-      const x = mix(glyph.x + glyph.width / 2, release.x, p * .24)
-      const y = mix(glyph.y + glyph.height / 2, release.y, p * .24)
-      node.style.transform = `translate(${x - origin.x - glyph.width / 2}px, ${y - origin.y - glyph.height / 2}px) scale(${1 - .3 * p})`
-      node.style.opacity = String(1 - p)
-    }
-    if (t >= 260 && !sourceHidden) {
-      for (const node of stage.sourceNodes) node.style.opacity = '0'
-      sourceHidden = true
-    }
-    if (sprite === null) return false
-    bodyPath?.setAttribute('d', ghostPath(t))
+    if (!sprite) return false
+    if (stage.arrival && flightStart === null) flightStart = Math.max(FLIGHT_AT, t)
+    const rise = smoother(t / 160)
+    const start: Point = { x: stage.hub.x, y: stage.edge.y + 2 - rise * 20 }
+    const fly = flightStart === null ? 0 : smoother((t - flightStart) / FLIGHT_MS)
+    const landingAt = flightStart === null ? Infinity : flightStart + FLIGHT_MS
+    const arrive = smoother((t - landingAt) / LAND_MS)
+    const target = stage.arrival ?? start
+    const point = { x: mix(start.x, target.x, fly), y: mix(start.y, target.y, fly) + Math.sin(fly * Math.PI * 2) * 1.6 }
+    stage.root.setAttribute('data-phase', t < FLIGHT_AT ? 'pickup' : flightStart === null ? 'waiting' : fly < 1 ? 'flight' : 'landing')
 
-    const target: Point = stage.arrival ?? { x: edge.x, y: edge.y - 40 }
-    const start: Point = { x: edge.x, y: edge.y - 8 }
-    const rise = smoother((t - 80) / 200)
-    const fly = smoother((t - 200) / 640)
-    const arrive = smoother((t - 840) / 240)
-    // The ghost floats on a steady line; all of the restlessness lives in the
-    // cloak. Only a barely visible bob keeps it from feeling mechanical.
-    const point = {
-      x: mix(start.x, target.x, fly),
-      y: mix(start.y, target.y, fly) + Math.sin(fly * Math.PI * 2) * 1.6,
+    if (!sourceDone) {
+      const count = Math.max(1, stage.sourceNodes.length - 1)
+      for (let i = 0; i < stage.sourceNodes.length; i++) {
+        const node = stage.sourceNodes[i]!, glyph = stage.source.glyphs[i]!
+        const p = smoother((t - (i / count) * 80) / 200)
+        const x = mix(glyph.x + glyph.width / 2, point.x + 3, p)
+        const y = mix(glyph.y + glyph.height / 2, point.y + 7, p) - Math.sin(p * Math.PI) * (5 + (i % 3) * 3)
+        node.style.transform = `translate(${x - stage.origin.x - glyph.width / 2}px, ${y - stage.origin.y - glyph.height / 2}px) scale(${1 - .95 * p})`
+        node.style.opacity = String(1 - smoother((p - .42) / .58))
+      }
+      // Every glyph has naturally finished its own curve, including 240 glyphs.
+      sourceDone = t >= 280
     }
-    const scale = (0.55 + 0.45 * rise) * (1 - 0.18 * arrive)
-    sprite.style.opacity = String((0.9 * rise) * (1 - arrive))
-    sprite.style.transform = `translate(${point.x - origin.x - 28}px, ${point.y - origin.y - 28}px) scale(${scale})`
-    sprite.style.filter = `drop-shadow(0 8px 14px rgba(232, 50, 42, ${(.24 * (1 - arrive)).toFixed(2)}))`
-    if (trail !== null) {
-      trail.style.opacity = String((0.22 * rise) * (1 - arrive))
-      trail.style.transform = `translate(${mix(start.x, target.x, Math.max(0, fly - .12)) - origin.x - 32}px, ${mix(start.y, target.y, Math.max(0, fly - .12)) - origin.y - 32}px) scale(${(0.5 + 0.3 * rise) * (1 + 0.25 * arrive)})`
+    cloak?.setAttribute('d', cloakPath(t))
+    sprite.style.opacity = String(.9 * rise * (1 - arrive))
+    sprite.style.transform = `translate(${point.x - stage.origin.x - 35.625}px, ${point.y - stage.origin.y - 21.72}px) rotate(10deg)`
+    if (trail) {
+      const lag = flightStart === null ? 0 : smoother((t - flightStart - 85) / FLIGHT_MS)
+      trail.style.opacity = String(.2 * rise * (1 - arrive))
+      trail.style.transform = `translate(${mix(start.x, target.x, lag) - stage.origin.x - 46}px, ${mix(start.y, target.y, lag) - stage.origin.y + 4}px) scale(.7)`
     }
-
-    if (stage.target === null) return false
-    if (resolveStart === null) resolveStart = t
-    const resolve = revealFade(t, stage, resolveStart + 40, 260)
+    if (!stage.target) { stage.targetLayer.style.opacity = '0'; return false }
+    const resolve = revealFade(t, stage, landingAt, LAND_MS)
     return arrive >= 1 && resolve >= 1
   }
 
   const dispose = (stage: TransferStage) => {
-    sprite?.remove()
-    sprite = null
-    bodyPath = null
-    trail?.remove()
-    trail = null
+    sprite?.remove(); trail?.remove()
+    sprite = null; cloak = null; trail = null
     stage.targetLayer.style.filter = ''
   }
-
   return { enter, render, dispose }
 }

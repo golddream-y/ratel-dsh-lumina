@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · Text glow &amp; shine</title>
+<style>
+  :root {
+    --brand: #FF3B30;
+    --blue: #4176e6;
+    --hi: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 48px 0;
+    background: radial-gradient(1200px 620px at 50% -10%, #fff 0%, #eef3fb 55%, #e5ecf8 100%);
+    color: #182230; font: 14px/1.6 ui-sans-serif,-apple-system,"SF Pro Text","PingFang SC",sans-serif;
+  }
+  .wrap { width: min(980px, calc(100vw - 40px)); margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.02em; }
+  .lead { margin: 0 0 26px; color: #5b6676; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+  .card { background: rgba(255,255,255,.82); border: 1px solid #dfe6f2; border-radius: 20px; padding: 20px; box-shadow: 0 18px 50px rgba(31,57,104,.08); }
+  .card h2 { margin: 0 0 4px; font-size: 16px; }
+  .card p { margin: 0 0 16px; color: #6b7688; font-size: 12px; }
+  .sample { font-size: 26px; font-weight: 650; letter-spacing: -.01em; margin: 0 0 12px; }
+  .row { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+  .red { color: var(--brand); }
+  .blue { color: var(--blue); }
+  /* A · static halo: text-shadow layers */
+  .glow { text-shadow: 0 0 6px rgba(255,59,48,.55), 0 0 18px rgba(255,59,48,.28); }
+  .glow.blue { text-shadow: 0 0 6px rgba(65,118,230,.55), 0 0 18px rgba(65,118,230,.28); }
+  /* B · breathing halo: the shadow itself pulses */
+  .breathe { animation: breathe 2.6s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { text-shadow: 0 0 3px rgba(255,59,48,.35), 0 0 10px rgba(255,59,48,.15); }
+    50% { text-shadow: 0 0 8px rgba(255,59,48,.65), 0 0 24px rgba(255,59,48,.35); }
+  }
+  /* C · shine sweep: a bright band travels across the glyphs */
+  .shine {
+    background: linear-gradient(100deg, currentColor 38%, #ffffff 50%, currentColor 62%);
+    background-size: 260% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    animation: sweep 3.2s linear infinite;
+  }
+  @keyframes sweep { from { background-position: 180% 0; } to { background-position: -80% 0; } }
+  /* D · per-glyph wave: every character lights up in turn */
+  .wave span { display: inline-block; text-shadow: 0 0 10px rgba(65,118,230,.7), 0 0 26px rgba(65,118,230,.35); animation: wave 2.2s ease-in-out infinite; }
+  @keyframes wave {
+    0%, 60%, 100% { opacity: .55; filter: none; }
+    20% { opacity: 1; filter: brightness(1.35); }
+  }
+  .hint { margin: 18px 0 0; color: #6b7688; font-size: 12px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>文字辉光 / 流光 · 四种做法</h1>
+    <p class="lead">同一个句子的四种处理：静态外发光、呼吸发光、扫光带、逐字波浪。</p>
+    <div class="grid">
+      <section class="card">
+        <h2>A · 静态辉光</h2>
+        <p>text-shadow 两层：近处实、远处虚。文字自己在发光，颜色不变。</p>
+        <div class="row"><span class="sample red glow">字在发光</span></div>
+        <div class="row"><span class="sample blue glow">字在发光</span></div>
+      </section>
+      <section class="card">
+        <h2>B · 呼吸辉光</h2>
+        <p>辉光强度随时间起伏，像字在轻轻吐息。最接近现在的光标质感。</p>
+        <div class="row"><span class="sample red breathe">字在呼吸</span></div>
+        <div class="row"><span class="sample blue breathe">字在呼吸</span></div>
+      </section>
+      <section class="card">
+        <h2>C · 扫光带</h2>
+        <p>background-clip: text + 移动渐变，一道白光扫过字面。品牌字标用的就是这一类。</p>
+        <div class="row"><span class="sample red shine">光扫过字面</span></div>
+        <div class="row"><span class="sample blue shine">光扫过字面</span></div>
+      </section>
+      <section class="card">
+        <h2>D · 逐字波浪</h2>
+        <p>每个字按顺序亮起又落下，光沿文字传播；需要把字拆成 span。</p>
+        <div class="row"><span class="sample blue wave" id="wave"></span></div>
+      </section>
+    </div>
+    <p class="hint">D 的逐字波浪依赖逐字 span，只能用在<strong>我们自己的</strong>元素上（品牌字标、设置页、发送转场的文字副本），不能直接套在宿主消息正文上。</p>
+  </div>
+<script>
+  const wave = document.getElementById('wave');
+  const text = '光沿字逐个传过去';
+  [...text].forEach((char, index) => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.style.animationDelay = `${index * 0.09}s`;
+    wave.append(span);
+  });
+</script>
+</body>
+</html>

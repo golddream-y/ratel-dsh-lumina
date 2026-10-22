@@ -40,6 +40,7 @@ export function revealBlur(t: number, stage: TransferStage, start: number, durat
   for (let i = 0; i < stage.targetNodes.length; i++) {
     const node = stage.targetNodes[i]!
     const glyph = stage.copyGlyphs[i]!
+    node.style.opacity = '1'
     const p = smoother((resolve - (i / count) * .18) / .82)
     const x = mix(stage.arrival?.x ?? glyph.x, glyph.x + glyph.width / 2, p)
     const rest = glyph.y + glyph.height / 2
@@ -63,15 +64,11 @@ export function revealFade(t: number, stage: TransferStage, start: number, durat
   const resolve = revealProgress(t, start, duration)
   stage.targetLayer.style.filter = ''
   stage.targetLayer.style.opacity = String(resolve)
-  const count = Math.max(1, stage.targetNodes.length - 1)
   for (let i = 0; i < stage.targetNodes.length; i++) {
     const node = stage.targetNodes[i]!
     const glyph = stage.copyGlyphs[i]!
-    const p = smoother((resolve - (i / count) * .1) / .9)
-    const rest = glyph.y + glyph.height / 2
-    const x = mix(stage.arrival?.x ?? glyph.x, glyph.x + glyph.width / 2, p)
-    const y = mix(stage.arrival?.y ?? rest, rest, p) - (1 - p) * 4
-    node.style.transform = `translate(${x - stage.origin.x - glyph.width / 2}px, ${y - stage.origin.y - glyph.height / 2}px) scale(${1.02 - .02 * p})`
+    node.style.opacity = '1'
+    node.style.transform = `translate(${glyph.x - stage.origin.x}px, ${glyph.y - stage.origin.y}px)`
   }
   return resolve
 }

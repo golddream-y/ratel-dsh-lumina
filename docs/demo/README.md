@@ -22,6 +22,7 @@ python3 -m http.server 8765 --directory docs/demo
 | `dissolve.html` | 候选模式：文字消解 / 文字合成 |
 | `mist.html` | 候选模式：红色雾气飘过 |
 | `ghost.html` | 旧版存档：圆润小幽灵三种形态 |
+| `glow.html` | 参考：文字辉光 / 流光四种做法 |
 
 原型页尽量复用正式实现的 CSS keyframes、时长和缓动；差异只在于用静态 mock DOM 代替客户端真实 DOM。
 最终验收仍以 desktop 客户端重启后的真实行为为准。

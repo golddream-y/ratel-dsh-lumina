@@ -28,6 +28,10 @@ export function transferCss(): string {
   --lumina-water-body: color-mix(in srgb, var(--lumina-water-tint) 42%, var(--lumina-hi));
   --lumina-water-depth: color-mix(in srgb, var(--lumina-water-tint) 76%, var(--lumina-hi));
   --lumina-water-line: color-mix(in srgb, var(--lumina-water-tint) 70%, transparent);
+  --lumina-ghost-tint: var(--lumina-brand-deepseek);
+  --lumina-ghost-soft: color-mix(in srgb, var(--lumina-ghost-tint) 24%, var(--lumina-hi));
+  --lumina-ghost-shade: color-mix(in srgb, var(--lumina-ghost-tint) 55%, var(--lumina-brand-deep));
+  --lumina-ghost-void: color-mix(in srgb, var(--lumina-ghost-tint) 20%, var(--lumina-brand-deep));
   contain: layout style; isolation: isolate; color: var(--lumina-water-depth);
 }
 [data-lumina="on"] .lumina-transfer * { pointer-events: none; }
@@ -43,7 +47,7 @@ export function transferCss(): string {
 }
 [data-lumina="on"] .lumina-transfer-mist-blob {
   position: absolute; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 77, 69, .52), rgba(255, 77, 69, 0) 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--lumina-ghost-tint) 52%, transparent), transparent 70%);
   animation: lumina-mist-drift 2.6s ease-in-out infinite alternate;
 }
 ${cssSelector('composerCard')}[data-lumina-transfer]::before,
