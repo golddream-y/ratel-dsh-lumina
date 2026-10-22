@@ -144,11 +144,22 @@ export function animateTransfer(request: TransferRequest, duration = TRANSFER_TI
   card.setAttribute('data-lumina-transfer', id)
   const masked = new Set<HTMLElement>()
   const mask = (node: HTMLElement) => {
-    // Never hide a painted surface: masking a bubble would leave its
-    // background behind in the transcript.
-    const background = getComputedStyle(node).backgroundColor
-    if (background !== 'rgba(0, 0, 0, 0)' && background !== 'transparent') return
     if (!node.hasAttribute(MASK) || node.getAttribute(MASK) === id) { node.setAttribute(MASK, id); masked.add(node) }
+  }
+  /** The nearest painted ancestor is the message bubble; hide it as a whole. */
+  const paintedAncestor = (node: HTMLElement): HTMLElement => {
+    let current: HTMLElement | null = node
+    for (let depth = 0; current !== null && depth < 5; depth += 1) {
+      const background = getComputedStyle(current).backgroundColor
+      if (background !== 'rgba(0, 0, 0, 0)' && background !== 'transparent') {
+        const rect = current.getBoundingClientRect()
+        // A surface this large is a page region, not a message bubble.
+        if (rect.width * rect.height > innerWidth * innerHeight * 0.5) break
+        return current
+      }
+      current = current.parentElement
+    }
+    return node
   }
   if ((source.element.innerText ?? source.element.textContent ?? '') === source.text) mask(source.element)
   const releaseSource = () => {
@@ -162,6 +173,9 @@ export function animateTransfer(request: TransferRequest, duration = TRANSFER_TI
   let target: GlyphSnapshot | null = null
   let targetNodes: HTMLSpanElement[] = []
   let targetDone: boolean[] = []
+  // The visual copy and its destination are frozen on the first resolution so
+  // a later element swap (local echo -> durable node) cannot re-aim the drop.
+  let copyGlyphs: Glyph[] = []
   let arrival: { x: number; y: number } | null = null
   let landingStart = FLIGHT_START
   let targetDirty = false
@@ -221,24 +235,36 @@ export function animateTransfer(request: TransferRequest, duration = TRANSFER_TI
         const next = element ? snapshotGlyphs(element) : null
         if (!next && target && !target.element.isConnected) {
           if (t >= landingStart) { stop(); return }
-          target = null; arrival = null
-          for (const node of targetNodes) node.remove()
-          targetNodes = []
+          // The copy stays frozen while the host swaps echo for durable node.
+          if (copyGlyphs.length === 0) {
+            target = null; arrival = null
+            for (const node of targetNodes) node.remove()
+            targetNodes = []
+            targetDone = []
+          }
         }
         if (next) {
           const nextCenter = center(next)
           if (arrival && t >= landingStart && Math.hypot(nextCenter.x - arrival.x, nextCenter.y - arrival.y) > 8) { stop(); return }
-          for (const node of targetNodes) node.remove()
-          target = next; arrival = nextCenter; targetDirty = false; mask(next.element)
-          targetNodes = next.glyphs.map((g) => glyphNode(g, ink))
-          targetDone = new Array(next.glyphs.length).fill(false)
-          for (const node of targetNodes) node.style.opacity = '0'
-          origin.x = Math.max(0, Math.min(source.box.left, next.box.left) - pad)
-          origin.y = Math.max(0, Math.min(source.box.top, edge.y, next.box.top) - pad)
-          root.style.left = `${origin.x + scrollX}px`
-          root.style.top = `${origin.y + scrollY}px`
-          root.style.width = `${Math.min(innerWidth - origin.x, Math.max(source.box.right, next.box.right) - origin.x + pad)}px`
-          root.style.height = `${Math.min(innerHeight - origin.y, Math.max(source.box.bottom, next.box.bottom) - origin.y + pad)}px`
+          target = next; targetDirty = false
+          // Hide the real message surface, background included, so the bubble
+          // never shows up next to the flying copy.
+          mask(paintedAncestor(next.element))
+          if (copyGlyphs.length === 0) {
+            // Freeze the destination and the copy geometry on the first hit.
+            arrival = nextCenter
+            copyGlyphs = next.glyphs
+            for (const node of targetNodes) node.remove()
+            targetNodes = copyGlyphs.map((g) => glyphNode(g, ink))
+            targetDone = new Array(copyGlyphs.length).fill(false)
+            for (const node of targetNodes) node.style.opacity = '0'
+            origin.x = Math.max(0, Math.min(source.box.left, next.box.left) - pad)
+            origin.y = Math.max(0, Math.min(source.box.top, edge.y, next.box.top) - pad)
+            root.style.left = `${origin.x + scrollX}px`
+            root.style.top = `${origin.y + scrollY}px`
+            root.style.width = `${Math.min(innerWidth - origin.x, Math.max(source.box.right, next.box.right) - origin.x + pad)}px`
+            root.style.height = `${Math.min(innerHeight - origin.y, Math.max(source.box.bottom, next.box.bottom) - origin.y + pad)}px`
+          }
         }
       }
       if (!target && t > 1000) { request.fallback(); stop('timeout'); return }
@@ -306,7 +332,7 @@ export function animateTransfer(request: TransferRequest, duration = TRANSFER_TI
       if (target && unfold > 0) {
         for (let i = 0; i < targetNodes.length; i++) {
           if (targetDone[i]) continue
-          const g = target.glyphs[i]!, node = targetNodes[i]!
+          const g = copyGlyphs[i]!, node = targetNodes[i]!
           const p = smooth((unfold - (i % 5) * .012) / .952)
           const x = mix(dx, g.x + g.width / 2, p), y = mix(dy, g.y + g.height / 2, p)
           node.style.opacity = '1'

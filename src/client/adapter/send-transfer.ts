@@ -114,22 +114,24 @@ export function installTransferBridge(
         if (sessionId !== owner) return null
         const root = conversationRoot(owner)
         if (!root) return null
-        // Authoritative identity first: the durable user node carries rpcId.
-        const key = nodeForRequest(chat?.getSnapshot(), requestId)
-        if (key) {
-          const node = userNode(root, key)
-          const text = node ? userTextRoot(node, submission.text) : null
-          if (text) return text
-        }
-        // Local echo fallback. Echoes carry no request-id hook, so it is only
-        // used for a single transcript pending whose unique chat-region echo
-        // carries the same text.
+        // The local echo exists on the submit frame, so it is the earliest
+        // visual landing target. It is the local echo of the very submission
+        // whose requestId was just confirmed above.
         const pending = face?.getSnapshot().pendingSubmissions?.filter((entry) => entry.placement === 'transcript') ?? []
-        if (pending.length !== 1 || pending[0]?.requestId !== requestId) return null
-        const expected = compactText(submission.text)
-        const echoes = pendingEchoes(root)
-          .filter((echo) => compactText((echo as HTMLElement).innerText ?? echo.textContent ?? '') === expected)
-        return echoes.length === 1 ? userTextRoot(echoes[0]!, submission.text) : null
+        if (pending.length === 1 && pending[0]?.requestId === requestId) {
+          const expected = compactText(submission.text)
+          const echoes = pendingEchoes(root)
+            .filter((echo) => compactText((echo as HTMLElement).innerText ?? echo.textContent ?? '') === expected)
+          if (echoes.length === 1) {
+            const text = userTextRoot(echoes[0]!, submission.text)
+            if (text) return text
+          }
+        }
+        // Durable identity: the user node carries the echoed rpcId.
+        const key = nodeForRequest(chat?.getSnapshot(), requestId)
+        if (!key) return null
+        const node = userNode(root, key)
+        return node ? userTextRoot(node, submission.text) : null
       } })
       if (!stop) fallback()
       if (stop) {
