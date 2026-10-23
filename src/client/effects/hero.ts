@@ -13,7 +13,7 @@ import { assembleComposer } from './hero-particles.ts'
 export function heroCss(): string {
   return `${ECHO_CSS}
 .lumina-hero-mark, .lumina-hero-art { position: relative; display: inline-flex; align-items: center; justify-content: center; }
-.lumina-hero-art[data-play="true"] path {
+.lumina-hero-art[data-play="true"] .lumina-whale-body path {
   stroke: var(--lumina-brand); stroke-width: .6; stroke-dasharray: 1; stroke-dashoffset: 1;
   animation: lumina-hero-stroke var(--lumina-hero-stroke) cubic-bezier(.22,.7,.3,1) both;
 }
@@ -40,7 +40,7 @@ export function heroCss(): string {
 [data-lumina="on"] [data-lumina-assembling]::before,
 [data-lumina="on"] [data-lumina-assembling]::after { opacity: var(--lumina-assembly-reveal, 0) !important; }
 @media (prefers-reduced-motion: reduce) {
-  .lumina-hero-art[data-play="true"] path, .lumina-hero-title-stroke text { animation: none; stroke: none; fill-opacity: 1; }
+  .lumina-hero-art[data-play="true"] .lumina-whale-body path, .lumina-hero-title-stroke text { animation: none; stroke: none; fill-opacity: 1; }
   .lumina-hero-particles { display: none; }
   [data-lumina="on"] [data-lumina-assembling] > :not(.lumina-hero-particles),
   [data-lumina="on"] [data-lumina-assembling]::before,
@@ -100,9 +100,45 @@ export function installHero(ctx: { slots: SlotRegistryLike } & TransferServices)
     if (accessoryRoot !== document.documentElement) interactionTargets.push(accessoryRoot)
     const initialCard = queryTarget('composerCard')
     if (initialCard) interactionTargets.push(initialCard)
-    const echo = prepareHeroEcho(accessories, echoDuration, { root: accessoryRoot, targets: () => heroAccessories(mark) })
+    const sprayAnimations: Animation[] = []
+    const spray = () => {
+      if (!running || !mark.isConnected || prefersReducedMotion()) return
+      const body = mark.querySelector('.lumina-whale-body')
+      const jet = mark.querySelector('.lumina-water-jet')
+      const options: KeyframeAnimationOptions = { duration: 1400, easing: 'ease-in-out' }
+      if (body) sprayAnimations.push(body.animate([
+        { transform: 'none', offset: 0 },
+        { transform: 'translateY(-1.5px)', offset: .3 },
+        { transform: 'translateY(-.5px)', offset: .48 },
+        { transform: 'translateY(-1.5px)', offset: .68 },
+        { transform: 'translateY(-.5px)', offset: .84 },
+        { transform: 'none', offset: 1 },
+      ], options))
+      if (jet) sprayAnimations.push(jet.animate([
+        { opacity: 0, transform: 'scaleY(.05)', transformOrigin: '15px 7px', offset: 0 },
+        { opacity: 1, transform: 'scaleX(.95) scaleY(1) skewX(-3deg)', offset: .25 },
+        { opacity: 1, transform: 'scaleX(1.08) scaleY(.82) skewX(3deg)', offset: .43 },
+        { opacity: 1, transform: 'scaleX(.9) scaleY(1.08) skewX(-2deg)', offset: .62 },
+        { opacity: 1, transform: 'scaleX(.65) scaleY(.85)', offset: .8 },
+        { opacity: 0, transform: 'scaleY(.05)', offset: 1 },
+      ], options))
+      const flow = mark.querySelector('.lumina-water-flow')
+      if (flow) sprayAnimations.push(flow.animate([
+        { transform: 'translateY(0)' }, { transform: 'translateY(-22px)' },
+      ], { duration: 1400, easing: 'linear' }))
+      mark.querySelectorAll('.lumina-water-fall').forEach((drop, index) => {
+        const x = index === 0 ? -3 : 3
+        sprayAnimations.push(drop.animate([
+          { opacity: 0, transform: 'translate(0,0)', offset: 0 },
+          { opacity: 0, transform: 'translate(0,0)', offset: .66 },
+          { opacity: .9, transform: `translate(${x}px,-1px)`, offset: .78 },
+          { opacity: 0, transform: `translate(${x}px,8px)`, offset: 1 },
+        ], options))
+      })
+    }
+    const echo = prepareHeroEcho(accessories, echoDuration, { root: accessoryRoot, targets: () => heroAccessories(mark), onComplete: spray })
     let running = true, remaining = 3
-    const disposers = [echo.dispose]
+    const disposers = [echo.dispose, () => sprayAnimations.forEach(animation => animation.cancel())]
     active = () => { running = false; disposers.forEach(fn => fn()) }
     const completed = () => { if (running && --remaining === 0) echo.play() }
     waitFrame = requestAnimationFrame(() => {

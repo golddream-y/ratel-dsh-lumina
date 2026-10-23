@@ -21,6 +21,8 @@ import {
 /** Presentation props supplied by the slot owners. */
 export interface BrandArtworkProps {
   /** Square edge for the mark. */
+  water?: boolean
+  periodic?: boolean
   size?: number
   /** Extra class supplied by the host slot owner. */
   className?: string
@@ -43,15 +45,18 @@ function safeId(id: string): string {
  * @param props - size and optional host class.
  * @returns the mark element.
  */
-export function BrandMark({ size = 24, className }: BrandArtworkProps) {
+export function BrandMark({ size = 24, className, periodic = true, water = periodic }: BrandArtworkProps) {
   const uid = safeId(useId())
   const clipId = `${uid}-whale`
+  const bodyId = `${uid}-enamel`
+  const lightId = `${uid}-light`
   return (
     <span
-      className={['lumina-mark', className].filter(Boolean).join(' ')}
+      className={['lumina-mark', periodic && 'lumina-whale-periodic', className].filter(Boolean).join(' ')}
       aria-hidden="true"
     >
       <svg
+        className="lumina-whale-body"
         viewBox={WHALE_VIEWBOX}
         width={size}
         height={size}
@@ -59,6 +64,17 @@ export function BrandMark({ size = 24, className }: BrandArtworkProps) {
         focusable="false"
       >
         <defs>
+          <linearGradient id={bodyId} x1="0.18" y1="0" x2="0.72" y2="1">
+            <stop offset="0" stopColor="var(--lumina-brand-soft)" />
+            <stop offset="0.28" stopColor="var(--lumina-brand)" />
+            <stop offset="0.62" stopColor="var(--lumina-brand)" />
+            <stop offset="1" stopColor="var(--lumina-brand-deep)" />
+          </linearGradient>
+          <radialGradient id={lightId} cx="28%" cy="18%" r="76%">
+            <stop offset="0" stopColor="var(--lumina-hi)" stopOpacity=".62" />
+            <stop offset=".35" stopColor="var(--lumina-hi)" stopOpacity=".12" />
+            <stop offset=".72" stopColor="var(--lumina-hi)" stopOpacity="0" />
+          </radialGradient>
           <clipPath id={clipId}>
             <rect
               x={WHALE_CLIP.x}
@@ -72,9 +88,38 @@ export function BrandMark({ size = 24, className }: BrandArtworkProps) {
           d={WHALE_PATH}
           pathLength={1}
           clipPath={`url(#${clipId})`}
-          style={{ fill: 'var(--lumina-brand)' }}
+          fill={`url(#${bodyId})`}
+          stroke="var(--lumina-brand-deep)"
+          strokeWidth=".16"
         />
+        <path d={WHALE_PATH} className="lumina-mark-light" pathLength={1}
+          clipPath={`url(#${clipId})`} fill={`url(#${lightId})`}
+          stroke="var(--lumina-brand-soft)" strokeOpacity=".48" strokeWidth=".16" />
       </svg>
+      {water && <svg className="lumina-whale-water" viewBox="0 0 52 41" width={size} height={size} aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id={`${uid}-water-tone`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="var(--lumina-brand)" stopOpacity=".85" />
+            <stop offset=".45" stopColor="var(--lumina-brand-soft)" stopOpacity=".75" />
+            <stop offset="1" stopColor="var(--lumina-brand)" stopOpacity=".9" />
+          </linearGradient>
+          <clipPath id={`${uid}-water-clip`}>
+            <path d="M13.5 7 C14 2 12.5 -1 13 -3 C13 -5 9 -5 10 -7 C11 -9 14 -7 15 -5 C16 -8 19 -9 20 -7 C21 -5 17 -5 17 -3 C16 -1 17 3 16.5 7 Z" />
+          </clipPath>
+        </defs>
+        <g className="lumina-water-jet" clipPath={`url(#${uid}-water-clip)`}>
+          <rect x="9" y="-10" width="13" height="18" fill={`url(#${uid}-water-tone)`} />
+          <g className="lumina-water-flow" fill="var(--lumina-hi)" opacity=".7">
+            <ellipse cx="15" cy="5" rx=".7" ry="2.5" />
+            <ellipse cx="14.5" cy="12" rx=".6" ry="2" />
+            <ellipse cx="15.5" cy="19" rx=".7" ry="2.5" />
+          </g>
+        </g>
+        <g fill="var(--lumina-brand-soft)">
+          <ellipse className="lumina-water-fall lumina-water-fall-left" cx="11" cy="-6" rx="1" ry="1.5" />
+          <ellipse className="lumina-water-fall lumina-water-fall-right" cx="19" cy="-7" rx=".9" ry="1.4" />
+        </g>
+      </svg>}
     </span>
   )
 }
@@ -220,7 +265,7 @@ export function HeroMark({ size = 34, className, sessionKey = '', onEntrance }: 
   }, [sessionKey, onEntrance])
   return (
     <span ref={element} className={['lumina-hero-mark', className].filter(Boolean).join(' ')} aria-hidden="true">
-      <span className="lumina-hero-art" data-play={play ? 'true' : undefined}><BrandMark size={size} /></span>
+      <span className="lumina-hero-art" data-play={play ? 'true' : undefined}><BrandMark size={size} periodic={false} water /></span>
     </span>
   )
 }

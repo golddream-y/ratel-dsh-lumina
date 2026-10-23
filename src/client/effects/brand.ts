@@ -5,9 +5,7 @@
  * client upgrade. The artwork is inline SVG generated from the package asset;
  * third-party bundles must not require Harness Client packages.
  *
- * The `deepseek` preset renders the shine-enabled wordmark; the `ratel` preset
- * is still deferred (MVP 1 §5, PRD O1), so both presets use the same artwork
- * and only the accent color differs.
+ * Both presets retain the upstream mark geometry and apply enamel shading.
  */
 
 import { BrandMark, BrandName } from '../brand/artwork.tsx'
@@ -28,18 +26,18 @@ const BRAND_SLOTS = ['sidebar.brand.mark', 'sidebar.brand.name'] as const
 const BRAND_PRIORITY = -20
 
 /** The full variable set each brand preset publishes. */
-const PRESET_VARIABLES: Record<string, Record<string, string>> = {
+export const PRESET_VARIABLES: Record<string, Record<string, string>> = {
   ratel: {
     '--lumina-brand': '#2563EB',
     '--lumina-hi': '#FFFFFF',
     '--lumina-brand-soft': '#93B4F8',
-    '--lumina-brand-deep': '#1E3A8A',
+    '--lumina-brand-deep': '#102C82',
     '--lumina-brand-rgb': '37, 99, 235',
   },
   deepseek: {
     '--lumina-brand': '#FF3B30',
     '--lumina-hi': '#FFFFFF',
-    '--lumina-brand-soft': '#FFB3A8',
+    '--lumina-brand-soft': '#FFB2A0',
     '--lumina-brand-deep': '#8C1D12',
     '--lumina-brand-rgb': '255, 59, 48',
   },
@@ -68,7 +66,37 @@ ${presetAccents}
 html[data-lumina][data-lumina-brand="${preset}"] {
 ${declarations}
 }
-.lumina-mark { display: inline-flex; align-items: center; flex-shrink: 0; }
+.lumina-mark { position: relative; pointer-events: none; display: inline-flex; align-items: center; flex-shrink: 0; }
+.lumina-whale-water { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.lumina-whale-periodic .lumina-whale-body { transform-origin: 50% 65%; animation: lumina-whale-float var(--lumina-brand-sweep) ease-in-out infinite; }
+.lumina-water-fall { opacity: 0; }
+.lumina-water-fall-left { --water-fall-x: -3px; }
+.lumina-water-fall-right { --water-fall-x: 3px; }
+.lumina-whale-periodic .lumina-water-flow { animation: lumina-water-flow var(--lumina-brand-sweep) linear infinite; }
+.lumina-whale-periodic .lumina-water-fall { animation: lumina-water-fall var(--lumina-brand-sweep) ease-in infinite; }
+@keyframes lumina-water-flow {
+  0%, 77% { transform: translateY(0); }
+  97%, 100% { transform: translateY(-22px); }
+}
+@keyframes lumina-water-fall {
+  0%, 89%, 100% { opacity: 0; transform: translate(0,0); }
+  92% { opacity: .9; transform: translate(var(--water-fall-x),-1px); }
+  99% { opacity: 0; transform: translate(var(--water-fall-x),8px); }
+}
+.lumina-water-jet { opacity: 0; transform-origin: 15px 7px; }
+.lumina-whale-periodic .lumina-water-jet { transform-origin: 15px 7px; animation: lumina-whale-jet var(--lumina-brand-sweep) ease-out infinite; }
+@keyframes lumina-whale-float {
+  0%, 70%, 100% { transform: none; }
+  79%, 88% { transform: translateY(-1.5px); }
+  84%, 93% { transform: translateY(-.5px); }
+}
+@keyframes lumina-whale-jet {
+  0%, 77%, 97%, 100% { opacity: 0; transform: scaleY(.05); }
+  81% { opacity: 1; transform: scaleX(.95) scaleY(1) skewX(-3deg); }
+  85% { opacity: 1; transform: scaleX(1.08) scaleY(.82) skewX(3deg); }
+  89% { opacity: 1; transform: scaleX(.9) scaleY(1.08) skewX(-2deg); }
+  93% { opacity: 1; transform: scaleX(.65) scaleY(.85); }
+}
 .lumina-name { display: inline-flex; align-items: center; min-width: 0; height: 24px; overflow: hidden; }
 .lumina-name-svg { display: block; height: 100%; width: auto; }
 .lumina-shine { animation: lumina-sweep var(--lumina-brand-sweep) cubic-bezier(.45, 0, .55, 1) infinite; }
@@ -76,7 +104,11 @@ ${rootWithTarget('composerInput', ':focus')} .lumina-shine,
 [data-lumina-streaming="on"] .lumina-shine {
   animation-play-state: paused;
 }
+${rootWithTarget('composerInput', ':focus')} .lumina-whale-periodic *,
+[data-lumina-streaming="on"] .lumina-whale-periodic * { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
+  .lumina-whale-periodic *, .lumina-whale-water { animation: none !important; }
+  .lumina-whale-water { display: none; }
   .lumina-shine { animation: none; }
 }`
 }

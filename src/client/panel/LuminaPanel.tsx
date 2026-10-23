@@ -13,6 +13,9 @@
  */
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { BrandMark } from '../brand/artwork.tsx'
+import { PRESET_VARIABLES } from '../effects/brand.ts'
+import type { CSSProperties } from 'react'
 import type { LuminaConfig, TransferMode } from '../core/config.ts'
 import { DEFAULT_CONFIG, TRANSFER_MODES } from '../core/config.ts'
 import { getTransferStatus, subscribeTransferStatus } from '../core/transfer-status.ts'
@@ -179,6 +182,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
                 disabled={!draft.master}
                 onClick={() => edit({ brand: preset })}
               >
+                <span style={{ ...PRESET_VARIABLES[preset], display: 'inline-flex', verticalAlign: 'middle', marginRight: 8 } as CSSProperties}><BrandMark size={30} periodic={false} /></span>
                 {preset === 'ratel' ? t('brandRatel') : t('brandDeepseek')}
               </button>
             ))}

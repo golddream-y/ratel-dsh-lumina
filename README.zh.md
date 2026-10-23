@@ -58,3 +58,7 @@ npm run install:local -- web
 ## 许可
 
 项目采用 MIT 许可。第三方代码的来源及附加许可条款见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+### 品牌素材
+
+DeepSeek 标识归其各自权利人所有。本项目不主张这些标识的所有权，MIT 许可不代表授予品牌使用权。详见[第三方声明](THIRD_PARTY_NOTICES.md)。

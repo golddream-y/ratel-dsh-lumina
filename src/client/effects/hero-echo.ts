@@ -32,6 +32,7 @@ ${heroAccessoryGateSelector()} { opacity: 0 !important; }
 export function prepareHeroEcho(targets: HTMLElement[], duration: number, dynamic?: {
   root: HTMLElement
   targets: () => HTMLElement[]
+  onComplete?: () => void
 }): { play: () => void; dispose: () => void } {
   const entries: Array<{ element: HTMLElement; position: string; time: string }> = []
   const known = new Set<HTMLElement>()
@@ -110,7 +111,7 @@ export function prepareHeroEcho(targets: HTMLElement[], duration: number, dynami
       element.setAttribute('data-lumina-echo', 'playing')
     }
     dynamic?.root.removeAttribute('data-lumina-echo-gate')
-    timer = setTimeout(dispose, duration + 80)
+    timer = setTimeout(() => { dispose(); dynamic?.onComplete?.() }, duration + 80)
   }
   return { play, dispose }
 }

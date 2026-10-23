@@ -43,3 +43,11 @@
 - 改编后的实现仍须遵守"只改时间维度、封闭集合、可完全关闭"三条
 - 若某组件依赖 `motion` / `gsap` / `three` 等第三方运行时，**不得**为它引入依赖；
   只取其思路、用平台原语重写，或放弃该效果
+
+## DeepSeek 品牌标识
+
+- 涉及文件：`assets/deepseek-harness-logo-v2.svg`、`src/client/brand/generated.tsx`、`src/client/brand/artwork.tsx`。
+- 鲸鱼、DeepSeek 字标及 Harness 品牌标识属于其各自权利人；Ratel Lumina 不主张这些标识的独立版权或商标权，也不因本项目 MIT 许可而向使用者授予这些标识的品牌使用权。
+- 本项目的渐变、质感绘制及交互实现属于插件层实现；不表示获得官方背书、合作或授权。项目 MIT 许可不替代第三方资产的适用条款。
+- 官方规范：[Harness 品牌规范](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.md)、[DeepSeek 品牌素材使用规范](https://github.com/deepseek-ai/awesome-deepseek-integration/blob/main/docs/_logo%20svg/guidelines.md)。后者要求不得随意修改素材；本次改色及质感处理的授权范围尚未确认，不能把来源仓库代码的 MIT 许可当作修改商标的明确授权。
+- 质感参考为用户审核的 AI 概念图；客户端保留既有 SVG 路径，不分发生成图作为官方品牌资产。
