@@ -63,7 +63,7 @@ export const WORDMARK_SWEEP = `
 /** The new-session hero entrance. */
 export const HERO_IN = `
 @keyframes lumina-hero-in {
-  from { opacity: 0; transform: translateY(12px) scale(.92); }
+  from { opacity: 0; transform: translateY(8px) scale(.95); }
   to { opacity: 1; transform: none; }
 }
 `
@@ -71,9 +71,9 @@ export const HERO_IN = `
 /** The one-shot light that lifts the hero screen as it enters. */
 export const HERO_VEIL = `
 @keyframes lumina-hero-veil {
-  0% { opacity: 0; transform: scale(.94); }
+  0% { opacity: 0; transform: scale(.75); }
   30% { opacity: 1; }
-  100% { opacity: 0; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.14); }
 }
 `
 
@@ -112,8 +112,10 @@ export const SEND_BUTTON_FLASH = `
 /** The per-character light fading out. */
 export const WAVE_FADE = `
 @keyframes lumina-wave-fade {
-  from { opacity: .9; }
-  to { opacity: 0; }
+  0% { opacity: 0; }
+  16% { opacity: .9; }
+  42% { opacity: .72; }
+  100% { opacity: 0; }
 }
 `
 

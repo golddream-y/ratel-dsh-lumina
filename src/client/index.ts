@@ -164,7 +164,7 @@ function installEffects(
           transfer = installSendTransfer(ctx, mode === 'off' ? 'dissolve' : mode, config.intensity)
           return () => transfer?.dispose()
         },
-        typeWave: () => installTypeWave(),
+        typeWave: () => installTypeWave(document, config.intensity),
         press: () => installPress(streaming, config.intensity, () => transfer?.ownsGesture() ?? false, (listener) => transfer?.onFallback(listener) ?? (() => {})),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),

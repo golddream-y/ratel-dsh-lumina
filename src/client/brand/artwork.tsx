@@ -7,7 +7,7 @@
  * references would all point at the first instance.
  */
 
-import { useId } from 'react'
+import { useLayoutEffect, useId, useRef, useState } from 'react'
 import {
   BADGE_PATHS,
   BADGE_RECT,
@@ -70,6 +70,7 @@ export function BrandMark({ size = 24, className }: BrandArtworkProps) {
         </defs>
         <path
           d={WHALE_PATH}
+          pathLength={1}
           clipPath={`url(#${clipId})`}
           style={{ fill: 'var(--lumina-brand)' }}
         />
@@ -203,34 +204,23 @@ export function heroPlayFor(sessionKey: string, played: Set<string> = heroPlayed
   return true
 }
 
-/**
- * Read the current conversation session id from the page.
- *
- * @returns the session id, or '' when the region is not mounted yet.
- */
-function heroSessionKey(): string {
-  if (typeof document === 'undefined') return ''
-  return document.querySelector('[data-conversation-session]')?.getAttribute('data-conversation-session') ?? ''
-}
-
-/**
- * The hero occurrence of the mark.
- *
- * @param props - size and host class.
- * @returns the hero mark element.
- */
-export function HeroMark({ size = 34, className }: BrandArtworkProps) {
-  const play = heroPlayFor(heroSessionKey())
+/** Committed playback: render retries cannot consume a session's entrance. */
+export function HeroMark({ size = 34, className, sessionKey = '', onEntrance }: BrandArtworkProps & {
+  sessionKey?: string
+  onEntrance?: (mark: HTMLElement) => void
+}) {
+  const [play, setPlay] = useState(false)
+  const element = useRef<HTMLSpanElement>(null)
+  const claimed = useRef<boolean | null>(null)
+  useLayoutEffect(() => {
+    if (claimed.current === null) claimed.current = heroPlayFor(sessionKey)
+    if (!claimed.current) return
+    setPlay(true)
+    if (element.current) onEntrance?.(element.current)
+  }, [sessionKey, onEntrance])
   return (
-    <>
-      <span
-        className={['lumina-hero-mark', className].filter(Boolean).join(' ')}
-        data-play={play ? 'true' : undefined}
-        aria-hidden="true"
-      >
-        <BrandMark size={size} />
-      </span>
-      {play ? <span className="lumina-hero-veil" aria-hidden="true" /> : null}
-    </>
+    <span ref={element} className={['lumina-hero-mark', className].filter(Boolean).join(' ')} aria-hidden="true">
+      <span className="lumina-hero-art" data-play={play ? 'true' : undefined}><BrandMark size={size} /></span>
+    </span>
   )
 }

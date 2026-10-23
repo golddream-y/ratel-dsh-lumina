@@ -27,10 +27,10 @@ describe('effect stylesheets', () => {
     expect(css).toContain('scale: .96')
   })
 
-  it('plays the hero entrance with a brand glow', () => {
+  it('draws the hero outline before filling it', () => {
     const css = heroCss()
-    expect(css).toContain('lumina-hero-in')
-    expect(css).toContain('lumina-hero-glow')
+    expect(css).toContain('lumina-hero-stroke')
+    expect(css).toContain('stroke-dashoffset')
     expect(css).toContain('lumina-hero-mark')
   })
 
@@ -54,12 +54,13 @@ describe('hero entrance', () => {
     expect(heroPlayFor('', played)).toBe(true)
   })
 
-  it('lifts the whole screen with its own light, not the host DOM', () => {
+  it('attaches particle assembly to the card without a fixed-coordinate ghost', () => {
     const css = heroCss()
-    expect(css).toContain('.lumina-hero-veil')
-    expect(css).toContain('lumina-hero-veil')
-    expect(css).toContain('position: fixed')
+    expect(css).toContain('.lumina-hero-particles')
+    expect(css).toContain('position: absolute')
     expect(css).toContain('pointer-events: none')
-    expect(css).toContain('radial-gradient')
+    expect(css).not.toContain('position: fixed')
+    expect(css).not.toContain('lumina-hero-response')
+    expect(css).toContain('prefers-reduced-motion')
   })
 })

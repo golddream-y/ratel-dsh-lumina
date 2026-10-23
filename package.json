@@ -1,7 +1,7 @@
 {
   "name": "@ratel-works/dsh-lumina",
-  "version": "0.2.0",
-  "description": "Customizable motion for DeepSeek Harness: composer glow, send transitions and streaming feedback, with per-effect controls and reduced-motion support.",
+  "version": "0.3.0",
+  "description": "A subtle layer of motion for DeepSeek Harness. Customizable visual and motion enhancements for the client.",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -47,8 +47,8 @@
     "catalog": {
       "category": "ui",
       "summary": {
-        "en": "Customizable composer glow, send transitions and streaming feedback for DeepSeek Harness, with reduced-motion support.",
-        "zh": "为 DeepSeek Harness 提供可调节的输入框流光、发送转场与流式反馈，支持效果开关并跟随系统减少动态设置。"
+        "en": "Let interaction glow. A subtle layer of motion for DeepSeek Harness, with customizable effects and reduced-motion support.",
+        "zh": "让交互，泛起流光。为 DeepSeek Harness 添一层恰到好处的动效，支持效果调整并跟随系统「减少动态效果」。"
       },
       "capabilities": [
         "slots",

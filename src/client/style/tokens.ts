@@ -22,6 +22,12 @@ export type DurationToken =
   | 'transfer'
   | 'hero'
   | 'hero-glow'
+  | 'hero-response'
+  | 'hero-assemble'
+  | 'hero-stroke'
+  | 'hero-echo'
+  | 'wave'
+  | 'wave-stagger'
   | 'session'
 
 /** Milliseconds per intensity tier. */
@@ -39,8 +45,14 @@ export const DURATIONS: Readonly<
     press: 140,
     flash: 360,
     transfer: 1150,
-    hero: 520,
-    'hero-glow': 760,
+    hero: 360,
+    'hero-glow': 600,
+    'hero-response': 520,
+    'hero-assemble': 1100,
+    'hero-stroke': 1800,
+    'hero-echo': 480,
+    wave: 450,
+    'wave-stagger': 35,
     session: 2400,
   },
   subtle: {
@@ -54,8 +66,14 @@ export const DURATIONS: Readonly<
     press: 180,
     flash: 420,
     transfer: 1350,
-    hero: 620,
-    'hero-glow': 900,
+    hero: 420,
+    'hero-glow': 700,
+    'hero-response': 600,
+    'hero-assemble': 1250,
+    'hero-stroke': 2000,
+    'hero-echo': 560,
+    wave: 520,
+    'wave-stagger': 40,
     session: 3200,
   },
   vivid: {
@@ -69,8 +87,14 @@ export const DURATIONS: Readonly<
     press: 110,
     flash: 280,
     transfer: 1000,
-    hero: 420,
-    'hero-glow': 620,
+    hero: 320,
+    'hero-glow': 540,
+    'hero-response': 460,
+    'hero-assemble': 950,
+    'hero-stroke': 1600,
+    'hero-echo': 420,
+    wave: 420,
+    'wave-stagger': 30,
     session: 1800,
   },
 }

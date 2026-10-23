@@ -12,10 +12,16 @@ python3 -m http.server 8765 --directory docs/demo
 
 现有 pulse / typing 页面保留为旧版选型存档；最新实现为单次发送光环、菜单淡入和输入时光标常亮。不要用旧页代替当前客户端验收。
 
+## 当前新会话预览
+
+`particle-stroke.html` 加载实际插件构建。先运行 `npm run build`，再运行 `node tools/serve-motion.mjs`，打开 <http://127.0.0.1:8766/particle-stroke.html>。支持重播、三档节奏、聚合中改变宽度，以及主动画完成后的辅助控件 Echo 入场；系统减少动态直接显示内容。该页必须使用这个服务，普通静态服务不提供实际构建与 React 路径。
+
 ## 页面
 
 | 页面 | 内容 |
 | --- | --- |
+| `particle-stroke.html` | 当前：整个输入框粒子聚合，鲸鱼与标题描边填色，辅助控件最后 Echo 归位，使用实际构建 |
+| `compose-entrance.html` | 已替代的 A＋C 联动设计：新字点亮、柔光入场，支持手动输入与减少动态 |
 | `index.html` | 原型入口与索引 |
 | `pulse.html` | 旧版存档：0.88 缩放 + 520ms 光环 + 卡片柔光 |
 | `typing.html` | 旧版存档：逐键柔光；当前基线为输入常亮 360ms |

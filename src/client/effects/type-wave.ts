@@ -1,234 +1,165 @@
-/**
- * M10 · the per-character wave.
- *
- * New characters are briefly lit as they appear, in the composer and in the
- * streaming answer. The light is a blurred copy of the glyph itself, drawn
- * above the real text: the host text is never touched, no span is inserted
- * into the editor, and no layout is measured beyond the character's own box.
- *
- * Only characters that were just added are lit. Re-lighting the tail on every
- * keystroke reads as a wash rather than a wave, and it grows with the text.
- */
-
+/** Crisp, bounded glyph copies; the editor and transcript are never rewritten. */
+import { composerEditor, composerEditors, streamingText, isGlyphDecoration } from '../adapter/targets.ts'
+import type { Intensity } from '../core/config.ts'
 import { prefersReducedMotion } from '../core/motion.ts'
 import { installStyle } from '../core/styles.ts'
+import { durationMs } from '../style/tokens.ts'
 
-/** The class of one light. Scoped to the plugin's own elements. */
 export const WAVE_CLASS = 'lumina-wave'
-
-/** The most lights alive at once. Older ones are dropped, not queued. */
 const MAX_LIVE = 24
-
-/** The most characters one flush may light. */
 const MAX_BATCH = 8
+const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
-/** The delay between two characters of the same burst. */
-const STAGGER_MS = 45
-
-/** How long one light lives. */
-const LIFE_MS = 520
-
-/** The stylesheet for the wave lights. */
 export function typeWaveCss(): string {
   return `
 [data-lumina="on"] .${WAVE_CLASS} {
-  position: fixed;
-  z-index: 60;
-  margin: 0;
-  padding: 0;
-  pointer-events: none;
-  user-select: none;
-  white-space: pre;
-  filter: blur(3px);
-  color: color-mix(in srgb, var(--lumina-brand, #FF3B30) 88%, white);
-  animation: lumina-wave-fade ${LIFE_MS}ms ease-out forwards;
+  position: fixed; z-index: 60; margin: 0; padding: 0;
+  pointer-events: none; user-select: none; white-space: pre;
+  color: var(--lumina-brand);
+  text-shadow: 0 0 3px currentColor, 0 0 11px currentColor;
+  animation: lumina-wave-fade var(--lumina-wave) ease-out both;
 }
-
+[data-lumina="on"][data-lumina-intensity="subtle"] .${WAVE_CLASS} { text-shadow: 0 0 2px currentColor, 0 0 6px currentColor; }
+[data-lumina="on"] .${WAVE_CLASS}[data-tone="reply"] { color: var(--lumina-brand-ratel); }
 @media (prefers-reduced-motion: reduce) {
-  [data-lumina="on"] .${WAVE_CLASS} { display: none; }
-}
-`
+  [data-lumina="on"] .${WAVE_CLASS} { display: none; animation: none; }
+}`
 }
 
-/**
- * The characters to light for a text that grew from `previous` to `next`.
- *
- * @param previous - the character count before the change.
- * @param next - the character count after the change.
- * @returns the range to light, or null when nothing was added.
- */
 export function newCharRange(previous: number, next: number): { from: number; to: number } | null {
-  if (next <= previous) return null
-  const from = Math.max(previous, next - MAX_BATCH)
-  return { from, to: next }
+  return next > previous ? { from: Math.max(previous, next - MAX_BATCH), to: next } : null
 }
 
-/**
- * Install the wave effect.
- *
- * @param doc - the document to observe (injectable for tests).
- * @returns the disposer.
- */
-export function installTypeWave(doc: Document = document): () => void {
-  if (prefersReducedMotion()) return () => {}
+/** UTF-16 boundaries of the inserted/replaced run, suitable for DOM Range. */
+export function insertedRange(previous: string, next: string): { from: number; to: number } | null {
+  const a = [...segmenter.segment(previous)]
+  const b = [...segmenter.segment(next)]
+  let start = 0
+  while (start < a.length && start < b.length && a[start]!.segment === b[start]!.segment) start++
+  let end = b.length
+  let oldEnd = a.length
+  while (end > start && oldEnd > start && b[end - 1]!.segment === a[oldEnd - 1]!.segment) { end--; oldEnd-- }
+  if (end === start) return null
+  return { from: b[Math.max(start, end - MAX_BATCH)]!.index, to: end < b.length ? b[end]!.index : next.length }
+}
 
+export function installTypeWave(doc: Document = document, intensity: Intensity = 'normal'): () => void {
+  if (prefersReducedMotion()) return () => {}
   const view = doc.defaultView ?? window
   const disposeStyle = installStyle('type-wave', typeWaveCss())
-  const lights = new Set<HTMLElement>()
-  let disposed = false
+  const lights = new Map<HTMLElement, number>()
+  const previous = new WeakMap<HTMLElement, string>()
+  const composing = new WeakSet<HTMLElement>()
+  const pending: Array<{ node: Text; from: number; to: number; reply: boolean }> = []
   let frame = 0
-  let composerCount = 0
-  const pending: Array<{ node: Text; from: number; to: number }> = []
-
-  /** Drop the oldest light when the cap is reached. */
-  const trim = () => {
-    while (lights.size > MAX_LIVE) {
-      const oldest = lights.values().next().value as HTMLElement | undefined
-      if (oldest === undefined) return
-      oldest.remove()
-      lights.delete(oldest)
-    }
+  let disposed = false
+  const life = durationMs(intensity, 'wave')
+  const stagger = durationMs(intensity, 'wave-stagger')
+  const read = (editor: HTMLElement) => editor.textContent ?? ''
+  // Seed existing drafts so installation cannot light historical text.
+  const seed = (element: Element) => {
+    const editor = composerEditor(element)
+    if (editor && !previous.has(editor)) previous.set(editor, read(editor))
   }
-
-  /** Light a single character by drawing a blurred copy over its box. */
-  const lightChar = (node: Text, index: number, delay: number) => {
-    const parent = node.parentElement
-    if (parent === null) return
-    const range = doc.createRange()
-    range.setStart(node, index)
-    range.setEnd(node, index + 1)
-    const rect = range.getBoundingClientRect()
-    if (rect.width <= 0 || rect.height <= 0) return
-
-    const light = doc.createElement('span')
-    light.className = WAVE_CLASS
-    light.textContent = node.data[index] ?? ''
-    light.setAttribute('aria-hidden', 'true')
-    const style = view.getComputedStyle(parent)
-    light.style.font = style.font
-    light.style.left = `${rect.left}px`
-    light.style.top = `${rect.top}px`
-    light.style.width = `${rect.width}px`
-    light.style.height = `${rect.height}px`
-    light.style.lineHeight = `${rect.height}px`
-    light.style.animationDelay = `${delay}ms`
-    doc.body.append(light)
-    lights.add(light)
-    trim()
-    view.setTimeout(() => {
-      light.remove()
-      lights.delete(light)
-    }, LIFE_MS + delay + 60)
+  for (const element of composerEditors(doc)) seed(element)
+  const drop = (light: HTMLElement) => {
+    view.clearTimeout(lights.get(light))
+    light.remove()
+    lights.delete(light)
   }
-
-  /** Light the range of one text node. */
-  const lightNode = (node: Text, from: number, to: number, base: number) => {
-    const end = Math.min(to, node.data.length)
-    for (let index = Math.max(0, from); index < end; index += 1) {
-      lightChar(node, index, base + (index - from) * STAGGER_MS)
-    }
+  const clear = () => {
+    for (const light of lights.keys()) drop(light)
+    pending.length = 0
+    if (frame) view.cancelAnimationFrame(frame)
+    frame = 0
   }
-
-  /** Map a character range of an element to its text nodes and queue them. */
-  const queueElement = (element: Element, from: number, to: number) => {
-    const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT)
-    let seen = 0
-    let node = walker.nextNode()
-    while (node !== null) {
-      const text = node as Text
-      const length = text.data.length
-      if (length > 0 && seen + length > from && seen < to) {
-        pending.push({ node: text, from: Math.max(0, from - seen), to: Math.min(length, to - seen) })
-      }
-      seen += length
-      node = walker.nextNode()
-    }
-  }
-
-  /** Flush the queued ranges in one frame. */
   const flush = () => {
     frame = 0
-    const batch = pending.splice(0, pending.length)
+    let count = 0
+    const batch = pending.splice(0)
     for (const item of batch) {
-      if (disposed) return
-      lightNode(item.node, item.from, item.to, 0)
+      if (disposed || !item.node.isConnected || !item.node.parentElement) continue
+      const parent = item.node.parentElement
+      if (isGlyphDecoration(parent)) continue
+      for (const glyph of segmenter.segment(item.node.data)) {
+        if (glyph.index < item.from || glyph.index >= item.to || !glyph.segment.trim()) continue
+        if (count >= MAX_BATCH) break
+        const range = doc.createRange()
+        range.setStart(item.node, glyph.index)
+        range.setEnd(item.node, glyph.index + glyph.segment.length)
+        const rect = range.getBoundingClientRect()
+        if (!rect.width || !rect.height) continue
+        const clip = composerEditor(parent)?.getBoundingClientRect()
+        if (clip && (rect.top < clip.top || rect.bottom > clip.bottom || rect.left < clip.left || rect.right > clip.right)) continue
+        const light = doc.createElement('span')
+        const style = view.getComputedStyle(parent)
+        light.className = WAVE_CLASS
+        light.textContent = glyph.segment
+        light.setAttribute('aria-hidden', 'true')
+        light.dataset.tone = item.reply ? 'reply' : 'input'
+        Object.assign(light.style, {
+          font: style.font, letterSpacing: style.letterSpacing,
+          left: `${rect.left}px`, top: `${rect.top}px`,
+          lineHeight: `${rect.height}px`, animationDelay: `${count * stagger}ms`,
+        })
+        doc.body.append(light)
+        lights.set(light, view.setTimeout(() => drop(light), life + count * stagger + 60))
+        count++
+        while (lights.size > MAX_LIVE) drop(lights.keys().next().value!)
+      }
     }
   }
-
-  const schedule = () => {
-    if (frame === 0) frame = view.requestAnimationFrame(flush)
-  }
-
-  /** The composer: count characters and light only what was just added. */
-  const onInput = (event: Event) => {
-    const target = event.target
-    if (!(target instanceof Element)) return
-    const editor = target.closest('[data-composer-input]')
-    if (editor === null || editor.hasAttribute('data-lumina-transfer-mask')) return
-    const count = Array.from((editor as HTMLElement).innerText ?? '').length
-    const range = newCharRange(composerCount, count)
-    composerCount = count
-    if (range === null) return
-    queueElement(editor, range.from, range.to)
+  const schedule = () => { if (!frame && pending.length) frame = view.requestAnimationFrame(flush) }
+  const queue = (element: Element, from: number, to: number, reply: boolean) => {
+    const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+    let offset = 0
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const text = node as Text
+      if (offset < to && offset + text.length > from) pending.push({ node: text, from: Math.max(0, from - offset), to: Math.min(text.length, to - offset), reply })
+      offset += text.length
+    }
     schedule()
   }
-
-  /** Whether a node lives in the conversation, not in the composer. */
-  const inConversation = (node: Node): boolean => {
-    const element = node.parentElement
-    if (element === null) return false
-    if (element.closest('[data-composer-input]') !== null) return false
-    return element.closest('[data-conversation-content]') !== null
+  const before = (event: Event) => { const editor = composerEditor(event.target); if (editor && !composing.has(editor)) previous.set(editor, read(editor)) }
+  const update = (event: Event) => {
+    const editor = composerEditor(event.target)
+    if (!editor || composing.has(editor) || (event as InputEvent).isComposing) return
+    const next = read(editor)
+    const range = insertedRange(previous.get(editor) ?? '', next)
+    previous.set(editor, next)
+    if (range && !editor.hasAttribute('data-lumina-transfer-mask')) queue(editor, range.from, range.to, false)
   }
-
-  /** The answer: light characters that stream in. */
+  const start = (event: Event) => { before(event); const editor = composerEditor(event.target); if (editor) composing.add(editor) }
+  const end = (event: Event) => { const editor = composerEditor(event.target); if (editor) composing.delete(editor); update(event) }
   const observer = new MutationObserver((records) => {
-    let queued = false
+    // Only semantic streaming regions; mounting an entire historical subtree is ignored.
+    const changed = new Map<Text, string>()
     for (const record of records) {
-      if (record.type === 'characterData') {
-        if (!inConversation(record.target)) continue
-        const node = record.target as Text
-        const next = node.data.length
-        const previous = record.oldValue?.length ?? next
-        const range = newCharRange(previous, next)
-        if (range === null) continue
-        pending.push({ node, from: range.from, to: range.to })
-        queued = true
-        continue
+      if (record.type === 'childList') {
+        for (const node of record.addedNodes) {
+          if (node.nodeType === Node.TEXT_NODE && streamingText(node) && !changed.has(node as Text)) changed.set(node as Text, '')
+        }
       }
-      if (record.type !== 'childList') continue
-      for (const added of Array.from(record.addedNodes)) {
-        if (added.nodeType !== Node.TEXT_NODE) continue
-        if (!inConversation(added)) continue
-        const text = added as Text
-        const range = newCharRange(0, text.data.length)
-        if (range === null) continue
-        pending.push({ node: text, from: range.from, to: range.to })
-        queued = true
-      }
+      if (record.type === 'characterData' && streamingText(record.target) && !changed.has(record.target as Text)) changed.set(record.target as Text, record.oldValue ?? '')
     }
-    if (queued) schedule()
+    for (const [node, old] of changed) {
+      const range = insertedRange(old, node.data)
+      if (range) pending.push({ node, ...range, reply: true })
+    }
+    schedule()
   })
-
-  // Observe the body, not the conversation element: the conversation mounts
-  // after the plugin in a fresh window, and the filter keeps the cost to the
-  // records that matter.
-  observer.observe(doc.body, {
-    subtree: true,
-    childList: true,
-    characterData: true,
-    characterDataOldValue: true,
-  })
-  doc.addEventListener('input', onInput, true)
-
+  observer.observe(doc.body, { subtree: true, childList: true, characterData: true, characterDataOldValue: true })
+  const listeners = { beforeinput: before, focusin: before, input: update, compositionstart: start, compositionend: end }
+  for (const [name, listener] of Object.entries(listeners)) doc.addEventListener(name, listener, true)
+  doc.addEventListener('scroll', clear, true)
+  view.addEventListener('resize', clear)
   return () => {
     disposed = true
-    doc.removeEventListener('input', onInput, true)
     observer.disconnect()
-    if (frame !== 0) view.cancelAnimationFrame(frame)
-    for (const light of lights) light.remove()
-    lights.clear()
-    pending.length = 0
+    for (const [name, listener] of Object.entries(listeners)) doc.removeEventListener(name, listener, true)
+    doc.removeEventListener('scroll', clear, true)
+    view.removeEventListener('resize', clear)
+    clear()
     disposeStyle()
   }
 }

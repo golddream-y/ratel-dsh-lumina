@@ -159,3 +159,63 @@ export function sendControl(card: Element): HTMLButtonElement | null {
 export function isGlyphDecoration(element: Element): boolean {
   return element.closest('[aria-hidden="true"], [data-lexical-cursor]') !== null
 }
+
+/** Semantic text-motion boundaries; never infer streaming from text content. */
+export function composerEditor(target: EventTarget | null): HTMLElement | null {
+  return target instanceof Element ? target.closest<HTMLElement>('[data-composer-input]') : null
+}
+
+export function streamingText(node: Node): boolean {
+  const parent = node.parentElement
+  return !!parent?.closest('[data-streaming]') && !parent.closest('[data-composer-input], [aria-hidden="true"]')
+}
+
+export function currentHeroSession(): string {
+  return document.querySelector('[data-conversation-session]')?.getAttribute('data-conversation-session') ?? ''
+}
+
+export function composerEditors(doc: Document): HTMLElement[] {
+  return [...doc.querySelectorAll<HTMLElement>('[data-composer-input]')]
+}
+
+/** Verified HeroShell structure next to our own mark; no translated text or hash selectors. */
+export function heroHeadline(mark: Element): HTMLElement | null {
+  const outlet = mark.closest('[data-slot="conversation.hero.brand.mark"]')
+  const hitbox = outlet?.parentElement ?? mark.parentElement
+  const group = hitbox?.nextElementSibling
+  if (hitbox?.tagName !== 'SPAN' || group?.tagName !== 'SPAN') return null
+  const title = group.firstElementChild
+  if (!(title instanceof HTMLElement) || title.tagName !== 'SPAN' || [...title.children].some(child => !child.classList.contains('lumina-hero-title-stroke')) || !title.textContent?.trim()) return null
+  return title
+}
+
+/** Auxiliary hero controls, scoped to the current hero and official outlet anchors. */
+export function heroAccessories(mark: Element): HTMLElement[] {
+  const root = heroAccessoryRoot(mark)
+  const targets = new Set<HTMLElement>()
+  const addControl = (element: Element | null | undefined) => {
+    if (!(element instanceof HTMLElement)) return
+    if (element.matches('button, [role="button"], [aria-haspopup]')) targets.add(element)
+    else for (const control of element.querySelectorAll<HTMLElement>('button, [role="button"], [aria-haspopup]')) targets.add(control)
+  }
+  const workspace = root.querySelector('[data-slot="conversation.hero.workspace"]')
+  addControl(workspace?.previousElementSibling)
+  for (const slot of ['conversation.hero.agentPreset', 'conversation.hero.options']) {
+    addControl(root.querySelector(`[data-slot="${slot}"]`))
+  }
+  const badge = heroHeadline(mark)?.nextElementSibling
+  if (badge instanceof HTMLElement && badge.tagName === 'SPAN' && badge.textContent?.trim()) targets.add(badge)
+  return [...targets].filter(element => ![...targets].some(other => other !== element && other.contains(element))).slice(0, 8)
+}
+
+/** Scope the late-content gate to the current new-conversation surface. */
+export function heroAccessoryRoot(mark: Element): HTMLElement {
+  return mark.closest<HTMLElement>('[data-phase="hero"], [data-content-phase="hero"]') ?? mark.ownerDocument.documentElement
+}
+
+/** Gates cover future slot children too; display:contents anchors have no box themselves. */
+export function heroAccessoryGateSelector(): string {
+  return ['conversation.hero.agentPreset', 'conversation.hero.options'].map(slot =>
+    `[data-lumina="on"][data-lumina-echo-gate="waiting"] [data-slot="${slot}"] > *,\n[data-lumina="on"] [data-lumina-echo-gate="waiting"] [data-slot="${slot}"] > *`,
+  ).join(',\n')
+}
