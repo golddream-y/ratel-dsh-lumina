@@ -42,6 +42,8 @@ export interface EffectFlags {
   readonly sendTransition: TransferMode
   readonly typeWave: boolean
   readonly hero: boolean
+  readonly panelMotion: boolean
+  readonly groupMotion: boolean
   readonly sessionActivity: boolean
 }
 
@@ -68,6 +70,8 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     typeWave: true,
     hero: true,
     sessionActivity: true,
+    panelMotion: true,
+    groupMotion: true,
   },
   intensity: 'normal',
 }
@@ -117,6 +121,8 @@ function readEffects(value: unknown): EffectFlags {
     typeWave: readBoolean(source.typeWave, DEFAULT_CONFIG.effects.typeWave),
     hero: readBoolean(source.hero, DEFAULT_CONFIG.effects.hero),
     sessionActivity: readBoolean(source.sessionActivity, DEFAULT_CONFIG.effects.sessionActivity),
+    panelMotion: readBoolean(source.panelMotion, readBoolean(source.sessionActivity, true)),
+    groupMotion: readBoolean(source.groupMotion, readBoolean(source.sessionActivity, true)),
   }
 }
 

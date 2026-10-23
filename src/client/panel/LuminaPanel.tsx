@@ -29,6 +29,8 @@ export interface LuminaPanelProps {
 
 /** The effect ids the panel toggles, in display order. */
 const EFFECT_ROWS = [
+  { id: 'panelMotion', label: 'effectPanelMotion', hint: 'effectPanelMotionHint' },
+  { id: 'groupMotion', label: 'effectGroupMotion', hint: 'effectGroupMotionHint' },
   { id: 'brand', label: 'effectBrand', hint: 'effectBrandHint' },
   { id: 'composerGlow', label: 'effectComposerGlow', hint: 'effectComposerGlowHint' },
   { id: 'caret', label: 'effectCaret', hint: 'effectCaretHint' },
@@ -70,12 +72,11 @@ export function LuminaPanel(props: LuminaPanelProps) {
   // A commit made elsewhere replaces the committed snapshot under us. Keep the
   // base in step so the conflict flag means "the stored value moved", not
   // "the draft is stale".
-  useEffect(() => {
-    base.current = saved
-  }, [saved])
-
   const dirty = !sameConfig(draft, saved)
   const conflict = saved !== base.current
+  useEffect(() => {
+    if (sameConfig(draft, base.current)) { base.current = saved; setDraft(saved) }
+  }, [saved])
 
   const edit = (patch: Partial<LuminaConfig>) => {
     setDraft((current) => ({ ...current, ...patch }))
@@ -106,6 +107,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
 
   const apply = () => {
     const next = save(draft)
+    if (!sameConfig(next, draft)) { setMessage(t('storageError')); return }
     base.current = next
     setDraft(next)
     setMessage(t('saved'))
@@ -119,45 +121,17 @@ export function LuminaPanel(props: LuminaPanelProps) {
   return (
     <div className="lumina-panel">
       <header className="lumina-panel-header">
-        <h2 className="lumina-panel-title">{t('heading')}</h2>
-        <p className="lumina-panel-intro">{t('intro')}</p>
+        <div className="lumina-header-copy">
+          <h2 className="lumina-panel-title">{t('heading')}</h2>
+          <p className="lumina-panel-intro">{t('intro')}</p>
+        </div>
+        <input type="checkbox" role="switch" aria-label={t('master')} title={t('masterHint')}
+          className="lumina-switch" checked={draft.master}
+          onChange={(event) => edit({ master: event.target.checked })} />
       </header>
 
       <section className="lumina-section">
-        <label className="lumina-row">
-          <span className="lumina-row-text">
-            <span className="lumina-row-title">{t('master')}</span>
-            <span className="lumina-row-hint">{t('masterHint')}</span>
-          </span>
-          <input
-            type="checkbox"
-            className="lumina-switch"
-            checked={draft.master}
-            onChange={(event) => edit({ master: event.target.checked })}
-          />
-        </label>
-      </section>
 
-      <section className="lumina-section">
-        <div className="lumina-field">
-          <span className="lumina-row-title">{t('brand')}</span>
-          <span className="lumina-row-hint">{t('brandHint')}</span>
-          <div className="lumina-segmented" role="radiogroup" aria-label={t('brand')}>
-            {(['ratel', 'deepseek'] as const).map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                role="radio"
-                aria-checked={draft.brand === preset}
-                className="lumina-segment"
-                data-active={draft.brand === preset ? 'true' : undefined}
-                onClick={() => edit({ brand: preset })}
-              >
-                {preset === 'ratel' ? t('brandRatel') : t('brandDeepseek')}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <div className="lumina-field">
           <span className="lumina-row-title">{t('intensity')}</span>
@@ -171,6 +145,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
                 aria-checked={draft.intensity === tier}
                 className="lumina-segment"
                 data-active={draft.intensity === tier ? 'true' : undefined}
+                disabled={!draft.master}
                 onClick={() => edit({ intensity: tier })}
               >
                 {t(`intensity${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
@@ -180,9 +155,52 @@ export function LuminaPanel(props: LuminaPanelProps) {
         </div>
       </section>
 
-      <section className="lumina-section">
-        <span className="lumina-section-title">{t('effects')}</span>
-        <p className="lumina-row-hint" role="status">{t('transferStatusLabel')}: {t(`transferStatus_${transferStatus.code}`)} · {t('transferStarts')}: {transferStatus.starts}</p>
+      {([
+        { title: 'navigation', ids: ['brand', 'panelMotion', 'groupMotion', 'sessionActivity', 'press'] },
+        { title: 'inputMessages', ids: ['composerGlow', 'caret', 'typeWave'] },
+        { title: 'newSession', ids: ['hero'] },
+      ] as const).map(group => {
+        const ids: readonly string[] = group.ids
+        return <section className="lumina-section" key={group.title}>
+          <h3 className="lumina-section-title">{t(group.title)}</h3>
+          {group.title === 'navigation' ? <>
+        <div className="lumina-field">
+          <span className="lumina-row-title">{t('brand')}</span>
+          <span className="lumina-row-hint">{t('brandHint')}</span>
+          <div className="lumina-segmented" role="radiogroup" aria-label={t('brand')}>
+            {(['ratel', 'deepseek'] as const).map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                role="radio"
+                aria-checked={draft.brand === preset}
+                className="lumina-segment"
+                data-active={draft.brand === preset ? 'true' : undefined}
+                disabled={!draft.master}
+                onClick={() => edit({ brand: preset })}
+              >
+                {preset === 'ratel' ? t('brandRatel') : t('brandDeepseek')}
+              </button>
+            ))}
+          </div>
+        </div>
+          </> : null}
+        {EFFECT_ROWS.filter(row => ids.includes(row.id)).map((row) => (
+          <label key={row.id} className="lumina-row">
+            <span className="lumina-row-text">
+              <span className="lumina-row-title">{t(row.label)}</span>
+              <span className="lumina-row-hint">{t(row.hint)}</span>
+            </span>
+            <input
+              type="checkbox"
+              className="lumina-switch"
+              checked={draft.effects[row.id]}
+              disabled={!draft.master}
+              onChange={(event) => editEffect(row.id, event.target.checked)}
+            />
+          </label>
+        ))}
+          {group.title === 'inputMessages' ? <>
         <div className="lumina-field">
           <span className="lumina-row-title">{t('effectSendTransfer')}</span>
           <span className="lumina-row-hint">{t('effectSendTransferHint')}</span>
@@ -203,39 +221,17 @@ export function LuminaPanel(props: LuminaPanelProps) {
             ))}
           </div>
         </div>
-
-        {EFFECT_ROWS.map((row) => (
-          <label key={row.id} className="lumina-row">
-            <span className="lumina-row-text">
-              <span className="lumina-row-title">{t(row.label)}</span>
-              <span className="lumina-row-hint">{t(row.hint)}</span>
-            </span>
-            <input
-              type="checkbox"
-              className="lumina-switch"
-              checked={draft.effects[row.id]}
-              disabled={!draft.master}
-              onChange={(event) => editEffect(row.id, event.target.checked)}
-            />
-          </label>
-        ))}
-      </section>
-
-      <section className="lumina-section">
-        <span className="lumina-section-title">{t('preview')}</span>
-        <span className="lumina-row-hint">{t('previewHint')}</span>
-        <div className="lumina-preview">
-          <div className="lumina-preview-composer" data-active={draft.master && draft.effects.composerGlow ? 'true' : undefined}>
-            <span className="lumina-preview-caret" data-active={draft.master && draft.effects.caret ? 'true' : undefined} />
-          </div>
-          <div className="lumina-preview-mark" data-brand={draft.brand} />
-        </div>
-      </section>
+          </> : null}
+        </section>
+      })}
+      <details className="lumina-section lumina-diagnostics">
+        <summary>{t('diagnostics')}</summary>
+        <p className="lumina-row-hint" role="status">{t('transferStatusLabel')}: {t(`transferStatus_${transferStatus.code}`)} · {t('transferStarts')}: {transferStatus.starts}</p>
+        <button type="button" className="lumina-button" onClick={restore}>{t('restoreDefaults')}</button>
+      </details>
 
       <footer className="lumina-panel-footer">
-        <button type="button" className="lumina-button" onClick={restore}>
-          {t('restoreDefaults')}
-        </button>
+        {dirty ? <span className="lumina-panel-message">{t('unsaved')}</span> : null}
         <span className="lumina-panel-spacer" />
         {conflict ? <span className="lumina-panel-message">{t('updated')}</span> : null}
         {message ? <span className="lumina-panel-message">{message}</span> : null}

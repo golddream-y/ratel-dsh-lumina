@@ -1,4 +1,5 @@
 /** Local design preview with the actual client bundle, React supplied by devDependencies. */
+import ts from 'typescript'
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { resolve, extname, sep } from 'node:path'
@@ -11,6 +12,12 @@ const assets = {
 createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost')
+    const shared = {'/__lumina/session-galaxy-painter.js':'src/client/effects/session-galaxy-painter.ts','/__lumina/tokens.js':'src/client/style/tokens.ts'}[url.pathname]
+    if (shared) {
+      const source = (await readFile(resolve(shared), 'utf8')).replace('../style/tokens.ts','/__lumina/tokens.js')
+      const result = ts.transpileModule(source, {compilerOptions:{target:ts.ScriptTarget.ES2024,module:ts.ModuleKind.ESNext}})
+      response.writeHead(200, {'Content-Type':'text/javascript','Cache-Control':'no-store'}).end(result.outputText); return
+    }
     const path = assets[url.pathname] ?? resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/particle-stroke.html' : url.pathname))
     if (!assets[url.pathname] && !path.startsWith(root + sep)) { response.writeHead(403).end(); return }
     const body = await readFile(path)

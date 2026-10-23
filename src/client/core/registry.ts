@@ -10,7 +10,7 @@
  */
 
 /** The effect ids Lumina ships. */
-export type EffectId = 'brand' | 'composerGlow' | 'caret' | 'press' | 'typeWave' | 'hero' | 'sessionActivity' | 'sendTransition'
+export type EffectId = 'brand' | 'composerGlow' | 'caret' | 'press' | 'typeWave' | 'hero' | 'sessionActivity' | 'sendTransition' | 'panelMotion' | 'groupMotion'
 
 /** What an effect returns when it installs successfully. */
 export type EffectHandle = (() => void) | void
@@ -32,7 +32,7 @@ export interface EffectGates {
  */
 export function runEffects(
   gates: EffectGates,
-  effects: Readonly<Record<EffectId, () => EffectHandle>>,
+  effects: Readonly<Partial<Record<EffectId, () => EffectHandle>>>,
 ): () => void {
   const disposers: Array<() => void> = []
 

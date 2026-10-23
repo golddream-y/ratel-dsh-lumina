@@ -51,6 +51,8 @@ function render(initial: LuminaConfig): LuminaConfig[] {
  * @returns the checkbox element.
  */
 function switchFor(title: string): HTMLInputElement {
+  const named = [...container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')].find(input => input.getAttribute('aria-label') === title)
+  if (named) return named
   const row = [...container.querySelectorAll('label')].find((label) =>
     label.textContent?.includes(title),
   )
@@ -89,7 +91,7 @@ describe('settings panel', () => {
   it('renders the master switch, every effect row and the four send modes', () => {
     render(DEFAULT_CONFIG)
     // The send transition is a mode selector, not a switch, so it has no checkbox.
-    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(8)
+    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(10)
     expect(container.textContent).toContain('effectBrand')
     expect(container.textContent).toContain('effectHero')
     expect(container.textContent).toContain('effectSendTransfer')

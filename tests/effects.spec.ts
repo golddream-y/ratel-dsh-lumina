@@ -39,7 +39,8 @@ describe('effect stylesheets', () => {
     expect(css).toContain('data-state="ongoing"')
     expect(css).toContain('lumina-session-pulse')
     expect(css).toContain('lumina-session-spin')
-    expect(css).not.toContain('width:')
+    expect(css.replace(/\.lumina-session-galaxy \{[^}]*\}/g, '')).not.toContain('width:')
+    expect(css).toContain('pointer-events: none')
   })
 })
 

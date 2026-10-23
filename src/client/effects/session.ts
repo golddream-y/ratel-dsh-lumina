@@ -3,11 +3,12 @@
  *
  * The sidebar's running-session spinner is an official SVG with a track and a
  * short arc. The effect recolors it to the brand and gives it a slower breathe
- * and rotation; it never adds or removes nodes, so the row height and the
- * screen-reader label stay untouched.
+ * and rotation. An inert canvas adds the running star river without changing
+ * row height, native controls, or the screen-reader label.
  */
 
 import { cssSelector } from '../adapter/selector.ts'
+import { installSessionGalaxy } from './session-galaxy.ts'
 import { installStyle } from '../core/styles.ts'
 
 /** The session spinner stylesheet. */
@@ -15,6 +16,8 @@ export function sessionCss(): string {
   const spinner = cssSelector('sessionRunning')
 
   return `
+.lumina-session-galaxy { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: inherit; color: var(--dsw-alias-label-primary); opacity: 0; transition: opacity 500ms ease; }
+@media (prefers-reduced-motion: reduce) { .lumina-session-galaxy { display: none; } }
 ${spinner} {
   color: var(--lumina-brand);
   transform-origin: center;
@@ -54,5 +57,8 @@ ${spinner} g {
  * @returns a disposer removing the stylesheet.
  */
 export function installSessionActivity(): () => void {
-  return installStyle('session-activity', sessionCss())
+  const style = installStyle('session-activity', sessionCss())
+  let galaxy = () => {}
+  try { galaxy = installSessionGalaxy() } catch (error) { console.warn('[ratel-lumina] session galaxy unavailable', error) }
+  return () => { galaxy(); style() }
 }

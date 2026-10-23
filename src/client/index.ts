@@ -30,6 +30,8 @@ import { installSendTransfer } from './effects/send-transfer.ts'
 import type { TransferBridge, TransferServices } from './adapter/send-transfer.ts'
 import { installPress } from './effects/press.ts'
 import { installHero } from './effects/hero.ts'
+import { installPanels } from './effects/panels.ts'
+import { installSidebarGroups } from './effects/sidebar-groups.ts'
 import { installSessionActivity } from './effects/session.ts'
 import { installTypeWave } from './effects/type-wave.ts'
 import { installStreamingState, type StreamingState } from './adapter/streaming.ts'
@@ -168,6 +170,8 @@ function installEffects(
         press: () => installPress(streaming, config.intensity, () => transfer?.ownsGesture() ?? false, (listener) => transfer?.onFallback(listener) ?? (() => {})),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),
+        panelMotion: () => installPanels(),
+        groupMotion: () => installSidebarGroups(),
       },
     ),
   )

@@ -23,10 +23,12 @@ export function panelCss(): string {
   gap: 20px;
   padding: 20px 24px 24px;
   max-width: 640px;
+  --lumina-settings-surface: color-mix(in srgb, var(--dsw-alias-label-primary) 5%, var(--dsw-alias-bg-base));
   color: var(--dsw-alias-label-primary);
 }
 
-.lumina-panel-header { display: flex; flex-direction: column; gap: 6px; }
+.lumina-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 4px 2px 8px; }
+.lumina-header-copy { display: flex; flex-direction: column; gap: 8px; }
 .lumina-panel-title { margin: 0; font-size: 17px; font-weight: 600; }
 .lumina-panel-intro { margin: 0; font-size: 13px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
 
@@ -34,10 +36,10 @@ export function panelCss(): string {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 10px;
-  background: var(--dsw-alias-bg-layer-1);
+  padding: 20px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--lumina-settings-surface);
 }
 .lumina-section-title { font-size: 13px; font-weight: 600; }
 
@@ -81,17 +83,33 @@ export function panelCss(): string {
 .lumina-segment[data-active='true'] {
   color: var(--dsw-alias-label-primary);
   font-weight: 600;
-  background: color-mix(in srgb, var(--lumina-brand) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lumina-brand) 45%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-state-business-primary) 35%, transparent);
 }
 .lumina-segment:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--lumina-brand) 60%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--dsw-alias-state-business-primary) 60%, transparent);
   outline-offset: 1px;
 }
 .lumina-segment:disabled { opacity: .45; cursor: default; }
 
-.lumina-switch { accent-color: var(--lumina-brand); width: 16px; height: 16px; flex-shrink: 0; }
-.lumina-switch:disabled { opacity: .45; }
+.lumina-switch {
+  appearance: none; position: relative; display: inline-block;
+  width: 34px; height: 20px; margin: 0; border: 0; border-radius: 999px;
+  flex-shrink: 0; cursor: pointer;
+  background: var(--dsw-alias-label-tertiary);
+  transition: background-color 160ms ease;
+}
+.lumina-switch::before {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--dsw-alias-bg-base);
+  transition: transform 160ms ease;
+}
+.lumina-switch:checked { background: var(--dsw-alias-state-business-primary); }
+.lumina-switch:checked::before { transform: translateX(14px); }
+.lumina-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 3px; }
+.lumina-switch:disabled { opacity: .4; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .lumina-switch, .lumina-switch::before { transition: none; } }
 
 .lumina-preview {
   display: flex;
@@ -178,6 +196,18 @@ ${composerCss(
   background: var(--dsw-alias-brand-primary);
 }
 
+.lumina-panel-footer { position: sticky; bottom: 0; z-index: 2; isolation: isolate; padding: 12px 0; flex-wrap: wrap; background: var(--dsw-alias-bg-base); border: 0; }
+/* Cover the panel's bottom padding below the sticky action bar. */
+.lumina-panel-footer::after {
+  content: ''; position: absolute; top: 100%; left: -24px; right: -24px;
+  height: 48px; background: var(--dsw-alias-bg-base); pointer-events: none;
+}
+.lumina-section-title { margin: 0 0 12px; }
+.lumina-diagnostics summary { cursor: pointer; font-weight: 500; }
+.lumina-diagnostics[open] summary { margin-bottom: 16px; }
+.lumina-row { min-width: 0; padding: 6px 0; }
+.lumina-switch { accent-color: var(--dsw-alias-state-business-primary); }
+.lumina-segmented { flex-wrap: wrap; }
 ${BORDER_BREATHE}
 ${BORDER_SPIN}
 ${CARET_BREATHE}

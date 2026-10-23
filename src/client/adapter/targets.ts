@@ -219,3 +219,31 @@ export function heroAccessoryGateSelector(): string {
     `[data-lumina="on"][data-lumina-echo-gate="waiting"] [data-slot="${slot}"] > *,\n[data-lumina="on"] [data-lumina-echo-gate="waiting"] [data-slot="${slot}"] > *`,
   ).join(',\n')
 }
+
+/** Verified workspace group headers and their native AnimatedRows boundary. */
+export function sidebarGroupHeader(node: Element): boolean {
+  return node.matches('[data-row-key^="workspace:"][aria-expanded], [data-row-key^="overflow:"][aria-expanded]')
+    && node.closest('[data-lumina="on"]') !== null
+}
+export function sidebarMotionRoot(header: Element): HTMLElement | null {
+  return header.closest<HTMLElement>('[role="tree"]')?.parentElement ?? null
+}
+export function sidebarMotionTarget(target: Element): 'row' | 'exit' | null {
+  if (target.matches('[data-row-key][role="treeitem"], [data-row-key^="overflow:"]')) return 'row'
+  if (target.matches('[inert][role="treeitem"]')) return 'exit'
+  return null
+}
+
+/** Verified AppFrame: three grid columns with the official rightbar seat. */
+export function panelFrames(): HTMLElement[] {
+  return [...document.querySelectorAll<HTMLElement>('[data-lumina="on"] [data-rightbar-col]')]
+    .map(column => column.parentElement)
+    .filter((frame): frame is HTMLElement => !!frame && frame.style.gridTemplateColumns !== '' && getComputedStyle(frame).display === 'grid')
+}
+export function panelFrameState(frame: HTMLElement) {
+  return {
+    left: frame.hasAttribute('data-sidebar-collapsed'),
+    right: frame.hasAttribute('data-rightbar-collapsed'),
+    blocked: ['data-dragging','data-rightbar-fullscreen','data-rightbar-instant'].some(key => frame.hasAttribute(key)),
+  }
+}

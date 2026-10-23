@@ -128,3 +128,11 @@ export function durationCss(): string {
     })
     .join('\n\n')
 }
+
+/** Approved star-river palette; decorative light is independent of logo red. */
+export const SESSION_GALAXY_PALETTE = ['rgba(94,154,246,.29)', 'rgba(139,181,255,.11)', 'rgba(139,181,255,0)', 'rgba(210,151,214,.20)', 'rgba(255,255,255,.9)', 'rgba(165,211,255,.6)', 'rgba(144,189,255,0)', 'rgba(110,167,255,0)', 'rgba(120,183,255,0)', 'rgba(155,204,255,0)', 'rgba(120,187,255,.65)', 'rgba(255,255,255,.95)', 'rgba(226,178,224,0)', '#b7d6ff', '#78a5e7', '#ffffff', 'rgba(245,251,255,.8)', '91,157,251', '255,255,255', '223,162,207'] as const
+
+/** Sidebar motion timing, shared across the native row lifecycle. */
+export const SIDEBAR_GROUP_MOTION = { enter: 260, exit: 240, move: 280, stagger: 12, maxDelay: 36 } as const
+
+export const PANEL_MOTION = { open: 280, close: 240, easing: 'cubic-bezier(.22,.75,.25,1)' } as const

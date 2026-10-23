@@ -1,0 +1,77 @@
+/** Bounded local star river; state remains owned by the host. */
+import { cssSelector } from '../adapter/selector.ts'
+import { prefersReducedMotion, watchReducedMotion } from '../core/motion.ts'
+
+const random = (n: number) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v) }
+const noise = (t: number, seed: number) => { const i = Math.floor(t), f = t - i, u = f * f * f * (f * (f * 6 - 15) + 10); return random(i + seed) * (1 - u) + random(i + 1 + seed) * u }
+const curve = (x: number, t: number, l: number) => .68 + Math.sin(x * .021 - t * .21 + l * .6) * (.07 + noise(t * .09, 255) * .06) + (noise(x * .008 + t * .09, 390 + l * .07) - .5) * .12 + (l - 1) * .04
+
+export function installSessionGalaxy(): () => void {
+  if (typeof ResizeObserver === 'undefined' || typeof IntersectionObserver === 'undefined') return () => {}
+  type Scene = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; position: string; w: number; h: number; visible: boolean }
+  const scenes = new Map<HTMLElement, Scene>()
+  let frame = 0, scanFrame = 0, disposed = false
+  const resize = new ResizeObserver(entries => { for (const entry of entries) { const s = scenes.get(entry.target as HTMLElement); if (s) { s.w = entry.contentRect.width; s.h = entry.contentRect.height } } })
+  const intersection = new IntersectionObserver(entries => { for (const entry of entries) { const s = scenes.get(entry.target as HTMLElement); if (s) s.visible = entry.isIntersecting } start() })
+  const remove = (row: HTMLElement, s: Scene) => { resize.unobserve(row); intersection.unobserve(row); s.canvas.remove(); row.style.position = s.position; scenes.delete(row) }
+  const draw = (now: number) => {
+    frame = 0
+    if (disposed || document.hidden || prefersReducedMotion()) return
+    let count = 0
+    for (const [row, s] of scenes) {
+      if (!s.visible || !row.isConnected || !s.w || !s.h || count++ >= 8) continue
+      const { ctx: g, canvas: c, w, h } = s, dpr = Math.min(devicePixelRatio || 1, 1.25)
+      if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr) }
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h)
+      const t = now / 1000 + count * 3.7
+      const css = getComputedStyle(c)
+      const cool = css.getPropertyValue('--lumina-brand-ratel').trim() || css.color
+      const warm = css.getPropertyValue('--lumina-brand').trim() || css.color
+      const ink = css.color
+      const gradient = g.createLinearGradient(0, 0, w, 0)
+      gradient.addColorStop(0, 'transparent'); gradient.addColorStop(.25, cool); gradient.addColorStop(.58, ink); gradient.addColorStop(.8, warm); gradient.addColorStop(1, 'transparent')
+      for (let l = 0; l < 10; l++) {
+        g.beginPath()
+        for (let x = -6; x <= w + 6; x += 6) { const y = curve(x, t, l / 5) * h; if (x === -6) g.moveTo(x, y); else g.lineTo(x, y) }
+        g.strokeStyle = gradient; g.globalAlpha = l === 5 ? .65 : .12; g.lineWidth = l === 5 ? 1.2 : .6; g.stroke()
+        if (l === 5) { g.globalAlpha = .07; g.lineWidth = 12; g.stroke() }
+      }
+      for (let i = 0; i < 48; i++) {
+        const phase = random(i + 901) * 6.28, speed = .018 + random(i + 801) * .032
+        const travel = speed * (t + .24 / .19 * (Math.sin(t * .19 + phase) - Math.sin(phase)))
+        const u = (random(i) + travel) % 1, x = u * w
+        const y = curve(x, t, 1) * h + (random(i + 304) - .5) * (5 + noise(t * .12 + u * 2, phase * 17) * 9)
+        g.globalAlpha = Math.sin(u * Math.PI) * (.4 + .6 * noise(u * 3 - t * .06, 513))
+        g.fillStyle = i % 4 === 0 ? warm : cool; g.beginPath(); g.arc(x, y, .65 + random(i + 51) * .6, 0, Math.PI * 2); g.fill()
+        g.fillStyle = ink; g.beginPath(); g.arc(x, y, .35, 0, Math.PI * 2); g.fill()
+      }
+      g.globalAlpha = 1
+    }
+    if (count) frame = requestAnimationFrame(draw)
+  }
+  function start() { if (!disposed && !frame && !document.hidden && !prefersReducedMotion()) frame = requestAnimationFrame(draw) }
+  const scan = () => {
+    scanFrame = 0
+    const rows = new Set<HTMLElement>()
+    if (!prefersReducedMotion()) for (const spinner of document.querySelectorAll(cssSelector('sessionRunning'))) { const row = spinner.closest<HTMLElement>(cssSelector('sessionRow')); if (row) rows.add(row) }
+    for (const [row, s] of scenes) if (!rows.has(row) || !row.isConnected) remove(row, s)
+    for (const row of rows) {
+      if (scenes.has(row) || scenes.size >= 24) continue
+      const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d')
+      if (!ctx) continue
+      canvas.className = 'lumina-session-galaxy'; canvas.setAttribute('aria-hidden', 'true')
+      const position = row.style.position
+      if (getComputedStyle(row).position === 'static') row.style.position = 'relative'
+      scenes.set(row, { canvas, ctx, position, w: row.clientWidth, h: row.clientHeight, visible: false })
+      row.append(canvas); resize.observe(row); intersection.observe(row)
+    }
+    start()
+  }
+  const schedule = () => { if (!disposed && !scanFrame) scanFrame = requestAnimationFrame(scan) }
+  const observer = new MutationObserver(schedule)
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-state'] })
+  document.addEventListener('visibilitychange', start)
+  const stopMotion = watchReducedMotion(() => { cancelAnimationFrame(frame); frame = 0; schedule() })
+  scan()
+  return () => { disposed = true; observer.disconnect(); stopMotion(); cancelAnimationFrame(frame); cancelAnimationFrame(scanFrame); for (const [row, s] of scenes) remove(row, s); resize.disconnect(); intersection.disconnect(); document.removeEventListener('visibilitychange', start) }
+}
