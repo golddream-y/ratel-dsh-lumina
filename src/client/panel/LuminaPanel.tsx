@@ -32,6 +32,7 @@ const EFFECT_ROWS = [
   { id: 'brand', label: 'effectBrand', hint: 'effectBrandHint' },
   { id: 'composerGlow', label: 'effectComposerGlow', hint: 'effectComposerGlowHint' },
   { id: 'caret', label: 'effectCaret', hint: 'effectCaretHint' },
+  { id: 'typeWave', label: 'effectTypeWave', hint: 'effectTypeWaveHint' },
   { id: 'press', label: 'effectPress', hint: 'effectPressHint' },
   { id: 'hero', label: 'effectHero', hint: 'effectHeroHint' },
   { id: 'sessionActivity', label: 'effectSessionActivity', hint: 'effectSessionActivityHint' },

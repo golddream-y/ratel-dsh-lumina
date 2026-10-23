@@ -31,6 +31,7 @@ import type { TransferBridge, TransferServices } from './adapter/send-transfer.t
 import { installPress } from './effects/press.ts'
 import { installHero } from './effects/hero.ts'
 import { installSessionActivity } from './effects/session.ts'
+import { installTypeWave } from './effects/type-wave.ts'
 import { installStreamingState, type StreamingState } from './adapter/streaming.ts'
 import { durationCss } from './style/tokens.ts'
 import { LuminaPanel } from './panel/LuminaPanel.tsx'
@@ -163,6 +164,7 @@ function installEffects(
           transfer = installSendTransfer(ctx, mode === 'off' ? 'dissolve' : mode, config.intensity)
           return () => transfer?.dispose()
         },
+        typeWave: () => installTypeWave(),
         press: () => installPress(streaming, config.intensity, () => transfer?.ownsGesture() ?? false, (listener) => transfer?.onFallback(listener) ?? (() => {})),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),

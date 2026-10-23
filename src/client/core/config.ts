@@ -40,6 +40,7 @@ export interface EffectFlags {
   readonly caret: boolean
   readonly press: boolean
   readonly sendTransition: TransferMode
+  readonly typeWave: boolean
   readonly hero: boolean
   readonly sessionActivity: boolean
 }
@@ -64,6 +65,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     caret: true,
     press: true,
     sendTransition: 'liquid',
+    typeWave: true,
     hero: true,
     sessionActivity: true,
   },
@@ -112,6 +114,7 @@ function readEffects(value: unknown): EffectFlags {
     caret: readBoolean(source.caret, DEFAULT_CONFIG.effects.caret),
     press: readBoolean(source.press, DEFAULT_CONFIG.effects.press),
     sendTransition: readTransferMode(source.sendTransition, source.sendTransfer),
+    typeWave: readBoolean(source.typeWave, DEFAULT_CONFIG.effects.typeWave),
     hero: readBoolean(source.hero, DEFAULT_CONFIG.effects.hero),
     sessionActivity: readBoolean(source.sessionActivity, DEFAULT_CONFIG.effects.sessionActivity),
   }

@@ -100,6 +100,14 @@ export const SEND_BUTTON_FLASH = `
 }
 `
 
+/** The per-character light fading out. */
+export const WAVE_FADE = `
+@keyframes lumina-wave-fade {
+  from { opacity: .9; }
+  to { opacity: 0; }
+}
+`
+
 /** Every keyframe Lumina defines, in one block. */
 export const ALL_KEYFRAMES = [
   BORDER_BREATHE,
@@ -114,4 +122,5 @@ export const ALL_KEYFRAMES = [
   SESSION_SPIN,
   SEND_BUTTON_FLASH,
   SEND_RIPPLE,
+  WAVE_FADE,
 ].join('\n')
