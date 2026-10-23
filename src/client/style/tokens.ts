@@ -39,8 +39,8 @@ export const DURATIONS: Readonly<
     press: 140,
     flash: 360,
     transfer: 1150,
-    hero: 320,
-    'hero-glow': 900,
+    hero: 520,
+    'hero-glow': 760,
     session: 2400,
   },
   subtle: {
@@ -54,8 +54,8 @@ export const DURATIONS: Readonly<
     press: 180,
     flash: 420,
     transfer: 1350,
-    hero: 420,
-    'hero-glow': 1100,
+    hero: 620,
+    'hero-glow': 900,
     session: 3200,
   },
   vivid: {
@@ -69,8 +69,8 @@ export const DURATIONS: Readonly<
     press: 110,
     flash: 280,
     transfer: 1000,
-    hero: 240,
-    'hero-glow': 700,
+    hero: 420,
+    'hero-glow': 620,
     session: 1800,
   },
 }

@@ -30,11 +30,29 @@ export function heroCss(): string {
   animation: lumina-hero-glow var(--lumina-hero-glow) ease-out;
 }
 
+/* Our own element: a one-shot brand light over the hero screen. The host DOM
+   is never wrapped or restyled, so the entrance cannot fight its layout. */
+.lumina-hero-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background: radial-gradient(
+    62% 52% at 50% 40%,
+    rgba(var(--lumina-brand-rgb), .18),
+    rgba(var(--lumina-brand-rgb), .05) 45%,
+    transparent 72%
+  );
+  animation: lumina-hero-veil var(--lumina-hero-glow) ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lumina-hero-mark[data-play="true"],
-  .lumina-hero-mark[data-play="true"] svg {
+  .lumina-hero-mark[data-play="true"] svg,
+  .lumina-hero-veil {
     animation: none;
   }
+  .lumina-hero-veil { display: none; }
 }
 `
 }

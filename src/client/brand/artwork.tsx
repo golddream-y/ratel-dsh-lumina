@@ -182,8 +182,36 @@ export function BrandName({ className }: BrandArtworkProps) {
   )
 }
 
-/** The hero entrance plays once per page load. */
-let heroPlayed = false
+/** The sessions whose hero entrance already played. */
+const heroPlayed = new Set<string>()
+
+/**
+ * Whether the hero entrance should play for a session.
+ *
+ * Playing once per page load loses the entrance for every later new session:
+ * the home screen consumes it during startup. The key is the session, so every
+ * new session gets its entrance and going back to one does not replay it.
+ *
+ * @param sessionKey - the current conversation session id, or '' when unknown.
+ * @param played - the played set (injectable for tests).
+ * @returns whether to play.
+ */
+export function heroPlayFor(sessionKey: string, played: Set<string> = heroPlayed): boolean {
+  if (sessionKey === '') return true
+  if (played.has(sessionKey)) return false
+  played.add(sessionKey)
+  return true
+}
+
+/**
+ * Read the current conversation session id from the page.
+ *
+ * @returns the session id, or '' when the region is not mounted yet.
+ */
+function heroSessionKey(): string {
+  if (typeof document === 'undefined') return ''
+  return document.querySelector('[data-conversation-session]')?.getAttribute('data-conversation-session') ?? ''
+}
 
 /**
  * The hero occurrence of the mark.
@@ -192,15 +220,17 @@ let heroPlayed = false
  * @returns the hero mark element.
  */
 export function HeroMark({ size = 34, className }: BrandArtworkProps) {
-  const play = !heroPlayed
-  heroPlayed = true
+  const play = heroPlayFor(heroSessionKey())
   return (
-    <span
-      className={['lumina-hero-mark', className].filter(Boolean).join(' ')}
-      data-play={play ? 'true' : undefined}
-      aria-hidden="true"
-    >
-      <BrandMark size={size} />
-    </span>
+    <>
+      <span
+        className={['lumina-hero-mark', className].filter(Boolean).join(' ')}
+        data-play={play ? 'true' : undefined}
+        aria-hidden="true"
+      >
+        <BrandMark size={size} />
+      </span>
+      {play ? <span className="lumina-hero-veil" aria-hidden="true" /> : null}
+    </>
   )
 }
