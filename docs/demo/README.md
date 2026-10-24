@@ -42,10 +42,8 @@ python3 -m http.server 8765 --directory docs/demo
 
 - [WebGPU 静态材质样板](http://127.0.0.1:8766/silk-material.html)：与客户端共用渲染内核，默认定格，时间滑块和播放用于比较折面与反光。服务由 `node tools/serve-motion.mjs` 启动。
 
-材质样板现在包含 SVG 形态源对照，默认时间为 0。编辑 `assets/motion/silk-ribbon.svg` 的六条边界后执行 `npm run gen:silk`；不要手改生成的 TypeScript 数据或 SVG 中标记的填面区域。
+编辑 `assets/motion/silk-study.svg` 后执行 `npm run gen:silk`，不要直接修改生成的 TypeScript 资产。
 
-- [独立 SVG 美术样板](http://127.0.0.1:8766/silk-art.html)：仅展示 `assets/motion/silk-study.svg` 与 README，对照宽面、内部褶皱和聚光。当前美术探索尚未映射到客户端，旧 WebGPU 材质样板保留作历史对照。
+- [静态 SVG 美术样板](http://127.0.0.1:8766/silk-art.html)：查看当前美术稿及 README 参考。
 
-独立美术样板提供「细化版／上一版」切换；上一稿保存在 `assets/motion/archive/silk-study-v1.svg`，当前细化稿仍未接入客户端。
-
-最新 `silk-material.html` 已改为细化 SVG 的 WebGPU 网格形变，与客户端共用 renderer；`silk-art.html` 保留静态稿及上一版对照。主要高光来自 SVG，不将该首版称为实时三维光照。
+`silk-material.html` 与客户端共用 SVG 纹理和 WebGPU 网格渲染；主高光来自 SVG。旧参数曲面实验、上一版对照资产与入口已清理，历史方案可从 Git 查询。

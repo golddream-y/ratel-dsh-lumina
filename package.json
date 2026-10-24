@@ -58,8 +58,8 @@
     }
   },
   "scripts": {
-    "build": "node tools/gen-silk-surface.mjs && node tools/gen-silk-art.mjs && rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
-    "build:client": "node tools/gen-silk-surface.mjs && node tools/gen-silk-art.mjs && tsdown",
+    "build": "node tools/gen-silk-art.mjs && rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
+    "build:client": "node tools/gen-silk-art.mjs && tsdown",
     "install:local": "bash tools/install-local.sh",
     "prepare": "npm run build",
     "test": "vitest run",
@@ -71,7 +71,7 @@
     "pack:check": "npm pack --dry-run",
     "check:dsh": "node tools/check-dsh-compat.mjs",
     "check:dsh:json": "node tools/check-dsh-compat.mjs --json --dry-run",
-    "gen:silk": "node tools/gen-silk-surface.mjs && node tools/gen-silk-art.mjs"
+    "gen:silk": "node tools/gen-silk-art.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",

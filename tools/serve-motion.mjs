@@ -6,9 +6,7 @@ import { resolve, extname, sep } from 'node:path'
 const root = resolve('docs/demo')
 const assets = {
   '/__lumina/client.js': resolve('lib/client.js'),
-  '/__lumina/silk-study-v1.svg': resolve('assets/motion/archive/silk-study-v1.svg'),
   '/__lumina/silk-study.svg': resolve('assets/motion/silk-study.svg'),
-  '/__lumina/silk-source.svg': resolve('assets/motion/silk-ribbon.svg'),
   '/__lumina/reference.webp': resolve('assets/readme/hero-zh-CN.webp'),
   '/__lumina/react.js': resolve('node_modules/react/umd/react.production.min.js'),
   '/__lumina/react-dom.js': resolve('node_modules/react-dom/umd/react-dom.production.min.js'),
@@ -16,9 +14,9 @@ const assets = {
 createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost')
-    const shared = {'/__lumina/ribbon-art.js':'src/client/effects/composer-ribbon-art.generated.ts','/__lumina/ribbon-art-shaders.js':'src/client/effects/composer-ribbon-art-shaders.ts','/__lumina/ribbon-surface.js':'src/client/effects/composer-ribbon-surface.generated.ts','/__lumina/ribbon-renderer.js':'src/client/effects/composer-ribbon-renderer.ts','/__lumina/ribbon-shaders.js':'src/client/effects/composer-ribbon-shaders.ts','/__lumina/session-galaxy-painter.js':'src/client/effects/session-galaxy-painter.ts','/__lumina/tokens.js':'src/client/style/tokens.ts'}[url.pathname]
+    const shared = {'/__lumina/ribbon-art.js':'src/client/effects/composer-ribbon-art.generated.ts','/__lumina/ribbon-art-shaders.js':'src/client/effects/composer-ribbon-art-shaders.ts','/__lumina/ribbon-renderer.js':'src/client/effects/composer-ribbon-renderer.ts','/__lumina/session-galaxy-painter.js':'src/client/effects/session-galaxy-painter.ts','/__lumina/tokens.js':'src/client/style/tokens.ts'}[url.pathname]
     if (shared) {
-      const source = (await readFile(resolve(shared), 'utf8')).replace('../style/tokens.ts','/__lumina/tokens.js').replace('./composer-ribbon-shaders.ts','/__lumina/ribbon-shaders.js').replace('./composer-ribbon-surface.generated.ts','/__lumina/ribbon-surface.js').replace('./composer-ribbon-art.generated.ts','/__lumina/ribbon-art.js').replace('./composer-ribbon-art-shaders.ts','/__lumina/ribbon-art-shaders.js')
+      const source = (await readFile(resolve(shared), 'utf8')).replace('../style/tokens.ts','/__lumina/tokens.js').replace('./composer-ribbon-art.generated.ts','/__lumina/ribbon-art.js').replace('./composer-ribbon-art-shaders.ts','/__lumina/ribbon-art-shaders.js')
       const result = ts.transpileModule(source, {compilerOptions:{target:ts.ScriptTarget.ES2024,module:ts.ModuleKind.ESNext}})
       response.writeHead(200, {'Content-Type':'text/javascript','Cache-Control':'no-store'}).end(result.outputText); return
     }

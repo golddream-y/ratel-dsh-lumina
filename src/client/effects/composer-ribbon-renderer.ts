@@ -1,7 +1,7 @@
 import { silkArtwork, silkSpine } from './composer-ribbon-art.generated.ts'
 import { artworkShader } from './composer-ribbon-art-shaders.ts'
 import type { RibbonViewport } from './composer-ribbon-bounds.ts'
-import type { RibbonBox } from './composer-ribbon-painter.ts'
+import type { RibbonBox } from './composer-ribbon-bounds.ts'
 
 // Narrow local WebGPU contract: no runtime dependency or global DOM augmentation.
 interface BufferResource { destroy(): void }

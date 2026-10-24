@@ -1,7 +1,7 @@
 /** One bounded canvas for a focused, idle new-conversation composer. */
 import { composerRibbonScene, composerRibbonReady, currentHeroSession } from '../adapter/targets.ts'
 import { prefersReducedMotion, watchReducedMotion } from '../core/motion.ts'
-import type { RibbonBox } from './composer-ribbon-painter.ts'
+import type { RibbonBox } from './composer-ribbon-bounds.ts'
 import { ribbonViewport, type RibbonViewport } from './composer-ribbon-bounds.ts'
 import { createRibbonRenderer, type RibbonRenderer } from './composer-ribbon-renderer.ts'
 

@@ -1,4 +1,4 @@
-import type { RibbonBox } from './composer-ribbon-painter.ts'
+export interface RibbonBox { x:number; y:number; width:number; height:number }
 export interface RibbonViewport { x:number; y:number; width:number; height:number }
 /** Keep the native titlebar completely outside the decoration's compositor surface. */
 export function ribbonViewport(width:number,height:number,box:RibbonBox): RibbonViewport | null {
