@@ -1,5 +1,7 @@
 # 官方 API 面 · 已验证清单
 
+> **升级 DSH 后先跑兼容核查**：`npm run check:dsh`。清单与报告见 [dsh-compat](dsh-compat/README.md)。
+
 > 验证方式：**直接 grep 已安装的 `app.asar`**（二进制事实）+ 阅读官方仓库源码 + 比对生产插件 `dsh-brand-studio` 的构建产物。
 > 仓库源码 checkout 处于脏状态（7389 项变更），因此**以 `app.asar` 为准**，源码只作定位线索。
 

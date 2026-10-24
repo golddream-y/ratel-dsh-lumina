@@ -1,0 +1,450 @@
+{
+  "schema": 1,
+  "about": "Ratel Lumina 对 DSH 宿主能力的全部依赖。每次 DSH 升级后由 tools/check-dsh-compat.mjs 逐条核对；新增或修改依赖时必须同步本文件。",
+  "verified": {
+    "version": "0.2.1-rc.3",
+    "checkedAt": "2026-10-24T06:43:21.335Z",
+    "missing": []
+  },
+  "checks": [
+    {
+      "id": "loader.module-loader",
+      "category": "loader",
+      "pattern": "__ModuleLoader__",
+      "required": true,
+      "usedBy": [
+        "客户端 bundle 加载"
+      ],
+      "why": "插件通过 window.__ModuleLoader__.load({id,factory}) 注册，契约消失则整个插件不加载"
+    },
+    {
+      "id": "service.slots",
+      "category": "service",
+      "pattern": "\"slots\"",
+      "required": true,
+      "usedBy": [
+        "品牌 slot",
+        "英雄屏",
+        "设置页"
+      ],
+      "why": "ctx.slots 是注入依赖之一；同时用于 register/inject"
+    },
+    {
+      "id": "service.locale",
+      "category": "service",
+      "pattern": "\"locale\"",
+      "required": true,
+      "usedBy": [
+        "所有文案"
+      ],
+      "why": "ctx.locale 注册中英文文案命名空间"
+    },
+    {
+      "id": "service.sessions",
+      "category": "service",
+      "pattern": "\"sessions\"",
+      "required": true,
+      "usedBy": [
+        "发送转场落点"
+      ],
+      "why": "sessions.binding().session 读 pendingSubmissions 关联提交"
+    },
+    {
+      "id": "service.ui-session",
+      "category": "service",
+      "pattern": "uiSession",
+      "required": true,
+      "usedBy": [
+        "发送转场"
+      ],
+      "why": "uiSession.current 提供当前会话 key；sessions.list 没有 current"
+    },
+    {
+      "id": "service.ui-conversation",
+      "category": "service",
+      "pattern": "uiConversation",
+      "required": true,
+      "usedBy": [
+        "发送转场落点"
+      ],
+      "why": "uiConversation.binding(id).target('chat') 读消息顺序与 rpcId"
+    },
+    {
+      "id": "slot.sidebar-mark",
+      "category": "slot",
+      "pattern": "sidebar.brand.mark",
+      "required": true,
+      "usedBy": [
+        "brand"
+      ],
+      "why": "侧栏图标位；不存在则品牌标识不渲染"
+    },
+    {
+      "id": "slot.sidebar-name",
+      "category": "slot",
+      "pattern": "sidebar.brand.name",
+      "required": true,
+      "usedBy": [
+        "brand"
+      ],
+      "why": "侧栏字标位"
+    },
+    {
+      "id": "slot.hero-mark",
+      "category": "slot",
+      "pattern": "conversation.hero.brand.mark",
+      "required": true,
+      "usedBy": [
+        "hero"
+      ],
+      "why": "新会话英雄屏图标位；入场动画挂在这里"
+    },
+    {
+      "id": "slot.hero-options",
+      "category": "slot",
+      "pattern": "conversation.hero.options",
+      "required": false,
+      "usedBy": [
+        "hero-echo"
+      ],
+      "why": "英雄屏辅助控件位；晚挂载时 Echo 需要等待它"
+    },
+    {
+      "id": "slot.settings-section",
+      "category": "slot",
+      "pattern": "settings.section",
+      "required": true,
+      "usedBy": [
+        "设置页"
+      ],
+      "why": "Lumina 设置页的挂载点"
+    },
+    {
+      "id": "hook.composer-card",
+      "category": "dom-hook",
+      "pattern": "data-composer-card",
+      "required": true,
+      "usedBy": [
+        "composerGlow",
+        "press",
+        "composerRibbon"
+      ],
+      "why": "输入框卡片容器"
+    },
+    {
+      "id": "hook.composer-input",
+      "category": "dom-hook",
+      "pattern": "data-composer-input",
+      "required": true,
+      "usedBy": [
+        "caret",
+        "typeWave",
+        "sendTransition"
+      ],
+      "why": "可编辑输入区；逐字波浪与转场取字都靠它"
+    },
+    {
+      "id": "hook.lexical-cursor",
+      "category": "dom-hook",
+      "pattern": "data-lexical-cursor",
+      "required": true,
+      "usedBy": [
+        "caret"
+      ],
+      "why": "输入光标标记"
+    },
+    {
+      "id": "hook.streaming",
+      "category": "dom-hook",
+      "pattern": "data-streaming",
+      "required": true,
+      "usedBy": [
+        "caret",
+        "typeWave",
+        "streaming state"
+      ],
+      "why": "流式输出根标记；光标尾部与逐字点亮据此判断"
+    },
+    {
+      "id": "hook.chat-node-key",
+      "category": "dom-hook",
+      "pattern": "data-chat-node-key",
+      "required": true,
+      "usedBy": [
+        "sendTransition"
+      ],
+      "why": "消息行的稳定身份；转场遮罩整行"
+    },
+    {
+      "id": "hook.chat-flow-key",
+      "category": "dom-hook",
+      "pattern": "data-chat-flow-key",
+      "required": true,
+      "usedBy": [
+        "sendTransition"
+      ],
+      "why": "消息行的历史变体身份"
+    },
+    {
+      "id": "hook.conversation-content",
+      "category": "dom-hook",
+      "pattern": "data-conversation-content",
+      "required": true,
+      "usedBy": [
+        "sendTransition",
+        "typeWave",
+        "panels"
+      ],
+      "why": "会话内容区；转场落点与流式点亮的作用域"
+    },
+    {
+      "id": "hook.conversation-region",
+      "category": "dom-hook",
+      "pattern": "data-conversation-region",
+      "required": true,
+      "usedBy": [
+        "sendTransition"
+      ],
+      "why": "区分 chat 与 composer 区域，排除队列回声"
+    },
+    {
+      "id": "hook.conversation-session",
+      "category": "dom-hook",
+      "pattern": "data-conversation-session",
+      "required": true,
+      "usedBy": [
+        "hero",
+        "sendTransition"
+      ],
+      "why": "当前会话 id；英雄屏按会话播放靠它"
+    },
+    {
+      "id": "hook.submission-echo",
+      "category": "dom-hook",
+      "pattern": "data-submission-echo",
+      "required": true,
+      "usedBy": [
+        "sendTransition"
+      ],
+      "why": "本地回声行；提交当帧就要隐藏气泡"
+    },
+    {
+      "id": "hook.menu-material",
+      "category": "dom-hook",
+      "pattern": "data-menu-material",
+      "required": true,
+      "usedBy": [
+        "press"
+      ],
+      "why": "菜单/浮层表面；菜单淡入的选择器"
+    },
+    {
+      "id": "hook.row-key",
+      "category": "dom-hook",
+      "pattern": "data-row-key",
+      "required": true,
+      "usedBy": [
+        "sessionActivity",
+        "sessionGalaxy"
+      ],
+      "why": "侧栏会话行身份；星河画在行内"
+    },
+    {
+      "id": "hook.state",
+      "category": "dom-hook",
+      "pattern": "data-state",
+      "required": true,
+      "usedBy": [
+        "sessionActivity",
+        "sessionGalaxy"
+      ],
+      "why": "会话行运行状态的属性名"
+    },
+    {
+      "id": "hook.slot",
+      "category": "dom-hook",
+      "pattern": "data-slot",
+      "required": false,
+      "usedBy": [
+        "panels"
+      ],
+      "why": "槽容器标记；面板动效用于定位真实容器"
+    },
+    {
+      "id": "hook.sidebar-collapsed",
+      "category": "dom-hook",
+      "pattern": "data-sidebar-collapsed",
+      "required": false,
+      "usedBy": [
+        "panels",
+        "composerRibbon"
+      ],
+      "why": "侧栏开合状态"
+    },
+    {
+      "id": "hook.rightbar-col",
+      "category": "dom-hook",
+      "pattern": "data-rightbar-col",
+      "required": false,
+      "usedBy": [
+        "panels",
+        "composerRibbon"
+      ],
+      "why": "右侧栏列状态"
+    },
+    {
+      "id": "hook.dragging",
+      "category": "dom-hook",
+      "pattern": "data-dragging",
+      "required": false,
+      "usedBy": [
+        "panels"
+      ],
+      "why": "拖拽中标记；用于避免和用户拖拽抢动画"
+    },
+    {
+      "id": "hook.message-attachments",
+      "category": "dom-hook",
+      "pattern": "data-message-attachments",
+      "required": false,
+      "usedBy": [
+        "composerRibbon"
+      ],
+      "why": "附件区；决定输入框高度交接"
+    },
+    {
+      "id": "hook.composer-composing",
+      "category": "dom-hook",
+      "pattern": "data-composer-composing",
+      "required": false,
+      "usedBy": [
+        "caret"
+      ],
+      "why": "IME 组合状态标记"
+    },
+    {
+      "id": "hook.content-phase",
+      "category": "dom-hook",
+      "pattern": "data-content-phase",
+      "required": false,
+      "usedBy": [
+        "composerRibbon"
+      ],
+      "why": "内容区相位；用于输入框高度让位"
+    },
+    {
+      "id": "value.session-ongoing",
+      "category": "dom-value",
+      "regex": "data-state\\\"?\\s*:\\s*\\\"?ongoing",
+      "required": true,
+      "usedBy": [
+        "sessionActivity",
+        "sessionGalaxy"
+      ],
+      "why": "运行中状态的取值；改成 running/busy 会让星河与状态图标失配"
+    },
+    {
+      "id": "value.menu-translucent",
+      "category": "dom-value",
+      "regex": "data-menu-material[^,;)]{0,20}translucent",
+      "required": true,
+      "usedBy": [
+        "press"
+      ],
+      "why": "菜单材质取值；新菜单复用同一材质则淡入自动生效"
+    },
+    {
+      "id": "token.bg-base",
+      "category": "css-token",
+      "pattern": "--dsw-alias-bg-base",
+      "required": true,
+      "usedBy": [
+        "theme"
+      ],
+      "why": "主题底色"
+    },
+    {
+      "id": "token.bg-layer-1",
+      "category": "css-token",
+      "pattern": "--dsw-alias-bg-layer-1",
+      "required": true,
+      "usedBy": [
+        "panel",
+        "composer"
+      ],
+      "why": "一级层背景"
+    },
+    {
+      "id": "token.bg-layer-2",
+      "category": "css-token",
+      "pattern": "--dsw-alias-bg-layer-2",
+      "required": true,
+      "usedBy": [
+        "panel"
+      ],
+      "why": "二级层背景"
+    },
+    {
+      "id": "token.border-l2",
+      "category": "css-token",
+      "pattern": "--dsw-alias-border-l2",
+      "required": true,
+      "usedBy": [
+        "composer"
+      ],
+      "why": "边框色"
+    },
+    {
+      "id": "token.brand-primary",
+      "category": "css-token",
+      "pattern": "--dsw-alias-brand-primary",
+      "required": true,
+      "usedBy": [
+        "caret",
+        "press"
+      ],
+      "why": "官方强调色"
+    },
+    {
+      "id": "token.label-primary",
+      "category": "css-token",
+      "pattern": "--dsw-alias-label-primary",
+      "required": true,
+      "usedBy": [
+        "panel",
+        "sessionGalaxy"
+      ],
+      "why": "主文字色"
+    },
+    {
+      "id": "token.label-secondary",
+      "category": "css-token",
+      "pattern": "--dsw-alias-label-secondary",
+      "required": true,
+      "usedBy": [
+        "panel"
+      ],
+      "why": "次级文字色"
+    },
+    {
+      "id": "token.label-tertiary",
+      "category": "css-token",
+      "pattern": "--dsw-alias-label-tertiary",
+      "required": true,
+      "usedBy": [
+        "panel"
+      ],
+      "why": "三级文字色"
+    },
+    {
+      "id": "token.state-business-primary",
+      "category": "css-token",
+      "pattern": "--dsw-alias-state-business-primary",
+      "required": false,
+      "usedBy": [
+        "sessionActivity"
+      ],
+      "why": "业务态色；缺少时回退品牌色"
+    }
+  ]
+}

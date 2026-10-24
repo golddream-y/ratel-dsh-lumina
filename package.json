@@ -68,7 +68,9 @@
     "verify:hooks": "node tools/verify-hooks.mjs",
     "watch": "tsdown --watch",
     "gen:brand": "node tools/gen-brand-assets.mjs",
-    "pack:check": "npm pack --dry-run"
+    "pack:check": "npm pack --dry-run",
+    "check:dsh": "node tools/check-dsh-compat.mjs",
+    "check:dsh:json": "node tools/check-dsh-compat.mjs --json --dry-run"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
