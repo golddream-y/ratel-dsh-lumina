@@ -37,6 +37,7 @@ export const TRANSFER_MODES: readonly TransferMode[] = ['off', 'liquid', 'dissol
 export interface EffectFlags {
   readonly brand: boolean
   readonly composerGlow: boolean
+  readonly composerRibbon: boolean
   readonly caret: boolean
   readonly press: boolean
   readonly sendTransition: TransferMode
@@ -64,6 +65,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
   effects: {
     brand: true,
     composerGlow: true,
+    composerRibbon: true,
     caret: true,
     press: true,
     sendTransition: 'liquid',
@@ -115,6 +117,7 @@ function readEffects(value: unknown): EffectFlags {
   return {
     brand: readBoolean(source.brand, DEFAULT_CONFIG.effects.brand),
     composerGlow: readBoolean(source.composerGlow, DEFAULT_CONFIG.effects.composerGlow),
+    composerRibbon: readBoolean(source.composerRibbon, readBoolean(source.composerGlow, DEFAULT_CONFIG.effects.composerRibbon)),
     caret: readBoolean(source.caret, DEFAULT_CONFIG.effects.caret),
     press: readBoolean(source.press, DEFAULT_CONFIG.effects.press),
     sendTransition: readTransferMode(source.sendTransition, source.sendTransfer),

@@ -247,3 +247,24 @@ export function panelFrameState(frame: HTMLElement) {
     blocked: ['data-dragging','data-rightbar-fullscreen','data-rightbar-instant'].some(key => frame.hasAttribute(key)),
   }
 }
+
+/** Native hero seat and AppFrame center column bound the page ribbon. */
+export function composerRibbonScene(): { card: HTMLElement; area: HTMLElement; mark: HTMLElement } | null {
+  const mark = document.querySelector<HTMLElement>('[data-slot="conversation.hero.brand.mark"]')
+  const card = document.querySelector<HTMLElement>('[data-composer-card]')
+  if (!mark || !card) return null
+  const frame = panelFrames().find(frame => frame.contains(card))
+  const area = frame?.children[1]
+  const fallback = mark.closest<HTMLElement>('[data-phase="hero"], [data-content-phase="hero"]')
+  const region = area instanceof HTMLElement ? area : fallback
+  if (!region || !region.contains(card)) return null
+  return { card, area: region, mark }
+}
+
+/** Only the plugin's own entrance artifacts gate decoration; no message inspection. */
+export function composerRibbonReady(scene: { card: HTMLElement; area: HTMLElement; mark: HTMLElement }): boolean {
+  if (scene.card.hasAttribute('data-lumina-assembling')) return false
+  if (document.querySelector('[data-lumina-echo-gate="waiting"], [data-lumina-echo="waiting"], [data-lumina-echo="playing"]')) return false
+  return !scene.mark.getAnimations({ subtree: true }).some(animation =>
+    animation instanceof CSSAnimation && animation.animationName === 'lumina-hero-stroke' && animation.playState === 'running')
+}

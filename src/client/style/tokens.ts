@@ -136,3 +136,13 @@ export const SESSION_GALAXY_PALETTE = ['rgba(94,154,246,.29)', 'rgba(139,181,255
 export const SIDEBAR_GROUP_MOTION = { enter: 260, exit: 240, move: 280, stagger: 12, maxDelay: 36 } as const
 
 export const PANEL_MOTION = { open: 280, close: 240, easing: 'cubic-bezier(.22,.75,.25,1)' } as const
+
+/** Decorative silk palette; deliberately shared across brand presets like the session galaxy. */
+export const SILK_PALETTE = {
+  ice: 'rgba(125,190,255,',
+  warm: 'rgba(255,150,145,',
+  white: 'rgba(255,255,255,',
+} as const
+
+/** Page ribbon reveal and downstream energy transport, in seconds. */
+export const RIBBON_FLOW = { reveal: 1.65, speed: .17 } as const

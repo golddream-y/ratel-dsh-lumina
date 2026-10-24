@@ -1,6 +1,6 @@
 {
   "name": "@ratel-works/dsh-lumina",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A subtle layer of motion for DeepSeek Harness. Customizable visual and motion enhancements for the client.",
   "license": "MIT",
   "type": "module",
@@ -58,8 +58,8 @@
     }
   },
   "scripts": {
-    "build": "rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
-    "build:client": "tsdown",
+    "build": "node tools/gen-silk-surface.mjs && node tools/gen-silk-art.mjs && rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
+    "build:client": "node tools/gen-silk-surface.mjs && node tools/gen-silk-art.mjs && tsdown",
     "install:local": "bash tools/install-local.sh",
     "prepare": "npm run build",
     "test": "vitest run",
@@ -70,7 +70,8 @@
     "gen:brand": "node tools/gen-brand-assets.mjs",
     "pack:check": "npm pack --dry-run",
     "check:dsh": "node tools/check-dsh-compat.mjs",
-    "check:dsh:json": "node tools/check-dsh-compat.mjs --json --dry-run"
+    "check:dsh:json": "node tools/check-dsh-compat.mjs --json --dry-run",
+    "gen:silk": "node tools/gen-silk-surface.mjs && node tools/gen-silk-art.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",

@@ -1,3 +1,4 @@
+import { installComposerRibbon } from './effects/composer-ribbon.ts'
 /**
  * Browser half of Lumina: the module the client loads and the effect
  * orchestrator behind it.
@@ -160,6 +161,7 @@ function installEffects(
       {
         brand: () => installBrand(ctx),
         composerGlow: () => installComposer(),
+        composerRibbon: () => installComposerRibbon(),
         caret: () => installCaret(),
         sendTransition: () => {
           const mode = config.effects.sendTransition

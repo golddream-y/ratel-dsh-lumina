@@ -39,6 +39,7 @@ const EFFECT_ROWS = [
   { id: 'caret', label: 'effectCaret', hint: 'effectCaretHint' },
   { id: 'typeWave', label: 'effectTypeWave', hint: 'effectTypeWaveHint' },
   { id: 'press', label: 'effectPress', hint: 'effectPressHint' },
+  { id: 'composerRibbon', label: 'effectComposerRibbon', hint: 'effectComposerRibbonHint' },
   { id: 'hero', label: 'effectHero', hint: 'effectHeroHint' },
   { id: 'sessionActivity', label: 'effectSessionActivity', hint: 'effectSessionActivityHint' },
 ] as const
@@ -161,7 +162,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
       {([
         { title: 'navigation', ids: ['brand', 'panelMotion', 'groupMotion', 'sessionActivity', 'press'] },
         { title: 'inputMessages', ids: ['composerGlow', 'caret', 'typeWave'] },
-        { title: 'newSession', ids: ['hero'] },
+        { title: 'newSession', ids: ['hero', 'composerRibbon'] },
       ] as const).map(group => {
         const ids: readonly string[] = group.ids
         return <section className="lumina-section" key={group.title}>

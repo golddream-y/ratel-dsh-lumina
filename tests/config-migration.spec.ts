@@ -15,3 +15,16 @@ describe('independent navigation effect migration', () => {
     expect(config.effects.sessionActivity).toBe(false)
   })
 })
+
+describe('independent ribbon migration', () => {
+  it('inherits a disabled composer effect from an older saved config', () => {
+    const config = parseConfig(JSON.stringify({version:1,effects:{composerGlow:false}}))
+    expect(config.effects.composerRibbon).toBe(false)
+  })
+  it('preserves an explicit ribbon preference independently', () => {
+    const config = parseConfig(JSON.stringify({version:1,effects:{composerGlow:false,composerRibbon:true,hero:false}}))
+    expect(config.effects.composerRibbon).toBe(true)
+    expect(config.effects.composerGlow).toBe(false)
+    expect(config.effects.hero).toBe(false)
+  })
+})

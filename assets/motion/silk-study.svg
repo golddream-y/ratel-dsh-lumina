@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 380" fill="none">
+<title>Lumina — folded light silk study</title>
+<desc>Editable art study. Broad translucent folds, sharp light edges and local luminous caustics. Bundled appearance source for the WebGPU mesh renderer.</desc>
+<defs>
+ <linearGradient id="body" x1="130" y1="290" x2="1030" y2="105" gradientUnits="userSpaceOnUse"><stop stop-color="#8ed6ff" stop-opacity="0"/><stop offset=".16" stop-color="#3c89e9" stop-opacity=".08"/><stop offset=".37" stop-color="#94d0ff" stop-opacity=".62"/><stop offset=".49" stop-color="#f4fcff" stop-opacity=".85"/><stop offset=".61" stop-color="#5599ee" stop-opacity=".38"/><stop offset=".72" stop-color="#bbe9ff" stop-opacity=".44"/><stop offset=".84" stop-color="#f8fcff" stop-opacity=".78"/><stop offset="1" stop-color="#8acaff" stop-opacity="0"/></linearGradient>
+ <linearGradient id="back" x1="250" y1="245" x2="1080" y2="95" gradientUnits="userSpaceOnUse"><stop stop-color="#448add" stop-opacity="0"/><stop offset=".24" stop-color="#75aee9" stop-opacity=".26"/><stop offset=".43" stop-color="#d6f1ff" stop-opacity=".14"/><stop offset=".57" stop-color="#3a78cd" stop-opacity=".4"/><stop offset=".68" stop-color="#94c9ff" stop-opacity=".08"/><stop offset=".83" stop-color="#d7f4ff" stop-opacity=".6"/><stop offset="1" stop-color="#83bded" stop-opacity="0"/></linearGradient>
+ <linearGradient id="coral" x1="80" y1="170" x2="1150" y2="130" gradientUnits="userSpaceOnUse"><stop stop-color="#ff7f70" stop-opacity="0"/><stop offset=".12" stop-color="#ff9f91" stop-opacity=".24"/><stop offset=".26" stop-color="#ff675f" stop-opacity=".5"/><stop offset=".38" stop-color="#fff5df" stop-opacity=".85"/><stop offset=".48" stop-color="#ff8b7c" stop-opacity=".2"/><stop offset=".62" stop-color="#ffb2a3" stop-opacity=".1"/><stop offset=".78" stop-color="#ff8a82" stop-opacity=".38"/><stop offset=".88" stop-color="#fff9ee" stop-opacity=".8"/><stop offset="1" stop-color="#ffb8ad" stop-opacity="0"/></linearGradient>
+ <linearGradient id="white" x1="120" y1="250" x2="1120" y2="120" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0"/><stop offset=".18" stop-color="white" stop-opacity=".3"/><stop offset=".36" stop-color="white"/><stop offset=".51" stop-color="#f8fdff" stop-opacity=".8"/><stop offset=".68" stop-color="white" stop-opacity=".4"/><stop offset=".82" stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient>
+ <linearGradient id="rim" x1="140" y1="245" x2="1100" y2="115" gradientUnits="userSpaceOnUse"><stop stop-color="#9ed8ff" stop-opacity="0"/><stop offset=".3" stop-color="#3489df" stop-opacity=".3"/><stop offset=".45" stop-color="#f8ffff"/><stop offset=".58" stop-color="#5597dd" stop-opacity=".6"/><stop offset=".73" stop-color="#cae9ff" stop-opacity=".4"/><stop offset=".85" stop-color="white"/><stop offset="1" stop-color="#a6d2ff" stop-opacity="0"/></linearGradient>
+ <radialGradient id="haze"><stop stop-color="#7abfff" stop-opacity=".25"/><stop offset=".4" stop-color="#bfdfff" stop-opacity=".12"/><stop offset="1" stop-color="#d4eaff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="warmHaze"><stop stop-color="#ff9c80" stop-opacity=".26"/><stop offset=".45" stop-color="#ffbe98" stop-opacity=".12"/><stop offset="1" stop-color="#ffdfc4" stop-opacity="0"/></radialGradient>
+ <radialGradient id="flare"><stop stop-color="white"/><stop offset=".12" stop-color="#fffff5" stop-opacity=".78"/><stop offset=".3" stop-color="#fff9df" stop-opacity=".38"/><stop offset=".6" stop-color="#ffe2c1" stop-opacity=".10"/><stop offset="1" stop-color="#ffdcad" stop-opacity="0"/></radialGradient>
+ <filter id="glow" x="-15%" y="-60%" width="130%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
+ <filter id="soft" x="-15%" y="-60%" width="130%" height="220%"><feGaussianBlur stdDeviation="1.4"/></filter>
+ <linearGradient id="foldShade" x1="427" y1="252" x2="694" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#4687cf" stop-opacity="0"/><stop offset=".32" stop-color="#3277c2" stop-opacity=".12"/><stop offset=".52" stop-color="#90c8f6" stop-opacity=".42"/><stop offset=".66" stop-color="#2865ac" stop-opacity=".24"/><stop offset=".82" stop-color="#a5d8ff" stop-opacity=".14"/><stop offset="1" stop-color="#89c7f8" stop-opacity="0"/></linearGradient>
+ <linearGradient id="foldLight" x1="359" y1="270" x2="927" y2="124" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0"/><stop offset=".18" stop-color="#e5f8ff" stop-opacity=".28"/><stop offset=".38" stop-color="white" stop-opacity=".95"/><stop offset=".48" stop-color="white" stop-opacity=".10"/><stop offset=".6" stop-color="#effaff" stop-opacity=".8"/><stop offset=".76" stop-color="white" stop-opacity=".35"/><stop offset=".86" stop-color="white" stop-opacity=".9"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient>
+ <radialGradient id="coldFlare"><stop stop-color="white" stop-opacity=".9"/><stop offset=".15" stop-color="#f1fdff" stop-opacity=".8"/><stop offset=".45" stop-color="#a8dbff" stop-opacity=".23"/><stop offset="1" stop-color="#a8dbff" stop-opacity="0"/></radialGradient>
+ <path id="flow-spine" d="M 0 164 C 120 190 220 276 358 270 C 485 263 532 190 654 153 C 751 123 794 148 880 124 C 1009 88 1111 119 1234 144 C 1250 146 1265 148 1280 150"/>
+ <path id="main" d="M -30 161 C 116 176 178 257 315 257 C 462 257 514 200 619 157 C 723 114 775 123 864 103 C 1014 68 1084 106 1310 151 C 1100 119 1007 118 887 147 C 791 171 752 145 662 182 C 538 233 469 304 320 283 C 174 263 110 186 -30 161 Z"/>
+ <clipPath id="inside"><use href="#main"/></clipPath>
+</defs>
+<!-- Atmosphere is local to the folds; the canvas background remains transparent. -->
+<ellipse cx="587" cy="205" rx="340" ry="100" fill="url(#haze)"/>
+<ellipse cx="367" cy="261" rx="160" ry="72" fill="url(#warmHaze)"/>
+<ellipse cx="932" cy="114" rx="155" ry="66" fill="url(#warmHaze)"/>
+<!-- Reverse face and lifted back edge. -->
+<path d="M -25 167 C 139 208 202 286 354 283 C 492 280 542 194 671 155 C 775 124 810 158 912 137 C 1061 106 1165 134 1310 151 C 1111 113 1033 75 885 108 C 781 131 747 109 645 145 C 521 188 470 267 337 267 C 190 267 125 187 -25 167 Z" fill="url(#back)"/>
+<!-- Coral folds cross the blue face at two separated positions. -->
+<path d="M -30 132 C 123 153 196 217 320 257 C 439 295 508 265 608 207 C 766 116 830 74 960 91 C 1088 109 1153 137 1310 155 C 1138 139 1080 119 964 113 C 845 106 786 148 633 226 C 510 288 435 303 310 270 C 170 233 102 156 -30 132 Z" fill="url(#coral)"/>
+<use href="#main" fill="url(#body)"/>
+<!-- Unequal narrow folds inside the broad membrane. -->
+<g clip-path="url(#inside)">
+ <path d="M 68 181 C 227 243 248 284 371 273 C 490 263 532 189 655 155 C 757 126 795 155 899 128 C 1069 84 1149 136 1257 147 L 1257 155 C 1102 127 1058 110 901 145 C 789 171 753 140 666 175 C 532 228 490 283 375 284 C 229 288 204 241 68 181 Z" fill="url(#back)"/>
+ <path d="M 151 214 C 280 284 366 288 473 237 C 550 200 571 166 655 153 C 728 141 767 156 815 145 C 721 166 696 153 645 167 C 546 194 526 253 441 276 C 329 305 246 271 151 214 Z" fill="url(#white)" opacity=".6"/>
+ <path d="M 392 275 C 489 258 513 208 593 173 C 638 154 675 146 708 149 C 623 156 596 190 544 222 C 493 253 445 276 392 275 Z" fill="url(#white)"/>
+ <path d="M 505 246 C 595 191 607 144 705 136 C 781 130 795 149 861 126 C 781 158 769 141 711 147 C 621 157 590 212 505 246 Z" fill="url(#body)"/>
+ <path d="M 674 171 C 743 145 789 173 871 145 C 939 122 971 108 1037 115 C 961 98 929 112 869 127 C 786 149 751 133 674 171 Z" fill="url(#white)" opacity=".7"/>
+</g>
+<!-- Local reversals: a translucent cool underside directly beside a lifted lit face. -->
+<g clip-path="url(#inside)">
+ <path d="M 338 278 C 419 286 469 248 527 212 C 588 173 615 149 676 148 C 613 157 600 181 553 212 C 485 258 429 288 338 278 Z" fill="url(#foldShade)"/>
+ <path d="M 437 267 C 496 243 526 203 581 178 C 607 165 633 154 666 151 C 632 160 609 176 588 191 C 537 227 506 251 437 267 Z" fill="url(#foldLight)"/>
+ <path d="M 569 198 C 623 164 660 143 714 146 C 759 148 787 160 830 145 C 783 166 752 158 711 155 C 658 152 627 178 569 198 Z" fill="url(#foldShade)" opacity=".8"/>
+ <path d="M 715 151 C 773 146 799 162 857 145 C 906 130 926 116 966 115 C 925 122 906 138 865 151 C 806 169 778 151 715 151 Z" fill="url(#foldLight)" opacity=".8"/>
+ <path d="M 264 257 C 318 278 353 280 395 271 C 367 281 325 287 297 277 C 283 272 274 265 264 257 Z" fill="url(#foldLight)"/>
+</g>
+<!-- Short caustics vary in length and sharpness, following the fold instead of spanning the ribbon. -->
+<g stroke="url(#foldLight)" stroke-linecap="round">
+ <path d="M 394 273 C 463 257 487 224 543 194 C 581 174 607 160 643 154" stroke-width="4" opacity=".55" filter="url(#soft)"/>
+ <path d="M 395 273 C 463 257 487 224 543 194 C 581 174 607 160 643 154" stroke-width=".9"/>
+ <path d="M 448 259 C 488 246 512 218 549 197 C 584 178 614 162 650 157" stroke-width=".65" opacity=".78"/>
+ <path d="M 557 200 C 598 175 622 156 658 151 C 695 147 716 152 747 153" stroke-width="1.25"/>
+ <path d="M 763 155 C 804 164 832 152 858 142 C 879 134 899 128 923 124" stroke-width="3.5" opacity=".45" filter="url(#soft)"/>
+ <path d="M 765 155 C 804 164 832 152 858 142 C 879 134 899 128 923 124" stroke-width=".8"/>
+</g>
+<!-- A sharp edge is paired with a soft colored reflection, never repeated evenly. -->
+<g stroke="url(#rim)" stroke-linecap="round">
+ <path d="M 35 173 C 179 211 225 278 344 276 C 477 275 528 195 649 155 C 752 121 794 152 892 127 C 1030 91 1142 130 1264 148" stroke-width="1.5"/>
+ <path d="M 151 215 C 270 270 349 290 458 253 C 540 224 566 177 637 162 C 707 147 754 161 817 148" stroke-width=".8"/>
+</g>
+<g stroke="url(#white)" stroke-linecap="round">
+ <path d="M 105 184 C 226 239 257 276 358 270 C 485 263 532 190 654 153 C 751 123 794 148 880 124 C 1009 88 1111 119 1234 144" stroke-width="8" opacity=".56" filter="url(#glow)"/>
+ <path d="M 105 184 C 226 239 257 276 358 270 C 485 263 532 190 654 153 C 751 123 794 148 880 124 C 1009 88 1111 119 1234 144" stroke-width="1.8"/>
+ <path d="M 204 234 C 323 280 390 292 483 249 C 568 209 579 169 665 157 C 732 147 769 163 828 146" stroke-width="1"/>
+ <path d="M 282 268 C 399 282 462 256 536 209 C 596 170 620 152 679 148" stroke-width=".6"/>
+ <path d="M 417 273 C 489 247 529 199 601 172 C 665 147 706 147 763 151" stroke-width="2.6" opacity=".7" filter="url(#soft)"/>
+ <path d="M 573 197 C 654 161 701 146 770 155 C 828 161 872 136 926 122" stroke-width=".8"/>
+ <path d="M 684 151 C 752 127 791 153 853 138 C 932 117 960 101 1036 113" stroke-width="1.2"/>
+ <path d="M 67 156 C 204 194 245 253 362 275 C 471 295 525 255 610 211 C 777 125 845 77 968 99 C 1080 119 1160 142 1271 151" stroke-width="6" opacity=".48" filter="url(#glow)"/>
+ <path d="M 67 156 C 204 194 245 253 362 275 C 471 295 525 255 610 211 C 777 125 845 77 968 99 C 1080 119 1160 142 1271 151" stroke-width="1.3"/>
+</g>
+<ellipse cx="572" cy="188" rx="50" ry="16" transform="rotate(-27 572 188)" fill="url(#coldFlare)" opacity=".65"/>
+<!-- Separate tapered departure folds: a high coral leaf and two unequal cool filaments. -->
+<path d="M 852 126 C 940 72 1040 64 1136 103 C 1183 121 1212 135 1252 143 C 1194 135 1173 126 1126 114 C 1028 87 949 93 852 126 Z" fill="url(#coral)" opacity=".78"/>
+<path d="M 878 146 C 987 175 1104 166 1235 150 C 1123 177 999 187 878 146 Z" fill="url(#body)" opacity=".72"/>
+<path d="M 857 126 C 962 79 1041 78 1136 108 C 1181 123 1205 135 1240 141" stroke="url(#white)" stroke-width="1.1"/>
+<path d="M 897 149 C 1009 178 1118 163 1210 154" stroke="url(#rim)" stroke-width=".8"/>
+<!-- Local light concentrations where the membrane compresses. -->
+<ellipse cx="383" cy="275" rx="56" ry="15" fill="url(#flare)"/>
+<ellipse cx="638" cy="162" rx="40" ry="11" fill="url(#flare)" opacity=".85"/>
+<ellipse cx="942" cy="110" rx="48" ry="13" fill="url(#flare)" opacity=".8"/>
+<path d="M 305 275 C 343 279 370 278 426 271" stroke="url(#white)" stroke-width="1.2"/>
+</svg>
