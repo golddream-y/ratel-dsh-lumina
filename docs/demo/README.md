@@ -47,3 +47,7 @@ python3 -m http.server 8765 --directory docs/demo
 - [静态 SVG 美术样板](http://127.0.0.1:8766/silk-art.html)：查看当前美术稿及 README 参考。
 
 `silk-material.html` 与客户端共用 SVG 纹理和 WebGPU 网格渲染；主高光来自 SVG。旧参数曲面实验、上一版对照资产与入口已清理，历史方案可从 Git 查询。
+
+## 发送反馈
+
+[两圈水纹](http://127.0.0.1:8766/send-feedback.html)使用实际 bundle，提供水滴开关对照，可点击发送或 Enter 提交，Shift+Enter 换行。消息仅在本地 fixture 中显示，不发送请求。

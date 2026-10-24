@@ -169,7 +169,7 @@ function installEffects(
           return () => transfer?.dispose()
         },
         typeWave: () => installTypeWave(document, config.intensity),
-        press: () => installPress(streaming, config.intensity, () => transfer?.ownsGesture() ?? false, (listener) => transfer?.onFallback(listener) ?? (() => {})),
+        press: () => installPress(streaming, config.intensity, ctx),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),
         panelMotion: () => installPanels(),

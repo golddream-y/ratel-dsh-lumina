@@ -1,11 +1,13 @@
 /** M4 · restrained press, one acknowledgement per send, and menu fade-in. */
 
-import { cssSelector, queryTarget } from '../adapter/selector.ts'
+import { cssSelector } from '../adapter/selector.ts'
 import type { StreamingState } from '../adapter/streaming.ts'
 import type { Intensity } from '../core/config.ts'
 import { prefersReducedMotion } from '../core/motion.ts'
 import { installStyle } from '../core/styles.ts'
-import { durationMs } from '../style/tokens.ts'
+import { SEND_RIPPLE } from '../style/tokens.ts'
+import { observeSendFeedback } from '../adapter/send-feedback.ts'
+import type { TransferServices } from '../adapter/send-transfer.ts'
 
 const PULSE_ATTRIBUTE = 'data-lumina-send-pulse'
 const RIPPLE_CLASS = 'lumina-send-ripple'
@@ -20,9 +22,6 @@ ${button} {
   transform-origin: center;
 }
 ${button}:active { scale: .96; }
-${button}[${PULSE_ATTRIBUTE}] {
-  animation: lumina-send-button-flash var(--lumina-press) ease-out;
-}
 ${menu} {
   animation: lumina-menu-enter var(--lumina-menu) ease-out;
 }
@@ -31,26 +30,43 @@ ${menu} {
   to { opacity: 1; }
 }
 [data-lumina="on"] .lumina-send-ripple {
-  position: fixed;
-  top: 0;
-  left: 0;
-  border: 1px solid color-mix(in srgb, var(--lumina-brand) 50%, transparent);
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2147483647;
-  transform: translate(-50%, -50%) scale(.85);
+  position: fixed; box-sizing: border-box; aspect-ratio: 1; border-radius: 50%; opacity: 0; pointer-events: none;
+  z-index: 2147483647; contain: layout style; -webkit-app-region: no-drag;
+  --lumina-ripple-tint: var(--dsw-alias-brand-primary-new-colorprimary-new-color, var(--lumina-brand-deepseek));
 }
-[data-lumina="on"] .lumina-send-ripple[data-active] {
-  animation: lumina-send-ripple var(--lumina-flash) ease-out;
+[data-lumina="on"] .lumina-send-ripple::before,
+[data-lumina="on"] .lumina-send-ripple::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--lumina-ripple-tint) 56%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--lumina-hi) 28%, transparent);
+  opacity: 0; transform: scale(1.05); pointer-events: none;
+}
+[data-lumina="on"] .lumina-send-ripple[data-active] { opacity: 1; }
+[data-lumina="on"] .lumina-send-ripple[data-active]::before {
+  animation: lumina-water-ring var(--lumina-ripple-main) cubic-bezier(.16,.65,.3,1) both;
+}
+[data-lumina="on"] .lumina-send-ripple[data-active]::after {
+  animation: lumina-water-echo var(--lumina-ripple-echo) cubic-bezier(.16,.65,.3,1) var(--lumina-ripple-delay) both;
+}
+@keyframes lumina-water-ring {
+  0% { transform: scale(1.05); opacity: .75; }
+  24% { opacity: .58; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes lumina-water-echo {
+  0% { transform: scale(1.03); opacity: .38; }
+  100% { transform: scale(1.95); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   ${button} { transition: none; }
   ${button}:active { scale: 1; }
+  ${button}[${PULSE_ATTRIBUTE}] { outline: 1px solid var(--lumina-brand-soft); outline-offset: 2px; }
   ${button}[${PULSE_ATTRIBUTE}], ${menu}, ${menu}::before, ${menu}::after {
     animation: none;
   }
-  [data-lumina="on"] .lumina-send-ripple {
+  [data-lumina="on"] .lumina-send-ripple,
+  [data-lumina="on"] .lumina-send-ripple::before,
+  [data-lumina="on"] .lumina-send-ripple::after {
     animation: none !important;
     opacity: 0;
   }
@@ -59,106 +75,39 @@ ${menu} {
 }
 
 /** Install visual listeners only: no submitting, cancelling or request state is changed. */
-export function installPress(streaming: StreamingState, intensity: Intensity, transferOwnsGesture: () => boolean = () => false, onTransferFallback?: (listener: () => void) => () => void): () => void {
+export function installPress(streaming: StreamingState, intensity: Intensity, services: TransferServices = {}): () => void {
   const disposeStyle = installStyle('press', pressCss())
   const ripple = document.createElement('span')
   ripple.className = RIPPLE_CLASS
   ripple.setAttribute('aria-hidden', 'true')
   document.body.append(ripple)
+  const tier = SEND_RIPPLE.tiers[intensity]
+  const duration = (SEND_RIPPLE.echo + SEND_RIPPLE.delay) * tier
+  ripple.style.setProperty('--lumina-ripple-main', `${SEND_RIPPLE.main * tier}ms`)
+  ripple.style.setProperty('--lumina-ripple-echo', `${SEND_RIPPLE.echo * tier}ms`)
+  ripple.style.setProperty('--lumina-ripple-delay', `${SEND_RIPPLE.delay * tier}ms`)
   let timer: ReturnType<typeof setTimeout> | undefined
   let pulsed: Element | null = null
-  let clickAcknowledged = false
   let running = document.documentElement.hasAttribute('data-lumina-streaming')
-
   const clear = () => {
-    if (timer !== undefined) clearTimeout(timer)
-    timer = undefined
-    pulsed?.removeAttribute(PULSE_ATTRIBUTE)
-    pulsed = null
+    clearTimeout(timer); timer=undefined
+    pulsed?.removeAttribute(PULSE_ATTRIBUTE);pulsed=null
     ripple.removeAttribute('data-active')
   }
-
-  // The existing host exposes no semantic send-button hook. Restrict this
-  // fallback to a visible enabled rightmost control while the composer is idle.
-  const primaryButton = (card: Element): Element | null => {
-    let primary: Element | null = null
-    let right = -Infinity
-    for (const button of card.querySelectorAll('button')) {
-      const rect = button.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) continue
-      if (rect.right > right) {
-        right = rect.right
-        primary = button
-      }
-    }
-    return primary !== null && !(primary as HTMLButtonElement).disabled ? primary : null
-  }
-
-  const pulse = (button: Element) => {
-    if (prefersReducedMotion()) return
+  const pulse = (button: HTMLButtonElement, rect: DOMRect) => {
+    if(document.documentElement.dataset.lumina!=='on'||document.hidden)return
     clear()
-    const rect = button.getBoundingClientRect()
-    pulsed = button
-    const size = Math.max(rect.width, rect.height) + 4
-    ripple.style.width = `${size}px`
-    ripple.style.height = `${size}px`
-    ripple.style.left = `${rect.left + rect.width / 2}px`
-    ripple.style.top = `${rect.top + rect.height / 2}px`
-    // Restart only the owned decoration, rather than forcing composer layout.
-    void ripple.offsetWidth
+    pulsed=button
     button.setAttribute(PULSE_ATTRIBUTE, '')
-    ripple.setAttribute('data-active', '')
-    timer = setTimeout(clear, durationMs(intensity, 'flash'))
-  }
-
-  const onClick = (event: Event) => {
-    if (running || document.documentElement.dataset.lumina !== 'on') return
-    const target = event.target
-    if (!(target instanceof Element)) return
-    const card = target.closest(cssSelector('composerCard'))
-    const button = target.closest('button')
-    if (card === null || button === null || (button as HTMLButtonElement).disabled) return
-    if (primaryButton(card) !== button) return
-    clickAcknowledged = true
-    if (!transferOwnsGesture()) pulse(button)
-  }
-
-  const onKeyDown = (event: KeyboardEvent) => {
-    // Enter can mean newline under host preferences: only reset deduplication;
-    // a real stream start decides whether a keyboard send needs a visual pulse.
-    if (event.key !== 'Enter' || event.isComposing) return
-    if (event.target instanceof Element && event.target.closest(cssSelector('composerInput'))) {
-      clickAcknowledged = false
+    if(!prefersReducedMotion()) {
+      const size=Math.max(rect.width,rect.height)
+      Object.assign(ripple.style,{width:`${size}px`,height:`${size}px`,left:`${rect.left+(rect.width-size)/2}px`,top:`${rect.top+(rect.height-size)/2}px`})
+      void ripple.offsetWidth
+      ripple.setAttribute('data-active','')
     }
+    timer=setTimeout(clear,prefersReducedMotion()?SEND_RIPPLE.static:duration)
   }
-  const releaseFallback = onTransferFallback?.(() => {
-    if (running || document.documentElement.dataset.lumina !== 'on') return
-    const card = queryTarget('composerCard')
-    const send = card ? primaryButton(card) : null
-    if (send) pulse(send)
-  })
-  document.addEventListener('click', onClick, true)
-  document.addEventListener('keydown', onKeyDown, true)
-  const unsubscribe = streaming.subscribe((active) => {
-    const started = active && !running
-    running = active
-    if (!started) return
-    const acknowledged = clickAcknowledged
-    clickAcknowledged = false
-    if (acknowledged || transferOwnsGesture() || document.documentElement.dataset.lumina !== 'on') return
-    const card = queryTarget('composerCard')
-    if (card === null) return
-    const send = primaryButton(card)
-    if (send !== null) pulse(send)
-  })
-
-  return () => {
-    releaseFallback?.()
-    unsubscribe()
-    document.removeEventListener('click', onClick, true)
-    document.removeEventListener('keydown', onKeyDown, true)
-    clear()
-    ripple.remove()
-    disposeStyle()
-  }
+  const unsubscribe=streaming.subscribe(active=>{running=active})
+  const release=observeSendFeedback(services,()=>running,pulse,clear)
+  return ()=>{release();unsubscribe();clear();ripple.remove();disposeStyle()}
 }

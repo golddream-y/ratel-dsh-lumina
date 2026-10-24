@@ -146,3 +146,6 @@ export const SILK_PALETTE = {
 
 /** Page ribbon reveal and downstream energy transport, in seconds. */
 export const RIBBON_FLOW = { reveal: 1.65, speed: .17 } as const
+
+/** Local send acknowledgement; no dependency on the message-transfer duration. */
+export const SEND_RIPPLE = { main:460, echo:485, delay:85, static:180, tiers:{subtle:1.14,normal:1,vivid:.86} } as const

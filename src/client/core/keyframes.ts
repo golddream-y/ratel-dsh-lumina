@@ -36,14 +36,6 @@ export const CARET_BREATHE = `
 }
 `
 
-/** The soft ring left at the send button after a click. */
-export const SEND_RIPPLE = `
-@keyframes lumina-send-ripple {
-  0% { opacity: .4; transform: translate(-50%, -50%) scale(.85); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
-}
-`
-
 /** The slow drift of one mist blob. */
 export const MIST_DRIFT = `
 @keyframes lumina-mist-drift {
@@ -101,14 +93,6 @@ export const SESSION_SPIN = `
 }
 `
 
-/** The primary send button pulsing once after a message is sent. */
-export const SEND_BUTTON_FLASH = `
-@keyframes lumina-send-button-flash {
-  from { scale: .96; }
-  to { scale: 1; }
-}
-`
-
 /** The per-character light fading out. */
 export const WAVE_FADE = `
 @keyframes lumina-wave-fade {
@@ -132,7 +116,5 @@ export const ALL_KEYFRAMES = [
   HERO_VEIL,
   SESSION_PULSE,
   SESSION_SPIN,
-  SEND_BUTTON_FLASH,
-  SEND_RIPPLE,
   WAVE_FADE,
 ].join('\n')
