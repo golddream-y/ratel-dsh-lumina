@@ -108,8 +108,12 @@ export function installPress(streaming: StreamingState, intensity: Intensity, se
     }
     timer=setTimeout(clear,prefersReducedMotion()?SEND_RIPPLE.static:duration)
   }
+  const handoffObserver=new MutationObserver(records=>{
+    if(records.some(record=>(record.target as Element).getAttribute('data-lumina-layout-handoff')==='active'))clear()
+  })
+  handoffObserver.observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-lumina-layout-handoff']})
   const unwatchViewport=watchViewportScale(clear)
   const unsubscribe=streaming.subscribe(active=>{running=active})
   const release=observeSendFeedback(services,()=>running,pulse,clear)
-  return ()=>{release();unwatchViewport();unsubscribe();clear();ripple.remove();disposeStyle()}
+  return ()=>{release();handoffObserver.disconnect();unwatchViewport();unsubscribe();clear();ripple.remove();disposeStyle()}
 }

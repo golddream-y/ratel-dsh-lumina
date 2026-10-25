@@ -14,6 +14,14 @@ const assets = {
 createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost')
+    if(url.pathname.startsWith('/__lumina/source/')) {
+      const sourceRoot=resolve('src/client')
+      const sourcePath=resolve(sourceRoot,decodeURIComponent(url.pathname.slice('/__lumina/source/'.length)).replace(/\.js$/,'.ts'))
+      if(!url.pathname.endsWith('.js')||!sourcePath.startsWith(sourceRoot+sep)){response.writeHead(403).end();return}
+      const source=(await readFile(sourcePath,'utf8')).replace(/(['"])(\.{1,2}\/[^'"]+)\.ts\1/g,'$1$2.js$1')
+      const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2024,module:ts.ModuleKind.ESNext}})
+      response.writeHead(200,{'Content-Type':'text/javascript','Cache-Control':'no-store'}).end(result.outputText);return
+    }
     const shared = {'/__lumina/ribbon-art.js':'src/client/effects/composer-ribbon-art.generated.ts','/__lumina/ribbon-art-shaders.js':'src/client/effects/composer-ribbon-art-shaders.ts','/__lumina/ribbon-renderer.js':'src/client/effects/composer-ribbon-renderer.ts','/__lumina/session-galaxy-painter.js':'src/client/effects/session-galaxy-painter.ts','/__lumina/tokens.js':'src/client/style/tokens.ts'}[url.pathname]
     if (shared) {
       const source = (await readFile(resolve(shared), 'utf8')).replace('../style/tokens.ts','/__lumina/tokens.js').replace('./composer-ribbon-art.generated.ts','/__lumina/ribbon-art.js').replace('./composer-ribbon-art-shaders.ts','/__lumina/ribbon-art-shaders.js')

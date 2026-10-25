@@ -88,7 +88,7 @@ describe('settings panel', () => {
     container.remove()
   })
 
-  it('renders the master switch, every effect row and the four send modes', () => {
+  it('renders the master switch, every effect row and the five send modes', () => {
     render(DEFAULT_CONFIG)
     // The send transition is a mode selector, not a switch, so it has no checkbox.
     expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(11)
@@ -96,7 +96,7 @@ describe('settings panel', () => {
     expect(container.textContent).toContain('effectHero')
     expect(container.textContent).toContain('effectSendTransfer')
     expect(container.textContent).toContain('effectSessionActivity')
-    for (const mode of ['transferModeOff', 'transferModeLiquid', 'transferModeDissolve', 'transferModeGhost']) {
+    for (const mode of ['transferModeOff', 'transferModeLiquid', 'transferModeFlow', 'transferModeDissolve', 'transferModeGhost']) {
       expect(container.textContent).toContain(mode)
     }
   })

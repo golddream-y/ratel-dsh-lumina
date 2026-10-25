@@ -164,6 +164,8 @@ npm run install:local web   # 装进 profile；改完源码必须重装（file: 
 
 ## 9. 文档同步
 
+- 临时诊断报告、排查流水、试跑记录、截图和复现证据 → 放 `.local/diagnostics/<日期-主题>/`，由 Git 忽略；不放 `docs/engineering/`，也不归入 `.agents/notes/proposed/bug-fix/`。
+- 排查结论只把确认的约束和修复设计提炼进现行文档；独立的长期决策才写 Agent Note。正式文档不链接临时本地报告。用户明确要求交付的正式报告按其指定位置处理。
 - 设计变更 → 先改 `docs/product/MVP.md`（范围/效果）或 `docs/engineering/` 对应文档，再改代码。
 - 决策与理由 → 写 `.agents/notes/{proposed,implemented,rejected}/<class>/yyyy-mm-dd-<topic>.md`。
   `implemented` 必含 `## Alternatives considered`。

@@ -25,13 +25,13 @@ export type Intensity = 'subtle' | 'normal' | 'vivid'
 /**
  * The send transition modes.
  *
- * `off` keeps the send free of any decoration; the other three replace the
+ * `off` keeps the send free of any decoration; the other modes replace the
  * message feedback with a distinct transition.
  */
-export type TransferMode = 'off' | 'liquid' | 'dissolve' | 'ghost'
+export type TransferMode = 'off' | 'liquid' | 'flow' | 'dissolve' | 'ghost'
 
 /** The modes a user can pick, in settings order. */
-export const TRANSFER_MODES: readonly TransferMode[] = ['off', 'liquid', 'dissolve', 'ghost']
+export const TRANSFER_MODES: readonly TransferMode[] = ['off', 'liquid', 'flow', 'dissolve', 'ghost']
 
 /** Per-effect switches. The keys are the effect ids used across the codebase. */
 export interface EffectFlags {
@@ -68,7 +68,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     composerRibbon: true,
     caret: true,
     press: true,
-    sendTransition: 'liquid',
+    sendTransition: 'flow',
     typeWave: true,
     hero: true,
     sessionActivity: true,

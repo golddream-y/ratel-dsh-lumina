@@ -35,6 +35,27 @@ describe('liquid text stays a coherent block', () => {
     renderer.render(280, stage)
     expect(stage.sourceNodes.every(node => node.style.opacity === '0')).toBe(true)
   })
+  it('keeps translucent stops and a continuous neck without an alpha threshold filter', () => {
+    const {renderer,stage}=fixture()
+    renderer.render(600,stage)
+    expect(stage.root.dataset.liquidConnected).toBe('true')
+    expect(stage.ink.querySelector('feColorMatrix')).toBeNull()
+    const stops=[...stage.ink.querySelectorAll('radialGradient stop')]
+    expect(stops.length).toBeGreaterThan(2)
+    expect(stops.every(stop=>Number(stop.getAttribute('stop-opacity'))<1)).toBe(true)
+    const neck=stage.ink.querySelector('[data-liquid-part="neck"]')!.getAttribute('d')!
+    expect(neck).toContain('C')
+    const body=stage.ink.querySelector('path[id$="-body"]')!.getAttribute('d')!
+    expect(body.match(/M /g)).toHaveLength(1)
+    expect(body).not.toMatch(/NaN|Infinity/)
+    expect(neck).not.toMatch(/NaN|Infinity/)
+    const surface=stage.ink.querySelector('[data-liquid-part="surface"]')!.getAttribute('d')!
+    expect(surface).toContain('C')
+    expect(surface).not.toMatch(/NaN|Infinity/)
+    renderer.render(730,stage)
+    expect(stage.ink.querySelector('[data-liquid-part="neck"]')!.getAttribute('d')).toBe('')
+  })
+
   it('unfolds the entire message from the drop with no glyph staggering or blur', () => {
     const { renderer, stage } = fixture(240)
     renderer.render(840, stage)

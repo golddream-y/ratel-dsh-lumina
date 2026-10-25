@@ -53,3 +53,15 @@ python3 -m http.server 8765 --directory docs/demo
 [两圈水纹](http://127.0.0.1:8766/send-feedback.html)使用实际 bundle，提供水滴开关对照，可点击发送或 Enter 提交，Shift+Enter 换行。消息仅在本地 fixture 中显示，不发送请求。
 
 缩放回归：启动本地服务后执行 `node tools/verify-viewport-scale.mjs`，可通过 `LUMINA_PLAYWRIGHT_PATH` 指定已有 Playwright 路径。脚本用实际 bundle 检查 html/body 的 67%–150% 连续比例变化、GPU 裁切对齐、顶部排除区和水纹圆心。
+
+## 水滴近景样板
+
+[融合与剥离](http://127.0.0.1:8766/liquid-study.html)直接复用正式 liquid renderer，提供慢放/正常速度、暂停、重播、时间滑块及深浅底对照。水体近景约1.8倍，用于检查材质与连接颈；当前水滴已本地安装并定版，近景放大仅供对照；新增流光模式见下方独立原型。
+
+
+## 流光发送
+
+[牵出与收尽](http://127.0.0.1:8766/flow-study.html)共用正式 flow renderer，提供实际尺寸、慢放、重播、时间拖动与深浅底对照，不发送请求。默认模式为流光，已有保存的模式选择保持不变。正常档600 ms；验证脚本 `node tools/verify-flow.mjs` 使用实际 bundle 核对流动、消息交接和清理。
+
+
+首次发送回归：`node tools/verify-first-send.mjs` 检查居中输入框归位、文字同步、重新挂载和取消恢复。可用 `LUMINA_EVIDENCE_DIR` 指向 `.local/diagnostics/`，诊断输出不入库。普通静态发送预览不代表已覆盖首次布局迁移。

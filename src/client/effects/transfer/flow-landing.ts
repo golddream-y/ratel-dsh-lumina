@@ -1,0 +1,33 @@
+/** Geometry and reversible visual reveal of an already-associated host message. */
+import type { Point } from './types.ts'
+import { paintedAncestor } from './shared.ts'
+export const FLOW_REVEAL='data-lumina-flow-reveal'
+const PROGRESS='--lumina-flow-progress'
+
+/** Enter the near boundary, keeping the ribbon out of the text's centre. */
+export function flowLandingPoint(element:HTMLElement,from:Point):Point {
+  const rect=paintedAncestor(element).getBoundingClientRect()
+  const cx=(rect.left+rect.right)/2,cy=(rect.top+rect.bottom)/2
+  const inset=Math.min(18,rect.width*.15)
+  if(from.y>rect.bottom)return{x:from.x<cx?rect.left+inset:rect.right-inset,y:rect.bottom-1}
+  if(from.y<rect.top)return{x:from.x<cx?rect.left+inset:rect.right-inset,y:rect.top+1}
+  return{x:from.x<cx?rect.left+1:rect.right-1,y:Math.max(rect.top+Math.min(12,rect.height/2),Math.min(rect.bottom-Math.min(12,rect.height/2),from.y||cy))}
+}
+
+export function flowMessageReveal(id:string) {
+  const owned=new Map<HTMLElement,{attribute:string|null;value:string;priority:string}>()
+  return {
+    update(node:HTMLElement,progress:number) {
+      if(!owned.has(node))owned.set(node,{attribute:node.getAttribute(FLOW_REVEAL),value:node.style.getPropertyValue(PROGRESS),priority:node.style.getPropertyPriority(PROGRESS)})
+      node.setAttribute(FLOW_REVEAL,id)
+      node.style.setProperty(PROGRESS,String(Math.max(0,Math.min(1,progress))))
+    },
+    dispose() {
+      for(const [node,previous] of owned)if(node.getAttribute(FLOW_REVEAL)===id){
+        if(previous.attribute===null)node.removeAttribute(FLOW_REVEAL);else node.setAttribute(FLOW_REVEAL,previous.attribute)
+        if(previous.value)node.style.setProperty(PROGRESS,previous.value,previous.priority);else node.style.removeProperty(PROGRESS)
+      }
+      owned.clear()
+    },
+  }
+}

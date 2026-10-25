@@ -11,7 +11,7 @@ fs.mkdirSync(out, { recursive: true })
 const html = `<!doctype html><html lang="zh"><meta charset="utf-8"><style>
 html{font:17px system-ui;color:#263349;background:#f7f8fc;--dsw-alias-label-primary:#263349;--dsw-alias-label-tertiary:#778398;--dsw-alias-brand-primary-new-colorprimary-new-color:#4176e6;--dsw-alias-bg-layer-1:white}body{width:840px;margin:44px auto}h1{font-size:22px}small{color:#778398}#chat{height:260px;padding-top:125px;box-sizing:border-box}.row{display:flex;justify-content:flex-end}.bubble{max-width:500px;border-radius:18px;background:#eaf0fe;padding:17px 20px;line-height:1.8}.bubble span{white-space:pre-wrap}[data-composer-card]{position:relative;border:1px solid #ddd;border-radius:24px;padding:22px;background:white}[data-composer-input]{min-height:65px;outline:0;line-height:1.8}footer{display:flex;justify-content:space-between}button{border:0;width:40px;height:40px;border-radius:50%;font:23px system-ui}#send{background:#b6c9fa;color:white}p{font-size:13px;color:#778398}
 </style><body><h1>纯水滴发送转场 · 渲染核对</h1><small>实际插件构建 / 受控页面，非真实客户端录屏</small><div id="chat" data-conversation-content data-conversation-region="chat" data-conversation-session="one"></div><div data-composer-card><div data-composer-input contenteditable="true">整段文字汇聚成水滴，抵达后保持排版完整展开。</div><footer><button>＋</button><button id="send">↑</button></footer></div><p>整段汇聚 → 液面融合与剥离 → 水滴飞行 → 整段展开</p><script>
-localStorage.setItem('ratel-lumina/settings/v1',JSON.stringify({version:1,effects:{}}));
+localStorage.setItem('ratel-lumina/settings/v1',JSON.stringify({version:1,effects:{sendTransition:"liquid"}}));
 window.clock=0;window.tasks=new Map();window.rid=0;performance.now=()=>clock;
 // Screenshot time must not expire the production watchdog while the animation clock is paused.
 window.longTimers=new Map();window.timerId=0;const nativeTimeout=setTimeout,nativeClear=clearTimeout;
@@ -54,7 +54,7 @@ try {
     if ([160, 420, 640, 800, 980, 1040, 1150].includes(t)) await page.screenshot({ path: `${out}/${t}.png` })
   }
   const at = t => samples.find(s => s.t === t)
-  assert.equal(at(0).mode, 'liquid') // No stored mode: production default must be liquid.
+  assert.equal(at(0).mode, 'liquid') // Explicit water selection remains available.
   assert.deepEqual(at(0).sourceGlyphs, at(160).sourceGlyphs)
   assert.notEqual(at(0).sourceBlock, at(160).sourceBlock)
   assert.equal(at(900).targetOpacity, '0')
@@ -73,5 +73,5 @@ try {
   assert.deepEqual(cleanup, { overlays: 0, masks: 0, styles: 0 })
   assert.equal(errors.length, 0)
   fs.writeFileSync(`${out}/evidence.json`, JSON.stringify({ samples, reduced, cleanup, errors }, null, 2))
-  console.log(JSON.stringify({ frames: samples.length, defaultMode: at(0).mode, coherentSource: true, coherentTarget: true, noTextBlur: true, reduced, cleanup, errors, out }, null, 2))
+  console.log(JSON.stringify({ frames: samples.length, selectedMode: at(0).mode, coherentSource: true, coherentTarget: true, noTextBlur: true, reduced, cleanup, errors, out }, null, 2))
 } finally { await browser.close() }

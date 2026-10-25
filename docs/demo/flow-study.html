@@ -1,0 +1,38 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:,"><title>Lumina · 流光发送</title>
+<style>
+:root{font:15px system-ui;color:#283747;background:#f2f5f9;--lab-bg:#fff;--lab-ink:#34465c;--lumina-brand:#477bd7;--lumina-brand-ratel:#ed897b;--lumina-brand-deepseek:#477bd7;--lumina-hi:#fff;--dsw-alias-brand-primary-new-colorprimary-new-color:#5484d4;--dsw-alias-label-secondary:#6c7d92}*{box-sizing:border-box}body{margin:0;padding:36px}main{max-width:1160px;margin:auto}h1{font-size:25px;font-weight:600;margin:0 0 10px}p{color:#7b8798;line-height:1.7;margin:0 0 24px}.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}button,select{border:0;border-radius:10px;background:#e6edf8;color:#345782;padding:10px 15px;font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:default}input{flex:1;min-width:150px;accent-color:#5688df}.phase{font-size:13px;color:#77869a;min-width:90px;text-align:right}.stage{position:relative;height:540px;overflow:hidden;background:var(--lab-bg);border-radius:24px;border:1px solid #dfe7f0;isolation:isolate}.composer{position:absolute;left:8%;right:22%;top:66%;padding:26px;border-radius:25px;background:var(--lab-bg);border:1px solid #cfdae9;box-shadow:0 8px 35px #6391cf0a;min-height:145px}.editor{color:var(--lab-ink);font-size:19px;white-space:pre-wrap;line-height:1.6}.bottom{margin-top:26px;display:flex;justify-content:space-between;color:#98a6b9;font-size:14px}.send{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#adc6f2;color:white;font-size:23px}.landing{position:absolute;right:9%;top:16%;padding:16px 20px;border-radius:17px;background:#eaf1fc;font-size:19px;line-height:1.6;color:var(--lab-ink);opacity:1;border:1px solid #dce6f5}.landing span{opacity:0}.stage .lumina-transfer{position:absolute!important;inset:0;pointer-events:none;z-index:3}.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.legend button{font-size:13px;background:transparent;color:#74859b;padding:6px 9px}.note{font-size:12px;margin-top:22px;color:#8b97a8}body[data-tone="dark"]{background:#101824;color:#d7e3f5;--lab-bg:#182335;--lab-ink:#d1def1;--dsw-alias-label-secondary:#7c91ac}body[data-tone="dark"] .stage{border-color:#2c405a}body[data-tone="dark"] .composer{border-color:#344b67}body[data-tone="dark"] .landing{background:#283f5e}
+</style>
+<main><h1>流光 · 牵出与收尽</h1><p>短光绸逐段牵出，尾部收进消息。默认按实际尺寸显示。</p>
+<div class="toolbar"><button id="play">暂停</button><button id="replay">重播</button><select id="speed" aria-label="速度"><option value=".55">慢放 0.55×</option><option value="1">正常 1×</option></select><input id="time" type="range" min="0" max="600" step="1" value="0" aria-label="时间"><span class="phase" id="phase"></span><button id="tone">深色对照</button></div>
+<div class="stage" id="scene"><div class="landing"><span>把灵感，交给流动。</span></div><div class="composer" data-composer-card><div class="editor" data-composer-input>把灵感，交给流动。</div><div class="bottom"><span>＋</span><span class="send">↑</span></div></div></div>
+<div class="legend"><button data-time="55">文字收束</button><button data-time="160">牵出</button><button data-time="280">流动</button><button data-time="390">收尾</button><button data-time="460">流入目标</button><button data-time="570">消息落定</button></div>
+<p class="note">实际尺寸 · 共用客户端流光渲染 · 可慢放和拖动时间，原型不发送请求。</p></main>
+<script type="module">
+import {createFlowRenderer} from '/__lumina/source/effects/transfer/flow.js'
+import {transferCss} from '/__lumina/source/effects/transfer/styles.js'
+import {flowLandingPoint} from '/__lumina/source/effects/transfer/flow-landing.js'
+import {snapshotGlyphs} from '/__lumina/source/adapter/glyphs.js'
+document.documentElement.dataset.lumina='on';const style=document.createElement('style');style.textContent=transferCss();document.head.append(style)
+const scene=document.querySelector('#scene'),editor=document.querySelector('.editor'),landing=document.querySelector('.landing span'),slider=document.querySelector('#time'),play=document.querySelector('#play'),phase=document.querySelector('#phase')
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');let stage,renderer,t=0,last=0,playing=!reduce.matches,speed=.55,hold=0
+const titles={gather:'文字收束',flow:'牵出流动',consume:'流入目标',unfold:'消息落定'}
+function reset(){renderer?.dispose?.(stage);renderer=createFlowRenderer();renderer.enter(stage)}
+function setup(){
+ renderer?.dispose?.(stage);stage?.root.remove();editor.style.opacity='1';landing.style.opacity='1';landing.parentElement.style.opacity='1'
+ const source=snapshotGlyphs(editor),target=snapshotGlyphs(landing),rect=scene.getBoundingClientRect(),card=editor.closest('[data-composer-card]').getBoundingClientRect()
+ if(!source||!target)throw Error('样板文字测量失败')
+ const root=document.createElement('div');root.className='lumina-transfer';const ink=document.createElement('div');ink.className='lumina-transfer-ink';const sourceLayer=document.createElement('div'),targetLayer=document.createElement('div');sourceLayer.className=targetLayer.className='lumina-transfer-layer';ink.append(sourceLayer,targetLayer);root.append(ink);scene.append(root)
+ const nodes=(glyphs,layer)=>glyphs.map(g=>{const n=document.createElement('span');n.className='lumina-transfer-glyph';n.textContent=g.text;Object.assign(n.style,{font:g.font,color:g.color,letterSpacing:g.letterSpacing});layer.append(n);return n})
+ stage={root,ink,sourceLayer,targetLayer,source,target,sourceNodes:nodes(source.glyphs,sourceLayer),targetNodes:nodes(target.glyphs,targetLayer),copyGlyphs:target.glyphs,arrival:flowLandingPoint(landing,{x:card.left+card.width*.44,y:card.top}),hub:{x:(source.box.left+source.box.right)/2,y:(source.box.top+source.box.bottom)/2},edge:{x:card.left+card.width*.44,y:card.top},origin:{x:rect.left+1,y:rect.top+1},pad:64,duration:1150,intensity:'normal',mask(){},revealTarget(progress){landing.parentElement.style.opacity=String(progress);landing.style.opacity='1'}}
+ editor.style.opacity='0';reset();renderer.render(t*1150/600,stage)
+}
+function show(value){if(value<t)reset();t=value;renderer.render(t*1150/600,stage);slider.value=String(t);phase.textContent=titles[stage.root.dataset.phase]??''}
+function controls(){play.textContent=playing?'暂停':'播放';play.disabled=reduce.matches}
+play.onclick=()=>{playing=!playing;last=0;controls()};document.querySelector('#replay').onclick=()=>{show(0);hold=0;playing=!reduce.matches;last=0;controls()}
+slider.oninput=()=>{playing=false;controls();show(Number(slider.value))};document.querySelector('#speed').onchange=e=>speed=Number(e.target.value)
+document.querySelectorAll('[data-time]').forEach(button=>button.onclick=()=>{playing=false;controls();show(Number(button.dataset.time))})
+document.querySelector('#tone').onclick=e=>{document.body.dataset.tone=document.body.dataset.tone==='dark'?'light':'dark';e.target.textContent=document.body.dataset.tone==='dark'?'浅色对照':'深色对照';setup();show(t)}
+reduce.addEventListener('change',()=>{playing=false;controls()});addEventListener('resize',()=>{setup();show(t)})
+setup();show(0);controls();function tick(now){if(playing&&!document.hidden){const delta=last?Math.min(50,now-last):0;if(t>=600){hold+=delta;if(hold>850){show(0);hold=0}}else show(Math.min(600,t+delta*speed))}last=now;requestAnimationFrame(tick)}requestAnimationFrame(tick)
+window.liquidStudy={setTime:value=>{playing=false;controls();show(value)},getStage:()=>stage};addEventListener('pagehide',()=>renderer?.dispose?.(stage))
+</script></html>

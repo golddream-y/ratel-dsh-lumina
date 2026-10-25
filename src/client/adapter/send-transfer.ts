@@ -16,7 +16,12 @@ export interface ChatSnapshot {
   nodes: { get(key: string): { data?: { source?: { kind?: string; rpcId?: string } } } | undefined }
 }
 /** A captured gesture with its provisional echo mask. */
+export interface ComposerCapture {
+  firstSend: boolean
+  box: { left: number; top: number; width: number; height: number }
+}
 interface Candidate {
+  composer: ComposerCapture
   source: GlyphSnapshot
   time: number
   wallTime: number
@@ -42,6 +47,7 @@ export interface TransferServices {
 }
 export interface TransferRequest {
   requestId: string
+  composer?: ComposerCapture
   source: GlyphSnapshot
   target(): HTMLElement | null
   fallback(): void
@@ -131,7 +137,7 @@ export function installTransferBridge(
       const owner = sessionId
       const requestId = submission.requestId
       reportTransferStatus('confirmed')
-      const stop = start({ requestId, source: prepared.source, fallback, onSettled: release, target: () => {
+      const stop = start({ requestId, composer: prepared.composer, source: prepared.source, fallback, onSettled: release, target: () => {
         if (sessionId !== owner) return null
         const root = conversationRoot(owner)
         if (!root) return null
@@ -219,7 +225,9 @@ export function installTransferBridge(
     if (!source) { reportTransferStatus('snapshot'); return }
     expireCandidates()
     if (candidates.length >= 2) { fallback(); return }
-    const candidate: Candidate = { source, time: performance.now(), wallTime: Date.now(), pending: new Set(), observer: new MutationObserver(() => {}) }
+    const rect=card.getBoundingClientRect()
+    const composer:ComposerCapture={firstSend:!sessionId || chat?.getSnapshot()?.order.length===0,box:{left:rect.left,top:rect.top,width:rect.width,height:rect.height}}
+    const candidate: Candidate = { composer, source, time: performance.now(), wallTime: Date.now(), pending: new Set(), observer: new MutationObserver(() => {}) }
     // The host paints the local echo as soon as the submission is accepted,
     // which is before the pending entry is confirmed. Hide that echo right
     // away so the bubble never flashes before the transition starts.

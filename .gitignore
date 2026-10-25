@@ -15,3 +15,6 @@ coverage/
 .DS_Store
 .idea/
 .vscode/
+
+# Local investigation reports, reproductions and evidence
+.local/diagnostics/

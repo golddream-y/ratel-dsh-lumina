@@ -4,7 +4,7 @@ import type { Glyph, GlyphSnapshot } from '../../adapter/glyphs.ts'
 import type { Intensity } from '../../core/config.ts'
 
 /** The selectable send transition modes. */
-export type TransferMode = 'liquid' | 'dissolve' | 'ghost'
+export type TransferMode = 'liquid' | 'flow' | 'dissolve' | 'ghost'
 
 /** A point in viewport coordinates. */
 export interface Point { x: number; y: number }
@@ -45,6 +45,8 @@ export interface TransferStage {
   intensity: Intensity
   /** Hide a surface for the duration of the transition. */
   mask: (node: HTMLElement) => void
+  /** Flow reveals the real message row, including its background. */
+  revealTarget?: (progress:number) => void
 }
 
 /** A mode draws one transition; the runtime owns the rest. */

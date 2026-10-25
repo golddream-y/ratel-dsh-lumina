@@ -16,17 +16,23 @@ import { durationMs } from '../../style/tokens.ts'
 import { bubbleHost, center, glyphNode } from './shared.ts'
 import { FLIGHT_START, TRANSFER_TIME } from '../liquid-geometry.ts'
 import type { Point, TransferMode, TransferStage } from './types.ts'
+import { flowLandingPoint, flowMessageReveal } from './flow-landing.ts'
+import { composerHandoff, type ComposerHandoff } from './composer-handoff.ts'
+import { createFlowRenderer, FLOW_TIME } from './flow.ts'
+import { placeViewportOverlay, watchViewportScale } from '../../core/viewport.ts'
 import { createLiquidRenderer } from './liquid.ts'
 import { createDissolveRenderer } from './dissolve.ts'
 import { createGhostRenderer } from './ghost.ts'
 
 /** The attribute that hides host surfaces while a transition runs. */
-export const MASK = 'data-lumina-transfer-mask'
+import { MASK } from './styles.ts'
+export { MASK } from './styles.ts'
 
 let sequence = 0
 
 /** Pick the renderer for a mode. */
 function rendererFor(mode: TransferMode) {
+  if (mode === 'flow') return createFlowRenderer()
   if (mode === 'ghost') return createGhostRenderer()
   if (mode === 'dissolve') return createDissolveRenderer()
   return createLiquidRenderer()
@@ -47,14 +53,23 @@ export function runTransfer(
 ): (() => void) | null {
   if (prefersReducedMotion() || typeof window.matchMedia !== 'function') return null
   const media = matchMedia('(prefers-reduced-motion: reduce)')
-  const source = request.source
-  const hub = center(source)
-  const card = source.element.closest(cssSelector('composerCard'))
-  if (!(card instanceof HTMLElement)) return null
-  const cardRect = card.getBoundingClientRect()
+  const captured=request.source
+  const firstLayout=mode==='flow' && request.composer?.firstSend ? request.composer : null
+  const source=mode==='flow'?{...captured,box:{...captured.box},glyphs:captured.glyphs.map(g=>({...g}))}:captured
+  const baseGlyphs=source.glyphs.map(g=>({...g}))
+  const baseBox={...source.box}
+  const hub = center(source),baseHub={...hub}
+  let sourceCard = source.element.closest(cssSelector('composerCard'))
+  if(firstLayout && (!(sourceCard instanceof HTMLElement)||!sourceCard.isConnected)) {
+    const choices=Array.from(document.querySelectorAll<HTMLElement>(cssSelector('composerCard'))).filter(node=>node.getBoundingClientRect().width>0)
+    sourceCard=choices.length===1?choices[0]!:null
+  }
+  if (!(sourceCard instanceof HTMLElement)) return null
+  let card:HTMLElement=sourceCard
+  const cardRect = firstLayout?.box ?? card.getBoundingClientRect()
   const corner = Math.max(28, parseFloat(getComputedStyle(card).borderTopLeftRadius) || 28)
   const edge: Point = {
-    x: Math.max(cardRect.left + corner + 55, Math.min(cardRect.right - corner - 55, hub.x + 42)),
+    x: Math.max(cardRect.left + corner + 55, Math.min(cardRect.left + cardRect.width - corner - 55, hub.x + 42)),
     y: cardRect.top + 1,
   }
   const pad = 64
@@ -73,6 +88,7 @@ export function runTransfer(
   root.style.top = `${origin.y + scrollY}px`
   root.style.width = `${Math.min(innerWidth - origin.x, source.box.right - origin.x + pad)}px`
   root.style.height = `${Math.min(innerHeight - origin.y, source.box.bottom - origin.y + pad)}px`
+  if (mode === 'flow') { root.style.position = 'fixed'; root.style.setProperty('-webkit-app-region', 'no-drag') }
   const ink = document.createElement('div')
   ink.className = 'lumina-transfer-ink'
   root.append(ink)
@@ -82,8 +98,30 @@ export function runTransfer(
   targetLayer.className = 'lumina-transfer-layer'
   ink.append(sourceLayer, targetLayer)
   document.body.append(root)
+  const placeFlow = () => {
+    if (mode !== 'flow') return
+    const box = { x: origin.x, y: origin.y,
+      width: Math.min(innerWidth-origin.x, Math.max(source.box.right, stage.target?.box.right ?? 0)-origin.x+pad),
+      height: Math.min(innerHeight-origin.y, Math.max(source.box.bottom, stage.target?.box.bottom ?? 0)-origin.y+pad) }
+    if (!placeViewportOverlay(root, box)) return
+    const scale = box.width / parseFloat(root.style.width)
+    if (!Number.isFinite(scale) || scale <= 0) return
+    // Glyph positions and SVG paths are viewport pixels. Cancel ancestor zoom
+    // inside the calibrated box, then restore the host's font scale only.
+    ink.style.zoom = String(1 / scale)
+    for (const [nodes, glyphs] of [[stage.sourceNodes, source.glyphs], [stage.targetNodes, stage.copyGlyphs]] as const) {
+      nodes.forEach((node, i) => {
+        const font = glyphs[i]?.font.match(/([\d.]+)px/)
+        if (font) node.style.fontSize = `${Number(font[1]) * scale}px`
+        const spacing = parseFloat(glyphs[i]?.letterSpacing ?? '')
+        if (Number.isFinite(spacing)) node.style.letterSpacing = `${spacing * scale}px`
+      })
+    }
+  }
   card.setAttribute('data-lumina-transfer', id)
 
+  const messageReveal=flowMessageReveal(id)
+  let flowHost:HTMLElement|null=null
   const masked = new Set<HTMLElement>()
   const mask = (node: HTMLElement) => {
     if (!node.hasAttribute(MASK) || node.getAttribute(MASK) === id) {
@@ -118,30 +156,52 @@ export function runTransfer(
     origin,
     pad,
     // The dissolve needs room for two acts, the mist for its flight.
-    duration: Math.round(durationMs(intensity, 'transfer') * (mode === 'dissolve' ? 1.25 : mode === 'ghost' ? 1.1 : 1)),
+    duration: Math.round(durationMs(intensity, 'transfer') * (mode === 'flow' ? FLOW_TIME / TRANSFER_TIME : mode === 'dissolve' ? 1.25 : mode === 'ghost' ? 1.1 : 1)),
     intensity,
     mask,
   }
+  if(mode==='flow')stage.revealTarget=progress=>{if(flowHost)messageReveal.update(flowHost,progress)}
+  placeFlow()
   const renderer = rendererFor(mode)
   renderer.enter?.(stage)
 
-  let landingStart = FLIGHT_START
+  let landingStart = mode === 'flow' ? 80 / FLOW_TIME * TRANSFER_TIME : FLIGHT_START
   let frame = 0
   let disposed = false
   let lastFrame = 0
   let slowFrames = 0
   let degraded = false
   const started = performance.now()
+  let handoff:ComposerHandoff|null=null
+  if(firstLayout)handoff=composerHandoff(firstLayout,card,started,(dx,dy,next,final)=>{
+    if(card!==next){
+      if(card.getAttribute('data-lumina-transfer')===id)card.removeAttribute('data-lumina-transfer')
+      card=next;card.setAttribute('data-lumina-transfer',id)
+    }
+    source.glyphs=baseGlyphs.map(g=>({...g,x:g.x+dx,y:g.y+dy}))
+    hub.x=baseHub.x+dx;hub.y=baseHub.y+dy
+    if(final){
+      source.box={left:baseBox.left+dx,top:baseBox.top+dy,right:baseBox.right+dx,bottom:baseBox.bottom+dy}
+      edge.x=Math.max(cardRect.left+corner+55,Math.min(cardRect.left+cardRect.width-corner-55,baseHub.x+42))+dx
+      edge.y=cardRect.top+1+dy
+      placeFlow()
+    }
+  })
 
   const cleanup = () => {
     if (disposed) return
     disposed = true
     cancelAnimationFrame(frame)
+    handoff?.dispose()
+    messageReveal.dispose()
     observer.disconnect()
     source.element.removeEventListener('beforeinput', releaseSource)
     for (const node of masked) if (node.getAttribute(MASK) === id) node.removeAttribute(MASK)
     masked.clear()
     if (card.getAttribute('data-lumina-transfer') === id) card.removeAttribute('data-lumina-transfer')
+    releaseScale()
+    window.removeEventListener('resize', onGeometry)
+    document.removeEventListener('visibilitychange', onHidden)
     renderer.dispose?.(stage)
     request.onSettled?.()
     root.remove()
@@ -156,9 +216,14 @@ export function runTransfer(
     media.removeEventListener('change', onMotion)
     window.removeEventListener('scroll', onScroll, true)
   }
+  const onGeometry = () => stop()
+  const onHidden = () => { if (document.hidden) stop() }
+  const releaseScale = mode === 'flow' ? watchViewportScale(onGeometry) : () => {}
+  if (mode === 'flow') { window.addEventListener('resize', onGeometry); document.addEventListener('visibilitychange', onHidden) }
   const onMotion = () => { if (media.matches) stop() }
   const onScroll = (event: Event) => {
-    if (event.target === document || (performance.now() - started) * TRANSFER_TIME / stage.duration >= landingStart) stop()
+    if(handoff?.waiting)return
+    if (event.target === document || (performance.now() - started - (handoff?.paused??0)) * TRANSFER_TIME / stage.duration >= landingStart) stop()
   }
   window.addEventListener('scroll', onScroll, true)
   media.addEventListener('change', onMotion)
@@ -166,7 +231,17 @@ export function runTransfer(
   const draw = (now: number) => {
     try {
       if (disposed) return
-      if (document.documentElement.dataset.lumina !== 'on' || media.matches || !card.isConnected) { stop(); return }
+      if (document.documentElement.dataset.lumina !== 'on' || media.matches) { stop(); return }
+      handoff?.update(now)
+      if(!card.isConnected){stop();return}
+      if(handoff?.waiting){
+        const pending=request.target()
+        if(pending)mask(bubbleHost(pending))
+        renderer.render(0,stage)
+        stage.root.dataset.phase='layout-handoff'
+        frame=requestAnimationFrame(draw)
+        return
+      }
       // Frame budget guard: the liquid filter is the only expensive layer, so
       // it is dropped rather than letting the whole send animation stutter.
       if (lastFrame !== 0) {
@@ -181,24 +256,26 @@ export function runTransfer(
         }
       }
       lastFrame = now
-      const t = (now - started) * TRANSFER_TIME / stage.duration
+      const t = (now - started - (handoff?.paused??0)) * TRANSFER_TIME / stage.duration
 
       if (!stage.target || !stage.target.element.isConnected) {
         const element = request.target()
         const next = element ? snapshotGlyphs(element) : null
         if (next) {
-          const nextCenter = center(next)
+          const nextCenter = mode==='flow'?flowLandingPoint(next.element,edge):center(next)
           if (stage.arrival && t >= landingStart && Math.hypot(nextCenter.x - stage.arrival.x, nextCenter.y - stage.arrival.y) > 8) { stop(); return }
           stage.target = next
           // Hide the whole message row first, background included, so the
           // bubble is gone before the animation reads as a send.
-          mask(bubbleHost(next.element))
+          const host=bubbleHost(next.element)
+          mask(host)
+          if(mode==='flow'){flowHost=host;messageReveal.update(host,0)}
           if (stage.copyGlyphs.length === 0) {
             // Freeze the destination and the copy geometry on the first hit.
             stage.arrival = nextCenter
             stage.copyGlyphs = next.glyphs
             for (const node of stage.targetNodes) node.remove()
-            stage.targetNodes = stage.copyGlyphs.map((glyph) => glyphNode(glyph, targetLayer))
+            stage.targetNodes = mode==='flow'?[]:stage.copyGlyphs.map((glyph) => glyphNode(glyph, targetLayer))
             for (const node of stage.targetNodes) node.style.opacity = '0'
             stage.origin.x = Math.max(0, Math.min(source.box.left, next.box.left) - pad)
             stage.origin.y = Math.max(0, Math.min(source.box.top, edge.y, next.box.top) - pad)
@@ -206,13 +283,14 @@ export function runTransfer(
             root.style.top = `${stage.origin.y + scrollY}px`
             root.style.width = `${Math.min(innerWidth - stage.origin.x, Math.max(source.box.right, next.box.right) - stage.origin.x + pad)}px`
             root.style.height = `${Math.min(innerHeight - stage.origin.y, Math.max(source.box.bottom, next.box.bottom) - stage.origin.y + pad)}px`
+            placeFlow()
           }
         } else if (stage.target && !stage.target.element.isConnected && t >= landingStart) {
           stop(); return
         }
       }
-      if (!stage.target && t > 1000) { request.fallback(); stop('timeout'); return }
-      if (!stage.arrival) landingStart = Math.max(FLIGHT_START, t + 120)
+      if (!stage.target && t > (mode === 'flow' ? 120 / FLOW_TIME * TRANSFER_TIME : 1000)) { request.fallback(); stop('timeout'); return }
+      if (!stage.arrival && mode !== 'flow') landingStart = Math.max(FLIGHT_START, t + 120)
       if (renderer.render(t, stage) === true) { stop('done'); return }
       frame = requestAnimationFrame(draw)
     } catch { stop('failed') }

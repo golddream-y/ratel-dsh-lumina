@@ -23,7 +23,8 @@ describe('water merges into the composer edge before detaching', () => {
   })
   it('pulls the second droplet out of the same liquid edge before breaking the neck', () => {
     const emerging = at(600), stretching = at(680), detached = at(720)
-    expect(emerging.x).toBe(edge.x)
+    expect(emerging.x).toBeGreaterThan(edge.x)
+    expect(stretching.x).toBeGreaterThan(emerging.x)
     expect(emerging.y).toBeLessThan(edge.y)
     expect(emerging.connected).toBe(true)
     expect(stretching.connected).toBe(true)
