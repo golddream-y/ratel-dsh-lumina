@@ -5,6 +5,7 @@ import type { StreamingState } from '../adapter/streaming.ts'
 import type { Intensity } from '../core/config.ts'
 import { prefersReducedMotion } from '../core/motion.ts'
 import { installStyle } from '../core/styles.ts'
+import { placeViewportOverlay, watchViewportScale } from '../core/viewport.ts'
 import { SEND_RIPPLE } from '../style/tokens.ts'
 import { observeSendFeedback } from '../adapter/send-feedback.ts'
 import type { TransferServices } from '../adapter/send-transfer.ts'
@@ -101,13 +102,14 @@ export function installPress(streaming: StreamingState, intensity: Intensity, se
     button.setAttribute(PULSE_ATTRIBUTE, '')
     if(!prefersReducedMotion()) {
       const size=Math.max(rect.width,rect.height)
-      Object.assign(ripple.style,{width:`${size}px`,height:`${size}px`,left:`${rect.left+(rect.width-size)/2}px`,top:`${rect.top+(rect.height-size)/2}px`})
+      placeViewportOverlay(ripple,{width:size,height:size,x:rect.left+(rect.width-size)/2,y:rect.top+(rect.height-size)/2})
       void ripple.offsetWidth
       ripple.setAttribute('data-active','')
     }
     timer=setTimeout(clear,prefersReducedMotion()?SEND_RIPPLE.static:duration)
   }
+  const unwatchViewport=watchViewportScale(clear)
   const unsubscribe=streaming.subscribe(active=>{running=active})
   const release=observeSendFeedback(services,()=>running,pulse,clear)
-  return ()=>{release();unsubscribe();clear();ripple.remove();disposeStyle()}
+  return ()=>{release();unwatchViewport();unsubscribe();clear();ripple.remove();disposeStyle()}
 }

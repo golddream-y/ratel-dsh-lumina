@@ -51,3 +51,5 @@ python3 -m http.server 8765 --directory docs/demo
 ## 发送反馈
 
 [两圈水纹](http://127.0.0.1:8766/send-feedback.html)使用实际 bundle，提供水滴开关对照，可点击发送或 Enter 提交，Shift+Enter 换行。消息仅在本地 fixture 中显示，不发送请求。
+
+缩放回归：启动本地服务后执行 `node tools/verify-viewport-scale.mjs`，可通过 `LUMINA_PLAYWRIGHT_PATH` 指定已有 Playwright 路径。脚本用实际 bundle 检查 html/body 的 67%–150% 连续比例变化、GPU 裁切对齐、顶部排除区和水纹圆心。

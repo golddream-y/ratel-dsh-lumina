@@ -1,5 +1,6 @@
 /** One bounded canvas for a focused, idle new-conversation composer. */
 import { composerRibbonScene, composerRibbonReady, currentHeroSession } from '../adapter/targets.ts'
+import { placeViewportOverlay, watchViewportScale } from '../core/viewport.ts'
 import { prefersReducedMotion, watchReducedMotion } from '../core/motion.ts'
 import type { RibbonBox } from './composer-ribbon-bounds.ts'
 import { ribbonViewport, type RibbonViewport } from './composer-ribbon-bounds.ts'
@@ -75,8 +76,8 @@ export function installComposerRibbon(): () => void {
     const dpr=Math.min(devicePixelRatio||1,2,Math.sqrt(2400000/(bounds.width*bounds.height)))
     const bw=Math.round(bounds.width*dpr),bh=Math.round(bounds.height*dpr)
     if(canvas.width!==bw || canvas.height!==bh) {canvas.width=bw;canvas.height=bh}
-    Object.assign(canvas.style,{left:`${bounds.x}px`,top:`${bounds.y}px`,width:`${bounds.width}px`,height:`${bounds.height}px`})
     if(!canvas.isConnected) document.body.append(canvas)
+    if(!placeViewportOverlay(canvas,bounds)) {setVisible(false);stop();canvas.remove();return}
     setVisible(next.card.contains(document.activeElement) && composerRibbonReady(next))
   }
   function schedule() {if(!disposed && !updateFrame) updateFrame=requestAnimationFrame(update)}
@@ -86,9 +87,10 @@ export function installComposerRibbon(): () => void {
   })
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-lumina-assembling','data-lumina-echo','data-lumina-echo-gate','data-phase','data-content-phase','data-conversation-session','data-sidebar-collapsed','data-rightbar-collapsed']})
   observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-lumina-echo-gate']})
+  const unwatchViewport=watchViewportScale(schedule)
   const events=['focusin','focusout','animationend','animationcancel','visibilitychange','scroll']
   events.forEach(event=>document.addEventListener(event,schedule,true));window.addEventListener('resize',schedule)
   const unwatch=watchReducedMotion(schedule)
   schedule()
-  return ()=>{disposed=true;stop();cancelAnimationFrame(updateFrame);clearTimeout(stopTimer);observer.disconnect();resize.disconnect();unwatch();events.forEach(event=>document.removeEventListener(event,schedule,true));window.removeEventListener('resize',schedule);renderer?.dispose();renderer=null;canvas.remove()}
+  return ()=>{disposed=true;stop();cancelAnimationFrame(updateFrame);clearTimeout(stopTimer);observer.disconnect();unwatchViewport();resize.disconnect();unwatch();events.forEach(event=>document.removeEventListener(event,schedule,true));window.removeEventListener('resize',schedule);renderer?.dispose();renderer=null;canvas.remove()}
 }
