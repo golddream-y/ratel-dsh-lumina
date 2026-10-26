@@ -1,3 +1,4 @@
+import { readPerformanceProfile, type PerformanceProfile } from './performance.ts'
 /**
  * Lumina settings: a small, strictly validated snapshot persisted in
  * localStorage under a versioned key.
@@ -44,6 +45,9 @@ export interface EffectFlags {
   readonly typeWave: boolean
   readonly hero: boolean
   readonly panelMotion: boolean
+  readonly dialogMotion: boolean
+  readonly menuMotion: boolean
+  readonly sessionSelection: boolean
   readonly groupMotion: boolean
   readonly sessionActivity: boolean
 }
@@ -54,6 +58,7 @@ export interface LuminaConfig {
   readonly master: boolean
   readonly brand: BrandPreset
   readonly effects: EffectFlags
+  readonly performance: { readonly profile: PerformanceProfile }
   readonly intensity: Intensity
 }
 
@@ -74,8 +79,12 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     sessionActivity: true,
     panelMotion: true,
     groupMotion: true,
+    dialogMotion: true,
+    menuMotion: true,
+    sessionSelection: true,
   },
   intensity: 'normal',
+  performance: { profile: 'balanced' },
 }
 
 const BRAND_PRESETS: readonly BrandPreset[] = ['ratel', 'deepseek']
@@ -125,6 +134,9 @@ function readEffects(value: unknown): EffectFlags {
     hero: readBoolean(source.hero, DEFAULT_CONFIG.effects.hero),
     sessionActivity: readBoolean(source.sessionActivity, DEFAULT_CONFIG.effects.sessionActivity),
     panelMotion: readBoolean(source.panelMotion, readBoolean(source.sessionActivity, true)),
+    dialogMotion: readBoolean(source.dialogMotion, readBoolean(source.panelMotion, readBoolean(source.sessionActivity, true))),
+    menuMotion: readBoolean(source.menuMotion, readBoolean(source.press, true)),
+    sessionSelection: readBoolean(source.sessionSelection, readBoolean(source.sessionActivity, true)),
     groupMotion: readBoolean(source.groupMotion, readBoolean(source.sessionActivity, true)),
   }
 }
@@ -150,6 +162,7 @@ export function parseConfig(raw: string | null): LuminaConfig {
     brand: readBrand(parsed.brand),
     effects: readEffects(parsed.effects),
     intensity: readIntensity(parsed.intensity),
+    performance: { profile: readPerformanceProfile(isRecord(parsed.performance) ? parsed.performance.profile : undefined) },
   }
 }
 

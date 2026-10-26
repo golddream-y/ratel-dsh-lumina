@@ -1,3 +1,7 @@
+import { installSurfaceMotion } from './effects/surface-motion.ts'
+import { installSessionSelection } from './effects/session-selection.ts'
+import { setRenderBudget } from './core/performance.ts'
+import { disposeFrameScheduler, installFrameScheduler } from './core/frame-scheduler.ts'
 import { installComposerRibbon } from './effects/composer-ribbon.ts'
 /**
  * Browser half of Lumina: the module the client loads and the effect
@@ -143,6 +147,9 @@ function installEffects(
 ): () => void {
   const disposers: Array<() => void> = []
 
+  setRenderBudget(config.performance.profile)
+  disposers.push(disposeFrameScheduler)
+  if (config.master) installFrameScheduler()
   let transfer: TransferBridge | undefined
   if (!config.master || config.effects.sendTransition === 'off') reportTransferStatus('disabled')
 
@@ -172,6 +179,9 @@ function installEffects(
         press: () => installPress(streaming, config.intensity, ctx),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),
+        dialogMotion: () => installSurfaceMotion('dialog', config.intensity),
+        menuMotion: () => installSurfaceMotion('menu', config.intensity),
+        sessionSelection: () => installSessionSelection(config.intensity),
         panelMotion: () => installPanels(),
         groupMotion: () => installSidebarGroups(),
       },

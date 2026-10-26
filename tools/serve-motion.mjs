@@ -2,7 +2,7 @@
 import ts from 'typescript'
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
-import { resolve, extname, sep } from 'node:path'
+import { resolve, extname, sep, dirname, relative } from 'node:path'
 const root = resolve('docs/demo')
 const assets = {
   '/__lumina/client.js': resolve('lib/client.js'),
@@ -24,7 +24,7 @@ createServer(async (request, response) => {
     }
     const shared = {'/__lumina/ribbon-art.js':'src/client/effects/composer-ribbon-art.generated.ts','/__lumina/ribbon-art-shaders.js':'src/client/effects/composer-ribbon-art-shaders.ts','/__lumina/ribbon-renderer.js':'src/client/effects/composer-ribbon-renderer.ts','/__lumina/session-galaxy-painter.js':'src/client/effects/session-galaxy-painter.ts','/__lumina/tokens.js':'src/client/style/tokens.ts'}[url.pathname]
     if (shared) {
-      const source = (await readFile(resolve(shared), 'utf8')).replace('../style/tokens.ts','/__lumina/tokens.js').replace('./composer-ribbon-art.generated.ts','/__lumina/ribbon-art.js').replace('./composer-ribbon-art-shaders.ts','/__lumina/ribbon-art-shaders.js')
+      const source = (await readFile(resolve(shared), 'utf8')).replace(/(['"])(\.{1,2}\/[^'"]+)\.ts\1/g, (_match, quote, specifier) => quote + '/__lumina/source/' + relative(resolve('src/client'), resolve(dirname(resolve(shared)), specifier + '.ts')).replace(/\.ts$/, '.js') + quote)
       const result = ts.transpileModule(source, {compilerOptions:{target:ts.ScriptTarget.ES2024,module:ts.ModuleKind.ESNext}})
       response.writeHead(200, {'Content-Type':'text/javascript','Cache-Control':'no-store'}).end(result.outputText); return
     }

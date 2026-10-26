@@ -1,3 +1,5 @@
+import { requestMotionFrame, cancelMotionFrame } from '../core/frame-scheduler.ts'
+import { renderBudget } from '../core/performance.ts'
 /** One bounded canvas for a focused, idle new-conversation composer. */
 import { composerRibbonScene, composerRibbonReady, currentHeroSession } from '../adapter/targets.ts'
 import { placeViewportOverlay, watchViewportScale } from '../core/viewport.ts'
@@ -32,15 +34,15 @@ export function installComposerRibbon(): () => void {
       schedule()
     }).catch(()=>{initializing=false;fail()})
   }
-  const stop=()=>{cancelAnimationFrame(raf);raf=0}
+  const stop=()=>{cancelMotionFrame(raf);raf=0}
   const draw=(now:number)=>{
     if(disposed || document.hidden || prefersReducedMotion()) { stop();return }
-    if(now-last>=12) {
+    {
       const elapsed=last?Math.min(60,now-last):0
       phase+=elapsed/1000;last=now
       if(bounds) renderer?.render(width,height,box,phase,true,bounds)
     }
-    raf=requestAnimationFrame(draw)
+    raf=requestMotionFrame(draw, 'background')
   }
   const resize=new ResizeObserver(()=>schedule())
   const setVisible=(next:boolean)=>{
@@ -48,7 +50,7 @@ export function installComposerRibbon(): () => void {
     if(visible===next) return
     visible=next;clearTimeout(stopTimer)
     canvas.style.opacity=next?'1':'0'
-    if(next) { if(!raf){last=0;raf=requestAnimationFrame(draw)} }
+    if(next) { if(!raf){last=0;raf=requestMotionFrame(draw, 'background')} }
     else stopTimer=setTimeout(stop,460)
   }
   function update() {
@@ -73,7 +75,7 @@ export function installComposerRibbon(): () => void {
     box={x:card.left,y:card.top,width:card.width,height:card.height}
     bounds=ribbonViewport(width,height,box)
     if(!bounds) {setVisible(false);stop();canvas.remove();return}
-    const dpr=Math.min(devicePixelRatio||1,2,Math.sqrt(2400000/(bounds.width*bounds.height)))
+    const dpr=Math.min(devicePixelRatio||1,renderBudget().ribbonDpr,Math.sqrt(renderBudget().ribbonPixels/(bounds.width*bounds.height)))
     const bw=Math.round(bounds.width*dpr),bh=Math.round(bounds.height*dpr)
     if(canvas.width!==bw || canvas.height!==bh) {canvas.width=bw;canvas.height=bh}
     if(!canvas.isConnected) document.body.append(canvas)
@@ -88,9 +90,11 @@ export function installComposerRibbon(): () => void {
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-lumina-assembling','data-lumina-echo','data-lumina-echo-gate','data-phase','data-content-phase','data-conversation-session','data-sidebar-collapsed','data-rightbar-collapsed']})
   observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-lumina-echo-gate']})
   const unwatchViewport=watchViewportScale(schedule)
+  const onBlur=()=>{last=0}
+  window.addEventListener('blur',onBlur)
   const events=['focusin','focusout','animationend','animationcancel','visibilitychange','scroll']
   events.forEach(event=>document.addEventListener(event,schedule,true));window.addEventListener('resize',schedule)
   const unwatch=watchReducedMotion(schedule)
   schedule()
-  return ()=>{disposed=true;stop();cancelAnimationFrame(updateFrame);clearTimeout(stopTimer);observer.disconnect();unwatchViewport();resize.disconnect();unwatch();events.forEach(event=>document.removeEventListener(event,schedule,true));window.removeEventListener('resize',schedule);renderer?.dispose();renderer=null;canvas.remove()}
+  return ()=>{disposed=true;window.removeEventListener('blur',onBlur);stop();cancelAnimationFrame(updateFrame);clearTimeout(stopTimer);observer.disconnect();unwatchViewport();resize.disconnect();unwatch();events.forEach(event=>document.removeEventListener(event,schedule,true));window.removeEventListener('resize',schedule);renderer?.dispose();renderer=null;canvas.remove()}
 }

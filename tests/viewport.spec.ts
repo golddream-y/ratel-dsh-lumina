@@ -29,6 +29,14 @@ describe('viewport decoration positioning',()=>{
     expect(rect.top+rect.height/2).toBeCloseTo(420)
     element.remove()
   })
+  it('preserves native card padding and border for retiring surfaces',()=>{
+    const element=document.createElement('div');document.body.append(element)
+    element.style.padding='24px';element.style.border='1px solid red'
+    element.getBoundingClientRect=()=>new DOMRect(parseFloat(element.style.left),parseFloat(element.style.top),parseFloat(element.style.width),parseFloat(element.style.height))
+    expect(placeViewportOverlay(element,{x:30,y:40,width:400,height:200},{preserveBoxModel:true})).toBe(true)
+    expect(element.style.padding).toBe('24px');expect(element.style.borderWidth).toBe('1px')
+    element.remove()
+  })
   it('skips detached or unmeasurable decorations',()=>{
     const element=document.createElement('div')
     expect(placeViewportOverlay(element,{x:0,y:0,width:40,height:40})).toBe(false)

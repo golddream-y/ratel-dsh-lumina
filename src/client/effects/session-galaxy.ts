@@ -1,35 +1,55 @@
+import { requestMotionFrame, cancelMotionFrame } from '../core/frame-scheduler.ts'
+import { renderBudget } from '../core/performance.ts'
 /** Bounded local star river; state remains owned by the host. */
-import { panelMotionBusy } from './panel-budget.ts'
 import { createGalaxyPainter } from './session-galaxy-painter.ts'
 import { cssSelector } from '../adapter/selector.ts'
 import { prefersReducedMotion, watchReducedMotion } from '../core/motion.ts'
 
 export function installSessionGalaxy(): () => void {
   if (typeof ResizeObserver === 'undefined' || typeof IntersectionObserver === 'undefined') return () => {}
-  type Scene = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; position: string; w: number; h: number; visible: boolean; exit?: ReturnType<typeof setTimeout>; paint: ReturnType<typeof createGalaxyPainter> }
+  type Scene = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; position: string; w: number; h: number; visible: boolean; dark: boolean; exit?: ReturnType<typeof setTimeout>; paint: ReturnType<typeof createGalaxyPainter> }
   const scenes = new Map<HTMLElement, Scene>()
-  let frame = 0, scanFrame = 0, disposed = false, lastDraw = 0
+  let frame = 0, scanFrame = 0, disposed = false, lastDraw = 0, phase = 0, paletteFrame = 0
+  const isDark = (row: HTMLElement) => {
+    const rgb = getComputedStyle(row).color.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0]
+    return rgb[0]! + rgb[1]! + rgb[2]! > 420
+  }
+  const refreshPalette = () => {
+    if (disposed || paletteFrame) return
+    paletteFrame = requestAnimationFrame(() => {
+      paletteFrame = 0
+      for (const [row, s] of scenes) s.dark = isDark(row)
+    })
+  }
+  const paletteObserver = new MutationObserver(refreshPalette)
+  paletteObserver.observe(document.documentElement, { attributes: true })
+  paletteObserver.observe(document.body, { attributes: true })
+  paletteObserver.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true })
+  const themeMedia = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
+  themeMedia?.addEventListener('change', refreshPalette)
+  const resetClock = () => { lastDraw = 0 }
+  window.addEventListener('blur', resetClock)
+  document.addEventListener('visibilitychange', resetClock)
   const resize = new ResizeObserver(entries => { for (const entry of entries) { const s = scenes.get(entry.target as HTMLElement); if (s) { s.w = entry.contentRect.width; s.h = entry.contentRect.height } } })
   const intersection = new IntersectionObserver(entries => { for (const entry of entries) { const s = scenes.get(entry.target as HTMLElement); if (s) s.visible = entry.isIntersecting } start() })
   const remove = (row: HTMLElement, s: Scene) => { clearTimeout(s.exit); resize.unobserve(row); intersection.unobserve(row); s.canvas.remove(); row.style.position = s.position; scenes.delete(row) }
   const draw = (now: number) => {
     frame = 0
     if (disposed || document.hidden || prefersReducedMotion()) return
-    if (panelMotionBusy(now) && now - lastDraw < 66) { frame = requestAnimationFrame(draw); return }
+    phase += lastDraw ? Math.min(100, now - lastDraw) / 1000 : 0
     lastDraw = now
     let count = 0
     for (const [row, s] of scenes) {
       if (!s.visible || !row.isConnected || !s.w || !s.h || count++ >= 8) continue
-      const { ctx: g, canvas: c, w, h } = s, dpr = Math.min(devicePixelRatio || 1, 1.25)
+      const { ctx: g, canvas: c, w, h } = s, dpr = Math.min(devicePixelRatio || 1, renderBudget().galaxyDpr)
       if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr) }
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h)
-      const rgb = getComputedStyle(row).color.match(/[\d.]+/g)?.map(Number) ?? [0,0,0]
-      s.paint(g, w, h, now / 1000 + count * 4.3, (rgb[0]! + rgb[1]! + rgb[2]!) > 420)
+      s.paint(g, w, h, phase + count * 4.3, s.dark)
 
     }
-    if (count) frame = requestAnimationFrame(draw)
+    if (count) frame = requestMotionFrame(draw, 'background')
   }
-  function start() { if (!disposed && !frame && !document.hidden && !prefersReducedMotion()) frame = requestAnimationFrame(draw) }
+  function start() { if (!disposed && !frame && !document.hidden && !prefersReducedMotion()) frame = requestMotionFrame(draw, 'background') }
   const scan = () => {
     scanFrame = 0
     const rows = new Set<HTMLElement>()
@@ -50,7 +70,7 @@ export function installSessionGalaxy(): () => void {
       canvas.className = 'lumina-session-galaxy'; canvas.style.opacity = '0'; canvas.setAttribute('aria-hidden', 'true')
       const position = row.style.position
       if (getComputedStyle(row).position === 'static') row.style.position = 'relative'
-      scenes.set(row, { canvas, ctx, position, w: row.clientWidth, h: row.clientHeight, visible: false, paint: createGalaxyPainter(scenes.size) })
+      scenes.set(row, { canvas, ctx, position, w: row.clientWidth, h: row.clientHeight, visible: false, dark: isDark(row), paint: createGalaxyPainter(scenes.size, renderBudget()) })
       row.append(canvas); resize.observe(row); intersection.observe(row)
       // Establish the transparent initial frame before fading to full light.
       canvas.getBoundingClientRect()
@@ -62,7 +82,7 @@ export function installSessionGalaxy(): () => void {
   const observer = new MutationObserver(schedule)
   observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-state'] })
   document.addEventListener('visibilitychange', start)
-  const stopMotion = watchReducedMotion(() => { cancelAnimationFrame(frame); frame = 0; schedule() })
+  const stopMotion = watchReducedMotion(() => { cancelMotionFrame(frame); frame = 0; schedule() })
   scan()
-  return () => { disposed = true; observer.disconnect(); stopMotion(); cancelAnimationFrame(frame); cancelAnimationFrame(scanFrame); for (const [row, s] of scenes) remove(row, s); resize.disconnect(); intersection.disconnect(); document.removeEventListener('visibilitychange', start) }
+  return () => { disposed = true; observer.disconnect(); paletteObserver.disconnect(); themeMedia?.removeEventListener('change', refreshPalette); cancelAnimationFrame(paletteFrame); window.removeEventListener('blur', resetClock); document.removeEventListener('visibilitychange', resetClock); stopMotion(); cancelMotionFrame(frame); cancelAnimationFrame(scanFrame); for (const [row, s] of scenes) remove(row, s); resize.disconnect(); intersection.disconnect(); document.removeEventListener('visibilitychange', start) }
 }

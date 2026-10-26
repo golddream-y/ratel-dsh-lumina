@@ -16,11 +16,11 @@ describe('effect stylesheets', () => {
     expect(css).toContain('::before')
   })
 
-  it('keeps send feedback local and adds a scoped menu fade', () => {
+  it('keeps send feedback local without a second menu animation', () => {
     const css = pressCss()
     expect(css).toContain(':active')
     expect(css).not.toContain('lumina-send-flash')
-    expect(css).toContain('[data-menu-material="translucent"]')
+    expect(css).not.toContain('lumina-menu-enter')
     expect(css).toContain('data-lumina-send-pulse')
     expect(css).toContain('lumina-water-ring')
     expect(css).toContain('lumina-water-echo')

@@ -1,3 +1,6 @@
+import { usePanelMotion } from './motion.ts'
+import { getMotionStatus, subscribeMotionStatus } from '../core/frame-scheduler.ts'
+import { PerformanceSettings } from './PerformanceSettings.tsx'
 /**
  * The Lumina settings page.
  *
@@ -32,6 +35,9 @@ export interface LuminaPanelProps {
 
 /** The effect ids the panel toggles, in display order. */
 const EFFECT_ROWS = [
+  { id: 'dialogMotion', label: 'effectDialogMotion', hint: 'effectDialogMotionHint' },
+  { id: 'menuMotion', label: 'effectMenuMotion', hint: 'effectMenuMotionHint' },
+  { id: 'sessionSelection', label: 'effectSessionSelection', hint: 'effectSessionSelectionHint' },
   { id: 'panelMotion', label: 'effectPanelMotion', hint: 'effectPanelMotionHint' },
   { id: 'groupMotion', label: 'effectGroupMotion', hint: 'effectGroupMotionHint' },
   { id: 'brand', label: 'effectBrand', hint: 'effectBrandHint' },
@@ -55,6 +61,7 @@ function sameConfig(left: LuminaConfig, right: LuminaConfig): boolean {
   if (left.master !== right.master) return false
   if (left.brand !== right.brand) return false
   if (left.intensity !== right.intensity) return false
+  if (left.performance.profile !== right.performance.profile) return false
   if (left.effects.sendTransition !== right.effects.sendTransition) return false
   return EFFECT_ROWS.every((row) => left.effects[row.id] === right.effects[row.id])
 }
@@ -67,11 +74,14 @@ function sameConfig(left: LuminaConfig, right: LuminaConfig): boolean {
  */
 export function LuminaPanel(props: LuminaPanelProps) {
   const { t, save, useSettings } = props
+  const motionStatus = useSyncExternalStore(subscribeMotionStatus, getMotionStatus)
   const transferStatus = useSyncExternalStore(subscribeTransferStatus, getTransferStatus)
   const saved = useSettings((config) => config)
   const [draft, setDraft] = useState<LuminaConfig>(saved)
   const [message, setMessage] = useState<string | null>(null)
   const base = useRef<LuminaConfig>(saved)
+  const panelRoot = useRef<HTMLDivElement>(null)
+  const feedback = usePanelMotion(panelRoot, draft.master)
 
   // A commit made elsewhere replaces the committed snapshot under us. Keep the
   // base in step so the conflict flag means "the stored value moved", not
@@ -115,6 +125,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
     base.current = next
     setDraft(next)
     setMessage(t('saved'))
+    feedback.confirm()
   }
 
   const restore = () => {
@@ -123,7 +134,9 @@ export function LuminaPanel(props: LuminaPanelProps) {
   }
 
   return (
-    <div className="lumina-panel">
+    <div className="lumina-panel" ref={panelRoot} onClickCapture={feedback.onClickCapture}
+      data-settings-motion={draft.master ? 'on' : 'off'}
+      style={{ '--lumina-settings-accent': PRESET_VARIABLES[draft.brand]?.['--lumina-brand'] } as CSSProperties}>
       <header className="lumina-panel-header">
         <div className="lumina-header-copy">
           <h2 className="lumina-panel-title">{t('heading')}</h2>
@@ -159,8 +172,11 @@ export function LuminaPanel(props: LuminaPanelProps) {
         </div>
       </section>
 
+      <PerformanceSettings value={draft.performance.profile} disabled={!draft.master} t={t}
+        onChange={profile => edit({ performance: { profile } })} />
+
       {([
-        { title: 'navigation', ids: ['brand', 'panelMotion', 'groupMotion', 'sessionActivity', 'press'] },
+        { title: 'navigation', ids: ['brand', 'panelMotion', 'groupMotion', 'dialogMotion', 'menuMotion', 'sessionSelection', 'sessionActivity', 'press'] },
         { title: 'inputMessages', ids: ['composerGlow', 'caret', 'typeWave'] },
         { title: 'newSession', ids: ['hero', 'composerRibbon'] },
       ] as const).map(group => {
@@ -231,6 +247,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
       })}
       <details className="lumina-section lumina-diagnostics">
         <summary>{t('diagnostics')}</summary>
+        <p className="lumina-row-hint">{t('performanceRuntime')}: {t(`performanceState_${motionStatus.state}`)} · {t('performanceFrames')}: {motionStatus.backgroundFps} / {motionStatus.interactionFps} fps{motionStatus.yielding ? ` · ${t('performanceYielding')}` : ''}</p>
         <p className="lumina-row-hint" role="status">{t('transferStatusLabel')}: {t(`transferStatus_${transferStatus.code}`)} · {t('transferStarts')}: {transferStatus.starts}</p>
         <button type="button" className="lumina-button" onClick={restore}>{t('restoreDefaults')}</button>
       </details>

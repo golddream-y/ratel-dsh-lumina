@@ -91,7 +91,7 @@ describe('settings panel', () => {
   it('renders the master switch, every effect row and the five send modes', () => {
     render(DEFAULT_CONFIG)
     // The send transition is a mode selector, not a switch, so it has no checkbox.
-    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(11)
+    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(14)
     expect(container.textContent).toContain('effectBrand')
     expect(container.textContent).toContain('effectHero')
     expect(container.textContent).toContain('effectSendTransfer')
@@ -163,4 +163,26 @@ describe('settings panel', () => {
     })
     expect(switchFor('effectBrand').disabled).toBe(true)
   })
+  it('stages the performance preset, saves it, and cancels later draft edits', () => {
+    const saves = render(DEFAULT_CONFIG)
+    clickButton('performance_ultra')
+    expect(saves).toHaveLength(0)
+    clickButton('save')
+    expect(saves[0]?.performance.profile).toBe('ultra')
+    clickButton('performance_performance')
+    clickButton('cancel')
+    expect(saves).toHaveLength(1)
+    expect(container.querySelector('[role="radio"][aria-checked="true"].lumina-performance-choice')?.textContent).toBe('performance_balanced')
+  })
+  it('opens accessible budget details from the same parameters and dismisses them with Escape', () => {
+    render(DEFAULT_CONFIG)
+    const info = [...container.querySelectorAll<HTMLButtonElement>('.lumina-performance-choice')].find(button => button.textContent === 'performance_balanced')!
+    act(() => info.focus())
+    expect(container.querySelector('[role="tooltip"]')?.textContent).toContain('40 / 60 fps')
+    expect(container.querySelector('[role="tooltip"]')?.textContent).toContain('1.6 MP')
+    expect(info.getAttribute('aria-describedby')).toBe(container.querySelector('[role="tooltip"]')?.id)
+    act(() => document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true})))
+    expect(container.querySelector('[role="tooltip"]')).toBeNull()
+  })
+
 })

@@ -234,9 +234,9 @@
       "pattern": "data-menu-material",
       "required": true,
       "usedBy": [
-        "press"
+        "menuMotion"
       ],
-      "why": "菜单/浮层表面；菜单淡入的选择器"
+      "why": "原生菜单表面，按方向进入与关闭淡出"
     },
     {
       "id": "hook.row-key",
@@ -245,7 +245,8 @@
       "required": true,
       "usedBy": [
         "sessionActivity",
-        "sessionGalaxy"
+        "sessionGalaxy",
+        "sessionSelection"
       ],
       "why": "侧栏会话行身份；星河画在行内"
     },
@@ -445,6 +446,46 @@
         "sessionActivity"
       ],
       "why": "业务态色；缺少时回退品牌色"
+    },
+    {
+      "id": "hook.modal-aria",
+      "category": "dom-hook",
+      "pattern": "aria-modal",
+      "required": false,
+      "usedBy": [
+        "dialogMotion"
+      ],
+      "why": "居中弹框的原生模态语义；缺少时跳过弹框过渡"
+    },
+    {
+      "id": "hook.selection-aria",
+      "category": "dom-hook",
+      "pattern": "aria-selected",
+      "required": false,
+      "usedBy": [
+        "sessionSelection"
+      ],
+      "why": "树内会话选中状态；缺少时保留原生静态底板"
+    },
+    {
+      "id": "hook.tooltip-side",
+      "category": "dom-hook",
+      "pattern": "data-side",
+      "required": false,
+      "usedBy": [
+        "menuMotion"
+      ],
+      "why": "带方向与对齐语义的原生提示浮层；不猜测无钩子的浮层"
+    },
+    {
+      "id": "hook.tooltip-align",
+      "category": "dom-hook",
+      "pattern": "data-align",
+      "required": false,
+      "usedBy": [
+        "menuMotion"
+      ],
+      "why": "原生提示浮层的对齐属性，与 role=tooltip/data-side 共同匹配"
     }
   ]
 }

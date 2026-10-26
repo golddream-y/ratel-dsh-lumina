@@ -1,3 +1,4 @@
+import { requestMotionFrame, cancelMotionFrame } from '../../core/frame-scheduler.ts'
 /**
  * Shared runtime for the send transition modes.
  *
@@ -191,7 +192,7 @@ export function runTransfer(
   const cleanup = () => {
     if (disposed) return
     disposed = true
-    cancelAnimationFrame(frame)
+    cancelMotionFrame(frame)
     handoff?.dispose()
     messageReveal.dispose()
     observer.disconnect()
@@ -202,6 +203,7 @@ export function runTransfer(
     releaseScale()
     window.removeEventListener('resize', onGeometry)
     document.removeEventListener('visibilitychange', onHidden)
+    window.removeEventListener('blur', onGeometry)
     renderer.dispose?.(stage)
     request.onSettled?.()
     root.remove()
@@ -219,7 +221,9 @@ export function runTransfer(
   const onGeometry = () => stop()
   const onHidden = () => { if (document.hidden) stop() }
   const releaseScale = mode === 'flow' ? watchViewportScale(onGeometry) : () => {}
-  if (mode === 'flow') { window.addEventListener('resize', onGeometry); document.addEventListener('visibilitychange', onHidden) }
+  if (mode === 'flow') window.addEventListener('resize', onGeometry)
+  document.addEventListener('visibilitychange', onHidden)
+  window.addEventListener('blur', onGeometry)
   const onMotion = () => { if (media.matches) stop() }
   const onScroll = (event: Event) => {
     if(handoff?.waiting)return
@@ -239,7 +243,7 @@ export function runTransfer(
         if(pending)mask(bubbleHost(pending))
         renderer.render(0,stage)
         stage.root.dataset.phase='layout-handoff'
-        frame=requestAnimationFrame(draw)
+        frame=requestMotionFrame(draw)
         return
       }
       // Frame budget guard: the liquid filter is the only expensive layer, so
@@ -292,10 +296,10 @@ export function runTransfer(
       if (!stage.target && t > (mode === 'flow' ? 120 / FLOW_TIME * TRANSFER_TIME : 1000)) { request.fallback(); stop('timeout'); return }
       if (!stage.arrival && mode !== 'flow') landingStart = Math.max(FLIGHT_START, t + 120)
       if (renderer.render(t, stage) === true) { stop('done'); return }
-      frame = requestAnimationFrame(draw)
+      frame = requestMotionFrame(draw)
     } catch { stop('failed') }
   }
   reportTransferStatus('playing')
-  frame = requestAnimationFrame(draw)
+  frame = requestMotionFrame(draw)
   return () => stop()
 }

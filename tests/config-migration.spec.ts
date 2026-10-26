@@ -28,3 +28,31 @@ describe('independent ribbon migration', () => {
     expect(config.effects.hero).toBe(false)
   })
 })
+
+describe('rendering profile migration', () => {
+  it('defaults only the missing performance field without resetting preferences', () => {
+    const config = parseConfig(JSON.stringify({version:1,master:false,brand:'ratel',effects:{hero:false,sendTransition:'ghost'}}))
+    expect(config.performance.profile).toBe('balanced')
+    expect(config.master).toBe(false)
+    expect(config.brand).toBe('ratel')
+    expect(config.effects.hero).toBe(false)
+    expect(config.effects.sendTransition).toBe('ghost')
+  })
+  it('accepts all rendering profiles and isolates invalid values', () => {
+    for (const profile of ['performance', 'balanced', 'quality', 'ultra']) {
+      expect(parseConfig(JSON.stringify({version:1,performance:{profile}})).performance.profile).toBe(profile)
+    }
+    for (const performance of [null, 120, {profile:'fast'}, {frameRate:120}]) {
+      expect(parseConfig(JSON.stringify({version:1,performance,intensity:'vivid'}))).toMatchObject({performance:{profile:'balanced'},intensity:'vivid'})
+    }
+  })
+})
+
+describe('surface and selection preferences', () => {
+  it('inherits disabled intentions, while explicit switches stay independent', () => {
+    const legacy = parseConfig(JSON.stringify({version:1,effects:{panelMotion:false,press:false,sessionActivity:false}}))
+    expect(legacy.effects).toMatchObject({dialogMotion:false,menuMotion:false,sessionSelection:false})
+    const explicit = parseConfig(JSON.stringify({version:1,effects:{panelMotion:false,press:false,sessionActivity:false,dialogMotion:true,menuMotion:true,sessionSelection:true}}))
+    expect(explicit.effects).toMatchObject({dialogMotion:true,menuMotion:true,sessionSelection:true})
+  })
+})

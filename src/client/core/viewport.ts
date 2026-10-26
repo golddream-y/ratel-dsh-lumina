@@ -1,8 +1,9 @@
 /** Position an owned decoration in getBoundingClientRect's viewport coordinate space. */
 export interface ViewportRect { x:number; y:number; width:number; height:number }
-export function placeViewportOverlay(element:HTMLElement, box:ViewportRect): boolean {
+export function placeViewportOverlay(element:HTMLElement, box:ViewportRect, options: { preserveBoxModel?: boolean } = {}): boolean {
   if(!element.isConnected||box.width<=0||box.height<=0)return false
-  Object.assign(element.style,{left:`${box.x}px`,top:`${box.y}px`,width:`${box.width}px`,height:`${box.height}px`,boxSizing:'border-box',padding:'0',borderWidth:'0'})
+  Object.assign(element.style,{left:`${box.x}px`,top:`${box.y}px`,width:`${box.width}px`,height:`${box.height}px`,boxSizing:'border-box'})
+  if (!options.preserveBoxModel) Object.assign(element.style, {padding:'0',borderWidth:'0'})
   // Ancestor CSS zoom can scale fixed-position CSS pixels a second time.
   // Measure only our own decoration; the renderer continues to use viewport pixels.
   const actual=element.getBoundingClientRect()

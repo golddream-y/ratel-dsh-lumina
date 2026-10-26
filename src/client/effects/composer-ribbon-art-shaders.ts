@@ -1,6 +1,7 @@
 import { RIBBON_FLOW } from '../style/tokens.ts'
 /** A shared smooth mesh preserves the SVG's folds, sharp light and local glow. */
 export const artworkShader = /* wgsl */`
+override columns:f32 = 256.;
 struct Scene { viewport:vec4f, box:vec4f, crop:vec4f };
 @group(0) @binding(0) var<uniform> scene:Scene;
 @group(0) @binding(1) var art:texture_2d<f32>;
@@ -10,7 +11,7 @@ struct Vertex { @builtin(position) position:vec4f, @location(0) uv:vec2f, @locat
 @vertex fn vertex(@builtin(vertex_index) id:u32)->Vertex {
   let corners=array<vec2f,6>(vec2f(0,0),vec2f(1,0),vec2f(0,1),vec2f(0,1),vec2f(1,0),vec2f(1,1));
   let cell=id/6u;
-  let uv=(vec2f(f32(cell/16u),f32(cell%16u))+corners[id%6u])/vec2f(256,16);
+  let uv=(vec2f(f32(cell/16u),f32(cell%16u))+corners[id%6u])/vec2f(columns,16);
   let scale=min(1.,scene.box.z/760.);
   let start=mix(max(-35.,scene.box.x-scene.box.z*.6),scene.box.x-min(460.,scene.box.z*.65),scene.viewport.w);
   let end=mix(min(scene.viewport.x+35.,scene.box.x+scene.box.z*1.18),scene.box.x+scene.box.z+min(480.,scene.box.z*.65),scene.viewport.w);

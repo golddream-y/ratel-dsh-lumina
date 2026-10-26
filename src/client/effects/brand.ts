@@ -106,6 +106,8 @@ ${rootWithTarget('composerInput', ':focus')} .lumina-shine,
 }
 ${rootWithTarget('composerInput', ':focus')} .lumina-whale-periodic *,
 [data-lumina-streaming="on"] .lumina-whale-periodic * { animation-play-state: paused; }
+html[data-lumina-motion-paused] .lumina-shine,
+html[data-lumina-motion-paused] .lumina-whale-periodic * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   .lumina-whale-periodic *, .lumina-whale-water { animation: none !important; }
   .lumina-whale-water { display: none; }

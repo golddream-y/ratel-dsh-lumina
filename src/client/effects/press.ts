@@ -1,4 +1,4 @@
-/** M4 · restrained press, one acknowledgement per send, and menu fade-in. */
+/** M4 · restrained press and one acknowledgement per send. */
 
 import { cssSelector } from '../adapter/selector.ts'
 import type { StreamingState } from '../adapter/streaming.ts'
@@ -13,23 +13,15 @@ import type { TransferServices } from '../adapter/send-transfer.ts'
 const PULSE_ATTRIBUTE = 'data-lumina-send-pulse'
 const RIPPLE_CLASS = 'lumina-send-ripple'
 
-/** The interaction baseline; menu positioning and native close timing stay owned by DSH. */
+/** The interaction baseline; menus have an independent surface effect. */
 export function pressCss(): string {
   const button = cssSelector('composerButton')
-  const menu = cssSelector('menuSurface')
   return `
 ${button} {
   transition: scale var(--lumina-press) cubic-bezier(.22, 1, .36, 1);
   transform-origin: center;
 }
 ${button}:active { scale: .96; }
-${menu} {
-  animation: lumina-menu-enter var(--lumina-menu) ease-out;
-}
-@keyframes lumina-menu-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 [data-lumina="on"] .lumina-send-ripple {
   position: fixed; box-sizing: border-box; aspect-ratio: 1; border-radius: 50%; opacity: 0; pointer-events: none;
   z-index: 2147483647; contain: layout style; -webkit-app-region: no-drag;
@@ -62,7 +54,7 @@ ${menu} {
   ${button} { transition: none; }
   ${button}:active { scale: 1; }
   ${button}[${PULSE_ATTRIBUTE}] { outline: 1px solid var(--lumina-brand-soft); outline-offset: 2px; }
-  ${button}[${PULSE_ATTRIBUTE}], ${menu}, ${menu}::before, ${menu}::after {
+  ${button}[${PULSE_ATTRIBUTE}] {
     animation: none;
   }
   [data-lumina="on"] .lumina-send-ripple,

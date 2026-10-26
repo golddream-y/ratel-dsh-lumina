@@ -1,3 +1,4 @@
+import { renderBudget } from '../core/performance.ts'
 import { silkArtwork, silkSpine } from './composer-ribbon-art.generated.ts'
 import { artworkShader } from './composer-ribbon-art-shaders.ts'
 import type { RibbonViewport } from './composer-ribbon-bounds.ts'
@@ -44,6 +45,7 @@ export interface RibbonRenderer {
   dispose(): void
 }
 export async function createRibbonRenderer(canvas: HTMLCanvasElement, failed: () => void): Promise<RibbonRenderer | null> {
+  const budget=renderBudget()
   const gpu=(navigator as Navigator & {gpu?: GPUApi}).gpu
   if(!gpu) return null
   const adapter=await gpu.requestAdapter({powerPreference:'low-power'})
@@ -66,9 +68,9 @@ export async function createRibbonRenderer(canvas: HTMLCanvasElement, failed: ()
     if(info.messages.some(m=>m.type==='error')) throw new Error(info.messages.map(m=>m.message).join('\n'))
     device.pushErrorScope('validation')
     const pipeline=await device.createRenderPipelineAsync({label:'Lumina artwork mesh',layout:'auto',
-      vertex:{module:shader,entryPoint:'vertex'},
+      vertex:{module:shader,entryPoint:'vertex',constants:{columns:budget.ribbonColumns}},
       fragment:{module:shader,entryPoint:'fragment',targets:[{format,blend:{color:{srcFactor:'one',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}}}]},
-      primitive:{topology:'triangle-list',cullMode:'none'},multisample:{count:4}})
+      primitive:{topology:'triangle-list',cullMode:'none'},multisample:{count:budget.ribbonSamples}})
     if(await device.popErrorScope()) throw new Error('Invalid silk pipeline')
     // Rasterize our bundled SVG once. Its local filters and fine folds remain one coherent image.
     const image=new Image()
@@ -91,17 +93,17 @@ export async function createRibbonRenderer(canvas: HTMLCanvasElement, failed: ()
     return {dispose,render(width,height,box,time,maskCard=true,bounds) {
       if(dead||!context||!uniform) return
       try {
-        if(!multisample||sampleWidth!==canvas.width||sampleHeight!==canvas.height) {
+        if(budget.ribbonSamples>1 && (!multisample||sampleWidth!==canvas.width||sampleHeight!==canvas.height)) {
           multisample?.destroy();sampleWidth=canvas.width;sampleHeight=canvas.height
-          multisample=device.createTexture({size:[sampleWidth,sampleHeight],sampleCount:4,format,usage:0x10,label:'Lumina silk MSAA'})
+          multisample=device.createTexture({size:[sampleWidth,sampleHeight],sampleCount:budget.ribbonSamples,format,usage:0x10,label:'Lumina silk MSAA'})
         }
         values.set([width,height,time,maskCard?1:0,box.x,box.y,box.width,box.height,bounds?.x??0,bounds?.y??0,bounds?.width??width,bounds?.height??height])
         device.queue.writeBuffer(uniform,0,values)
         const encoder=device.createCommandEncoder()
-        const pass=encoder.beginRenderPass({colorAttachments:[{view:multisample.createView(),resolveTarget:context.getCurrentTexture().createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]})
+        const pass=encoder.beginRenderPass({colorAttachments:[{view:budget.ribbonSamples>1?multisample!.createView():context.getCurrentTexture().createView(),...(budget.ribbonSamples>1?{resolveTarget:context.getCurrentTexture().createView()}:{}),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:budget.ribbonSamples>1?'discard':'store'}]})
         pass.setPipeline(pipeline);pass.setBindGroup(0,group)
         pass.setScissorRect(0,0,canvas.width,canvas.height)
-        pass.draw(256*16*6);pass.end();device.queue.submit([encoder.finish()])
+        pass.draw(budget.ribbonColumns*16*6);pass.end();device.queue.submit([encoder.finish()])
       } catch {dispose();failed()}
     }}
   } catch(error) {

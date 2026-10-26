@@ -149,3 +149,11 @@ export const RIBBON_FLOW = { reveal: 1.65, speed: .17 } as const
 
 /** Local send acknowledgement; no dependency on the message-transfer duration. */
 export const SEND_RIPPLE = { main:460, echo:485, delay:85, static:180, tiers:{subtle:1.14,normal:1,vivid:.86} } as const
+
+/** Finite navigation transitions share one duration source; no background loop. */
+export const SURFACE_MOTION_DURATIONS = {
+  subtle: { dialog: 253, menu: 184, selection: 260 },
+  normal: { dialog: 220, menu: 160, selection: 220 },
+  vivid: { dialog: 187, menu: 136, selection: 180 },
+} as const
+export const SURFACE_EXIT_FACTOR = .7

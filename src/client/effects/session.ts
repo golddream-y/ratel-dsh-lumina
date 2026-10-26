@@ -38,6 +38,8 @@ ${spinner} g {
   animation: lumina-session-spin calc(var(--lumina-session) * 2) linear infinite !important;
 }
 
+html[data-lumina-motion-paused] :is(${spinner}),
+html[data-lumina-motion-paused] :is(${spinner}) g { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   ${spinner},
   ${spinner} g {

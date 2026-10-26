@@ -14,8 +14,8 @@ Works with the DSH desktop and Web / PWA clients. Adjust the motion to your pref
 
 ## Why Lumina
 
-- **A consistent experience.** Coordinated visuals and motion add detail to the interface and give everyday actions clear, consistent feedback.
-- **Control over the motion.** Choose an intensity, color preset and individual effects. Saved settings apply immediately.
+- **A consistent experience.** Coordinated motion adds detail to navigation, menus, dialogs, typing and sending.
+- **Control over the motion.** Choose an intensity, color preset, performance profile and individual effects. Saved settings apply immediately.
 - **Your workflow stays intact.** Lumina does not change models, requests or message content, delay submission, or block typing, clicking and selection.
 - **Lightweight and optional.** Built with native browser capabilities, without an additional animation framework. A master switch turns it off, and system reduced-motion preferences are respected.
 
@@ -29,20 +29,22 @@ dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 
 Replace `<profile>` with your profile, such as `desktop` or `web`. Run the same command to update, then **fully quit and reopen the client** to load the new plugin code.
 
-The current development and verification baseline is DSH `0.2.1-rc.2`. Client updates can change the UI interfaces used by the effects, so compatibility needs to be checked again after an upgrade.
+The latest required interface-marker check targets DSH `0.2.1-rc.3`. Recheck compatibility after client updates; see the [compatibility checks](docs/engineering/dsh-compat/README.md) for their scope.
 
 ## Settings
 
-Open **Lumina / 流光** in DSH settings to adjust effects, intensity and colors. Saved changes apply immediately, without restarting.
+Open **Lumina / 流光** in DSH settings to adjust effects, intensity, colors and performance. Saved changes apply immediately, without restarting.
+
+Choose from **Performance**, **Balanced**, **Quality** and **Ultra**; Balanced is the default. Profiles adjust drawing frequency, resolution and detail independently of motion intensity. Hover or focus a profile button to see its parameters. Frame rates are limits, not guarantees, and depend on your device and display.
 
 Turn off the master switch to restore the original interface. When system reduced motion is enabled, Lumina reduces or disables animations automatically.
 
 
 ## Documentation and development
 
-- [Changelog](CHANGELOG.md): release changes and verification scope.
+- [Changelog](CHANGELOG.md): features, improvements and fixes in each release.
 - [Motion demos](docs/demo/README.md): interaction studies and design prototypes; these are not all shipped client effects.
-- [Product and implementation](docs/product/MVP.md): scope, design and engineering documentation.
+- [Implementation status](docs/product/功能实现状态.md): shipped features, unreleased 1.0 changes and future work.
 - [Publishing and listing](docs/engineering/发布.md): npm releases and plugin-list submissions.
 
 Local development checks:

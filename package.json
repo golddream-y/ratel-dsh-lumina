@@ -1,6 +1,6 @@
 {
   "name": "@ratel-works/dsh-lumina",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "A subtle layer of motion for DeepSeek Harness. Customizable visual and motion enhancements for the client.",
   "license": "MIT",
   "type": "module",

@@ -1,8 +1,10 @@
+import { requestMotionFrame, cancelMotionFrame } from '../core/frame-scheduler.ts'
+import { renderBudget } from '../core/performance.ts'
 /** Native particle assembly. Visual reference: React Bits Particle Text; no upstream code. */
 import { isGlyphDecoration, composerEditors } from '../adapter/targets.ts'
 import { prefersReducedMotion } from '../core/motion.ts'
 
-const MAX_PARTICLES = 2400
+
 
 /** A small palette permits one Canvas fill per color instead of per particle. */
 export function particleColor(red: number, green: number, blue: number): string {
@@ -84,6 +86,7 @@ function paintIcons(card: HTMLElement, ctx: CanvasRenderingContext2D, box: DOMRe
 export function assembleComposer(card: HTMLElement, duration = 1100, onComplete: () => void = () => {}): () => void {
   const skip = () => { onComplete(); return () => {} }
   if (prefersReducedMotion() || composerEditors(card.ownerDocument).find(editor => card.contains(editor))?.textContent?.trim()) return skip()
+  const budget = renderBudget(), MAX_PARTICLES = budget.heroParticles
   const box = card.getBoundingClientRect()
   if (box.width < 80 || box.height < 40 || box.width > 2400 || box.height > 700) return skip()
   const canvas = document.createElement('canvas')
@@ -133,7 +136,7 @@ export function assembleComposer(card: HTMLElement, duration = 1100, onComplete:
     const group = groups.get(particle.color)
     if (group) group.push(particle); else groups.set(particle.color, [particle])
   }
-  const dpr = Math.min(devicePixelRatio || 1, 1.5, Math.sqrt(2_000_000 / ((w + pad * 2) * (h + pad * 2))))
+  const dpr = Math.min(devicePixelRatio || 1, budget.heroDpr, Math.sqrt(2_000_000 / ((w + pad * 2) * (h + pad * 2))))
   canvas.width = (w + pad * 2) * dpr; canvas.height = (h + pad * 2) * dpr
   canvas.className = 'lumina-hero-particles'
   canvas.setAttribute('aria-hidden', 'true')
@@ -145,7 +148,7 @@ export function assembleComposer(card: HTMLElement, duration = 1100, onComplete:
   const finish = () => {
     if (done) return
     done = true
-    cancelAnimationFrame(frame)
+    cancelMotionFrame(frame)
     canvas.remove()
     card.removeAttribute('data-lumina-assembling')
     card.style.removeProperty('--lumina-assembly-reveal')
@@ -153,9 +156,12 @@ export function assembleComposer(card: HTMLElement, duration = 1100, onComplete:
     resize?.disconnect()
     document.removeEventListener('scroll', onScroll, true)
     window.removeEventListener('resize', finish)
+    window.removeEventListener('blur', finish)
+    document.removeEventListener('visibilitychange', onVisibility)
     for (const name of ['pointerdown', 'keydown', 'beforeinput', 'compositionstart']) card.removeEventListener(name, finish, true)
     onComplete()
   }
+  const onVisibility = () => { if (document.hidden) finish() }
   const onScroll = (event: Event) => { if (event.target instanceof Node && card.contains(event.target)) finish() }
   const resize = typeof ResizeObserver === 'function' ? new ResizeObserver((entries) => {
     const entry = entries[0]
@@ -198,12 +204,14 @@ export function assembleComposer(card: HTMLElement, duration = 1100, onComplete:
     }
     ctx.globalAlpha = 1
     if (t >= 1) finish()
-    else frame = requestAnimationFrame(draw)
+    else frame = requestMotionFrame(draw)
   }
   resize?.observe(card)
   document.addEventListener('scroll', onScroll, true)
   window.addEventListener('resize', finish)
+  window.addEventListener('blur', finish)
+  document.addEventListener('visibilitychange', onVisibility)
   for (const name of ['pointerdown', 'keydown', 'beforeinput', 'compositionstart']) card.addEventListener(name, finish, true)
-  frame = requestAnimationFrame(draw)
+  frame = requestMotionFrame(draw)
   return finish
 }

@@ -139,7 +139,12 @@ export function installHero(ctx: { slots: SlotRegistryLike } & TransferServices)
     const echo = prepareHeroEcho(accessories, echoDuration, { root: accessoryRoot, targets: () => heroAccessories(mark), onComplete: spray })
     let running = true, remaining = 3
     const disposers = [echo.dispose, () => sprayAnimations.forEach(animation => animation.cancel())]
-    active = () => { running = false; disposers.forEach(fn => fn()) }
+    active = () => {
+      running = false; disposers.forEach(fn => fn())
+      mark.getAnimations?.({subtree:true}).forEach(animation => {
+        if ('animationName' in animation && String(animation.animationName).startsWith('lumina-hero-')) animation.cancel()
+      })
+    }
     const completed = () => { if (running && --remaining === 0) echo.play() }
     waitFrame = requestAnimationFrame(() => {
       if (disposed || !mark.isConnected) { clear(); return }
@@ -186,7 +191,10 @@ export function installHero(ctx: { slots: SlotRegistryLike } & TransferServices)
     if (event.target instanceof Node && interactionTargets.some(element => element.contains(event.target as Node))) clear()
   }
   document.addEventListener('scroll', onInteraction, true)
+  const onHidden = () => { if (document.hidden) clear() }
   window.addEventListener('resize', clear)
+  window.addEventListener('blur', clear)
+  document.addEventListener('visibilitychange', onHidden)
   const interactions = ['pointerdown', 'keydown', 'beforeinput', 'compositionstart']
   for (const event of interactions) document.addEventListener(event, onInteraction, true)
   const stopMotion = watchReducedMotion(reduced => { if (reduced) clear() })
@@ -195,6 +203,8 @@ export function installHero(ctx: { slots: SlotRegistryLike } & TransferServices)
     release(); clear()
     document.removeEventListener('scroll', onInteraction, true)
     window.removeEventListener('resize', clear)
+    window.removeEventListener('blur', clear)
+    document.removeEventListener('visibilitychange', onHidden)
     for (const event of interactions) document.removeEventListener(event, onInteraction, true)
     stopMotion()
     disposeStyle()

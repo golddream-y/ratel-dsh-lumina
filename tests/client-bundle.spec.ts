@@ -14,7 +14,7 @@
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 const ARTIFACT = resolve(process.cwd(), 'lib/client.js')
 
@@ -73,6 +73,8 @@ function createRequire(): { require: (spec: string) => unknown; requested: strin
 }
 
 describe('client bundle', () => {
+  const disposers: Array<() => void> = []
+  afterEach(() => { for (const dispose of disposers.splice(0).reverse()) dispose() })
   beforeEach(() => {
     document.head.innerHTML = ''
     document.documentElement.removeAttribute('data-lumina')
@@ -149,7 +151,7 @@ describe('client bundle', () => {
       },
       effect: (callback: () => unknown) => {
         const result = callback()
-        if (typeof result === 'function') effectDisposer = result as () => void
+        if (typeof result === 'function') { effectDisposer = result as () => void; disposers.push(effectDisposer) }
       },
     }
 
@@ -196,7 +198,7 @@ describe('client bundle', () => {
         register: () => () => {},
         bind: () => (key: string) => `translated:${key}`,
       },
-      effect: () => {},
+      effect: (callback: () => unknown) => { const cleanup = callback(); if (typeof cleanup === 'function') disposers.push(cleanup as () => void) },
     })
 
     const section = registered.find((entry) => entry.name === 'settings.section')

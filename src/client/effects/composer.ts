@@ -74,6 +74,7 @@ ${focused}:is([data-lumina-streaming="on"] *)::before {
   50% { opacity: 1; }
 }
 
+html[data-lumina-motion-paused] :is(${card})::before { animation-play-state: paused !important; }
 @supports not (mask-composite: exclude) {
   ${card} { border-color: var(--lumina-edge-ice) !important; }
   ${card}::before { content: none; }

@@ -208,6 +208,44 @@ ${composerCss(
 .lumina-row { min-width: 0; padding: 6px 0; }
 .lumina-switch { accent-color: var(--dsw-alias-state-business-primary); }
 .lumina-segmented { flex-wrap: wrap; }
+
+.lumina-performance { position: relative; z-index: 1; min-width: 0; }
+.lumina-performance-intro { margin: -6px 0 2px; }
+.lumina-performance-control { position: relative; }
+.lumina-performance-options { display: flex; flex-wrap: nowrap; overflow-x: auto; }
+.lumina-performance-choice { flex: 1 0 auto; white-space: nowrap; }
+.lumina-performance-choice:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: -2px; }
+.lumina-performance-details { position: absolute; top: calc(100% + 6px); inset-inline: 0; z-index: 4; padding: 16px; border-radius: 12px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); box-shadow: 0 6px 24px color-mix(in srgb, var(--dsw-alias-label-primary) 15%, transparent), inset 0 0 0 1px var(--dsw-alias-border-l2); font-size: 12px; line-height: 1.6; }
+.lumina-performance-details::before { content: ''; position: absolute; inset-inline: 0; top: -8px; height: 8px; }
+.lumina-performance-details p { margin: 6px 0; }
+.lumina-performance-details dl { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 8px 12px; margin: 12px 0; }
+.lumina-performance-details dt { color: var(--dsw-alias-label-secondary); }
+.lumina-performance-details dd { margin: 0; overflow-wrap: anywhere; }
+.lumina-performance-summary { margin: 4px 0 0; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+
+/* Static layers animate only their opacity; no continuous painted shadows. */
+.lumina-section { position: relative; isolation: isolate; }
+.lumina-panel[data-settings-motion='on'] .lumina-section::before,
+.lumina-panel[data-settings-motion='on'] .lumina-section::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; opacity: 0; transition: opacity 220ms ease; }
+.lumina-panel[data-settings-motion='on'] .lumina-section::before { box-shadow: 0 2px 10px color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--lumina-settings-accent, var(--dsw-alias-state-business-primary)) 14%, transparent); }
+.lumina-panel[data-settings-motion='on'] .lumina-section::after { background: radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--lumina-settings-accent, var(--dsw-alias-state-business-primary)) 4%, transparent), transparent 65%); }
+.lumina-panel[data-settings-motion='on'] .lumina-section:focus-within::before,
+.lumina-panel[data-settings-motion='on'] .lumina-section:focus-within::after { opacity: 1; }
+.lumina-panel .lumina-segment, .lumina-panel .lumina-button { position: relative; overflow: hidden; isolation: isolate; }
+.lumina-setting-glint { position: absolute; inset: -25% -35%; border-radius: inherit; pointer-events: none; background: linear-gradient(105deg, transparent 25%, color-mix(in srgb, var(--lumina-settings-accent, var(--dsw-alias-state-business-primary)) 14%, var(--dsw-alias-bg-base)) 50%, transparent 75%); }
+.lumina-panel[data-settings-motion='on'] .lumina-performance-details { animation: lumina-settings-tip-in 140ms ease-out both; }
+@keyframes lumina-settings-tip-in { from { opacity: 0; } to { opacity: 1; } }
+html[data-lumina-motion-paused] .lumina-panel[data-settings-motion] .lumina-section { transform: none; }
+html[data-lumina-motion-paused] .lumina-panel[data-settings-motion] .lumina-section::before,
+html[data-lumina-motion-paused] .lumina-panel[data-settings-motion] .lumina-section::after { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .lumina-panel[data-settings-motion] .lumina-section,
+  .lumina-panel[data-settings-motion] .lumina-section:focus-within { transform: none; transition: none; }
+  .lumina-panel[data-settings-motion] .lumina-section::before,
+  .lumina-panel[data-settings-motion] .lumina-section::after { transition: none; }
+  .lumina-panel[data-settings-motion] .lumina-performance-details { animation: none; }
+  .lumina-setting-glint { display: none; }
+}
 ${BORDER_BREATHE}
 ${BORDER_SPIN}
 ${CARET_BREATHE}
