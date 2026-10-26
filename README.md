@@ -44,7 +44,7 @@ Turn off the master switch to restore the original interface. When system reduce
 
 - [Changelog](CHANGELOG.md): features, improvements and fixes in each release.
 - [Motion demos](docs/demo/README.md): interaction studies and design prototypes; these are not all shipped client effects.
-- [Implementation status](docs/product/功能实现状态.md): shipped features, unreleased 1.0 changes and future work.
+- [Implementation status](docs/product/功能实现状态.md): shipped features, verification scope and future work.
 - [Publishing and listing](docs/engineering/发布.md): npm releases and plugin-list submissions.
 
 Local development checks:

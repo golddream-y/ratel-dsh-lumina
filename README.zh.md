@@ -44,7 +44,7 @@ dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 
 - [更新记录](CHANGELOG.md)：各版本的功能、优化与修复。
 - [动效演示](docs/demo/README.md)：交互探索与设计原型，不代表全部已作为客户端效果发布。
-- [功能实现状态](docs/product/功能实现状态.md)：已发布功能、1.0 待发布改动与后续计划。
+- [功能实现状态](docs/product/功能实现状态.md)：已发布功能、验证范围与后续计划。
 - [发布与收录](docs/engineering/发布.md)：npm 发布流程和插件列表条目。
 
 本地开发检查：
