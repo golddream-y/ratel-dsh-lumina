@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>会话运行光团</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, "SF Pro Display", "PingFang SC", sans-serif; color: #1f2937; background: #eef2f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; padding: 32px; }
+    main { width: min(980px, 100%); margin: 0 auto; }
+    header { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: 0; }
+    p { margin: 8px 0 0; color: #667085; line-height: 1.6; }
+    .actions { display: flex; gap: 8px; }
+    button { border: 1px solid #d5dbea; border-radius: 7px; background: #fff; color: #27364f; padding: 9px 14px; cursor: pointer; }
+    button:hover { border-color: #91a9d8; }
+    .stage { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr); gap: 18px; align-items: stretch; }
+    .panel { background: rgba(255,255,255,.82); border: 1px solid rgba(144,158,188,.22); border-radius: 8px; padding: 18px; }
+    .panel h2 { margin: 0 0 14px; font-size: 14px; font-weight: 650; color: #526077; }
+    .rows { display: grid; gap: 10px; }
+    .row { position: relative; height: 52px; overflow: hidden; border-radius: 7px; background: #e6eaf2; }
+    .row-title { position: absolute; z-index: 2; left: 52px; top: 17px; font-size: 14px; color: #27364f; }
+    .row-time { position: absolute; z-index: 2; right: 12px; top: 18px; font-size: 12px; color: #7b8495; }
+    .row canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .detail { min-height: 100%; display: grid; place-items: center; background: #e6eaf2; border-radius: 7px; overflow: hidden; }
+    .detail canvas { display: block; width: 100%; aspect-ratio: 1; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; color: #667085; font-size: 12px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 8px; height: 8px; border-radius: 50%; }
+    footer { margin-top: 16px; color: #778197; font-size: 12px; }
+    @media (max-width: 760px) { body { padding: 18px; } .stage { grid-template-columns: 1fr; } header { align-items: start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>会话运行光团</h1>
+        <p>真实 12 px 图标槽位与放大材质检查。轮廓、内部色光和外围柔光使用客户端同一绘制器。</p>
+      </div>
+      <div class="actions">
+        <button id="motion" type="button">暂停</button>
+        <button id="theme" type="button">深色</button>
+      </div>
+    </header>
+    <section class="stage">
+      <div class="panel">
+        <h2>真实槽位 · 1 / 3 行并发</h2>
+        <div class="rows" id="rows"></div>
+      </div>
+      <div class="panel">
+        <h2>材质放大检查</h2>
+        <div class="detail"><canvas id="detail"></canvas></div>
+        <div class="legend">
+          <span><i class="swatch" style="background:#6ee7f9"></i>冷色</span>
+          <span><i class="swatch" style="background:#2563eb"></i>品牌蓝</span>
+          <span><i class="swatch" style="background:#ff766c"></i>暖珊瑚</span>
+          <span><i class="swatch" style="background:#b68cff"></i>紫色过渡</span>
+        </div>
+      </div>
+    </section>
+    <footer>装饰画布不接收指针事件。减少动态时保留宿主状态图标。</footer>
+  </main>
+  <script type="module">
+    import { createGalaxyPainter } from '/__lumina/source/effects/session-galaxy-painter.js'
+    import { createSessionCloudPainter } from '/__lumina/source/effects/session-cloud-painter.js'
+    import { requestMotionFrame, cancelMotionFrame } from '/__lumina/source/core/frame-scheduler.js'
+    import { RENDER_BUDGETS, setRenderBudget } from '/__lumina/source/core/performance.js'
+
+    setRenderBudget('quality')
+    const budget = RENDER_BUDGETS.quality
+    const palette = { cool: '#2563eb', warm: '#ff3b30', deep: '#102c82', light: '#ffffff' }
+    const rows = document.querySelector('#rows')
+    const scenes = []
+    for (let index = 0; index < 3; index++) {
+      const row = document.createElement('div')
+      row.className = 'row'
+      row.innerHTML = `<canvas></canvas><span class="row-title">${['Identifying Project Context', '了解工程并适配 dsh', '整理发布材料'][index]}</span><span class="row-time">${index === 0 ? '刚刚' : `${index * 3} 分钟`}</span>`
+      rows.append(row)
+      const canvas = row.querySelector('canvas')
+      scenes.push({
+        canvas,
+        context: canvas.getContext('2d'),
+        galaxy: createGalaxyPainter(index, budget),
+        cloud: createSessionCloudPainter(index + 7, budget, palette),
+        phase: index * 3.7,
+      })
+    }
+    const detail = document.querySelector('#detail')
+    const detailScene = {
+      canvas: detail,
+      context: detail.getContext('2d'),
+      cloud: createSessionCloudPainter(11, budget, palette),
+      phase: 0,
+    }
+    let running = true
+    let previous = performance.now()
+    window.addEventListener('focus', () => { previous = performance.now() })
+    let frame = 0
+    const sizes = new WeakMap()
+    const fit = scene => {
+      const rect = scene.canvas.getBoundingClientRect()
+      const dpr = Math.min(devicePixelRatio || 1, 2)
+      const width = Math.round(rect.width * dpr)
+      const height = Math.round(rect.height * dpr)
+      if (scene.canvas.width !== width || scene.canvas.height !== height) {
+        scene.canvas.width = width
+        scene.canvas.height = height
+      }
+      scene.context.setTransform(dpr, 0, 0, dpr, 0, 0)
+      sizes.set(scene, rect)
+      return rect
+    }
+    const allScenes = [...scenes, detailScene]
+    const resize = new ResizeObserver(() => allScenes.forEach(fit))
+    allScenes.forEach(scene => { fit(scene); resize.observe(scene.canvas) })
+    const draw = now => {
+      frame = 0
+      const delta = running ? Math.min(.05, (now - previous) / 1000) : 0
+      previous = now
+      if (running) {
+        for (const [index, scene] of scenes.entries()) {
+          scene.phase += delta
+          const rect = sizes.get(scene)
+          scene.context.clearRect(0, 0, rect.width, rect.height)
+          scene.galaxy(scene.context, rect.width, rect.height, scene.phase, false)
+          scene.cloud.draw(scene.context, 31, 26, 12, scene.phase, 1)
+        }
+        detailScene.phase += delta
+        const rect = sizes.get(detailScene)
+        detailScene.context.clearRect(0, 0, rect.width, rect.height)
+        detailScene.cloud.draw(detailScene.context, rect.width / 2, rect.height / 2, 138, detailScene.phase, 1)
+      }
+      if (running) frame = requestMotionFrame(draw, 'background')
+    }
+    frame = requestMotionFrame(draw, 'background')
+    document.querySelector('#motion').addEventListener('click', event => {
+      running = !running
+      previous = performance.now()
+      if (running) frame = requestMotionFrame(draw, 'background')
+      else cancelMotionFrame(frame)
+      event.currentTarget.textContent = running ? '暂停' : '播放'
+    })
+    document.querySelector('#theme').addEventListener('click', event => {
+      const dark = document.documentElement.style.colorScheme !== 'dark'
+      document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+      document.documentElement.style.background = dark ? '#18202e' : '#eef2f8'
+      document.documentElement.style.color = dark ? '#edf2f7' : '#1f2937'
+      event.currentTarget.textContent = dark ? '浅色' : '深色'
+    })
+  </script>
+</body>
+</html>

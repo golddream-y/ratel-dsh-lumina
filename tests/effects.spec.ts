@@ -35,11 +35,11 @@ describe('effect stylesheets', () => {
     expect(css).toContain('lumina-hero-mark')
   })
 
-  it('recolors the official session spinner without changing its structure', () => {
+  it('takes over the official session spinner only after the cloud is ready', () => {
     const css = sessionCss()
     expect(css).toContain('data-state="ongoing"')
-    expect(css).toContain('lumina-session-pulse')
-    expect(css).toContain('lumina-session-spin')
+    expect(css).toContain('data-lumina-session-cloud-ready')
+    expect(css).not.toContain('lumina-session-spin')
     expect(css.replace(/\.lumina-session-galaxy \{[^}]*\}/g, '')).not.toContain('width:')
     expect(css).toContain('pointer-events: none')
   })

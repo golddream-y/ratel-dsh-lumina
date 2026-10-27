@@ -2,7 +2,9 @@
 
 # Ratel Lumina · 流光
 
-[English](README.md) · 中文 · [npm](https://www.npmjs.com/package/@ratel-works/dsh-lumina) · [更新记录](CHANGELOG.md)
+[English](README.md) · 中文
+
+[![npm version](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?style=flat-square&label=npm)](https://www.npmjs.com/package/@ratel-works/dsh-lumina) [![License: MIT](https://img.shields.io/badge/License-MIT-0969da?style=flat-square)](LICENSE)
 
 **让交互，泛起流光。**
 
@@ -21,15 +23,16 @@ Ratel Lumina 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harn
 
 ## 安装与更新
 
-先安装 DeepSeek Harness，然后把插件加入实际使用的 profile：
+先安装 DeepSeek Harness，然后在插件商店搜索 **`ratel-dsh-lumina`**（作者 golddream-y）安装。
+
+也可以用命令行安装到指定 profile：
 
 ```sh
 dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 ```
 
-将 `<profile>` 替换为所用 profile，例如 `desktop` 或 `web`。升级时重新运行这条命令，然后**完整退出并重新打开客户端**，加载新的插件代码。
+将 `<profile>` 替换为 `desktop` 或 `web`。升级时重新安装，然后**完整退出并重新打开客户端**，加载新的插件代码。
 
-最近一次所需接口标识核查针对 DSH `0.2.1-rc.3`。客户端升级后需重新确认兼容性，检查范围见[兼容核查](docs/engineering/dsh-compat/README.md)。
 
 ## 设置
 
@@ -57,6 +60,14 @@ npm run build
 npm run install:local -- web
 ```
 
+## 赞助
+
+这是我给自己做的插件，顺手开源。初衷就是让枯燥的开发有趣一点。如果你也觉得好用，可以请我喝杯咖啡：
+
+- [爱发电](https://afdian.com/a/golddream) —— 微信支付、支付宝
+- [Ko-fi](https://ko-fi.com/golddream_y) —— PayPal、银行卡
+
+
 ## 许可
 
 项目采用 MIT 许可。第三方代码的来源及附加许可条款见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
@@ -64,3 +75,7 @@ npm run install:local -- web
 ### 品牌素材
 
 DeepSeek 标识归其各自权利人所有。本项目不主张这些标识的所有权，MIT 许可不代表授予品牌使用权。详见[第三方声明](THIRD_PARTY_NOTICES.md)。
+
+---
+
+版本更新记录见 [CHANGELOG.md](CHANGELOG.md)。

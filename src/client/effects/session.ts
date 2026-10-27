@@ -1,10 +1,9 @@
 /**
  * M8 · session activity indicator.
  *
- * The sidebar's running-session spinner is an official SVG with a track and a
- * short arc. The effect recolors it to the brand and gives it a slower breathe
- * and rotation. An inert canvas adds the running star river without changing
- * row height, native controls, or the screen-reader label.
+ * The sidebar's running-session spinner remains in place for semantics and
+ * failure recovery. A shared inert canvas draws the approved running cloud in
+ * the icon slot and the star river along the row's lower edge.
  */
 
 import { cssSelector } from '../adapter/selector.ts'
@@ -16,39 +15,17 @@ export function sessionCss(): string {
   const spinner = cssSelector('sessionRunning')
 
   return `
-.lumina-session-galaxy { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: inherit; color: var(--dsw-alias-label-primary); opacity: 0; transition: opacity 500ms ease; }
+.lumina-session-galaxy { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: inherit; color: var(--dsw-alias-label-primary); }
 @media (prefers-reduced-motion: reduce) { .lumina-session-galaxy { display: none; } }
-${spinner} {
-  color: var(--lumina-brand);
-  transform-origin: center;
-  animation: lumina-session-pulse var(--lumina-session) ease-in-out infinite !important;
+${spinner}[data-lumina-session-cloud-ready] {
+  opacity: 0 !important;
+  animation: none !important;
+  transition: none !important;
 }
-
-${spinner} :is(circle, path) {
-  stroke: var(--lumina-brand) !important;
-}
-
-${spinner} circle:first-of-type {
-  opacity: .16;
-}
-
-${spinner} g {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: lumina-session-spin calc(var(--lumina-session) * 2) linear infinite !important;
-}
-
-html[data-lumina-motion-paused] :is(${spinner}),
-html[data-lumina-motion-paused] :is(${spinner}) g { animation-play-state: paused !important; }
+html[data-lumina-motion-paused] .lumina-session-galaxy { visibility: hidden; }
+html[data-lumina-motion-paused] ${spinner}[data-lumina-session-cloud-ready] { opacity: 1 !important; }
 @media (prefers-reduced-motion: reduce) {
-  ${spinner},
-  ${spinner} g {
-    animation: none !important;
-  }
-
-  ${spinner} {
-    opacity: .8;
-  }
+  ${spinner}[data-lumina-session-cloud-ready] { opacity: 1 !important; transition: none !important; }
 }
 `
 }

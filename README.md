@@ -2,7 +2,9 @@
 
 # Ratel Lumina
 
-English · [中文](README.zh.md) · [npm](https://www.npmjs.com/package/@ratel-works/dsh-lumina) · [Changelog](CHANGELOG.md)
+English · [中文](README.zh.md)
+
+[![npm version](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?style=flat-square&label=npm)](https://www.npmjs.com/package/@ratel-works/dsh-lumina) [![License: MIT](https://img.shields.io/badge/License-MIT-0969da?style=flat-square)](LICENSE)
 
 **Let interaction glow.**
 
@@ -21,15 +23,16 @@ Works with the DSH desktop and Web / PWA clients. Adjust the motion to your pref
 
 ## Install and update
 
-Install DeepSeek Harness first, then add Lumina to the profile you use:
+Install DeepSeek Harness first, then search for **`ratel-dsh-lumina`** (author golddream-y) in the plugin store.
+
+You can also install from the command line:
 
 ```sh
 dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 ```
 
-Replace `<profile>` with your profile, such as `desktop` or `web`. Run the same command to update, then **fully quit and reopen the client** to load the new plugin code.
+Replace `<profile>` with `desktop` or `web`. Reinstall to update, then **fully quit and reopen the client** to load the new plugin code.
 
-The latest required interface-marker check targets DSH `0.2.1-rc.3`. Recheck compatibility after client updates; see the [compatibility checks](docs/engineering/dsh-compat/README.md) for their scope.
 
 ## Settings
 
@@ -57,6 +60,14 @@ npm run build
 npm run install:local -- web
 ```
 
+## Support
+
+This is a plugin I built for myself, released in the open. The whole point is to make tedious development a little more fun. If you find it useful too, you can buy me a coffee:
+
+- [Afdian](https://afdian.com/a/golddream) — WeChat Pay or Alipay
+- [Ko-fi](https://ko-fi.com/golddream_y) — PayPal, card
+
+
 ## License
 
 The project uses the MIT license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party sources and additional license terms.
@@ -64,3 +75,7 @@ The project uses the MIT license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTIC
 ### Brand assets
 
 DeepSeek marks belong to their respective rights holders. This project does not claim ownership of those marks or grant brand usage rights under its MIT license. See [third-party notices](THIRD_PARTY_NOTICES.md).
+
+---
+
+Release notes: [CHANGELOG.md](CHANGELOG.md).

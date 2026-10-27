@@ -49,7 +49,7 @@ export function PerformanceSettings({ value, disabled, onChange, t }: {
         <p>{t(`performanceHint_${info}`)}</p>
         <dl>
           <dt>{t('performanceFrames')}</dt><dd>{b.backgroundFps} / {b.interactionFps} fps</dd>
-          <dt>{t('performanceGalaxy')}</dt><dd>{b.stars} {t('performanceStars')} · {b.filaments} {t('performanceLines')} · DPR ≤ {b.galaxyDpr}</dd>
+          <dt>{t('performanceGalaxy')}</dt><dd>{b.stars} {t('performanceStars')} · {b.filaments} {t('performanceLines')} · {b.cloudResolution} {t('performanceCloudResolution')} · {b.cloudSteps} {t('performanceCloudSteps')} · DPR ≤ {b.galaxyDpr}</dd>
           <dt>{t('performanceRibbon')}</dt><dd>DPR ≤ {b.ribbonDpr} · {(b.ribbonPixels / 1_000_000).toFixed(1)} MP · MSAA {b.ribbonSamples}× · {b.ribbonColumns} × 16</dd>
           <dt>{t('performanceEntrance')}</dt><dd>≤ {b.heroParticles} {t('performanceStars')} · DPR ≤ {b.heroDpr}</dd>
         </dl>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>流光 · 云团材质</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f0f2f6;color:#293342;font:14px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}main{max-width:1040px;margin:0 auto;padding:36px 24px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}h1{font-size:24px;margin:0 0 8px;font-weight:600}p{margin:0;color:#7b8290;line-height:1.7}button{border:1px solid #d8dce5;border-radius:20px;background:#fff;color:#536079;padding:9px 17px;cursor:pointer}.layout{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}.material{position:relative;background:#e5e7ee;border-radius:24px;overflow:hidden}.material canvas{display:block;width:100%;aspect-ratio:1;pointer-events:none}.label{position:absolute;top:22px;left:24px;color:#747c8b;font-size:12px;letter-spacing:.05em}.side{display:flex;flex-direction:column;gap:18px}.card{border-radius:24px;padding:24px;background:#fff}.card h2{font-size:13px;font-weight:500;color:#7b8290;margin:0 0 20px}.row{position:relative;display:flex;align-items:center;gap:10px;height:46px;border-radius:12px;background:#e8ebf1;padding:0 12px;margin-bottom:10px;overflow:hidden}.row:after{content:'';position:absolute;bottom:1px;left:12px;right:12px;height:4px;background:linear-gradient(90deg,transparent,#b3dbf5,#d7d5f3,#f7d8dc,transparent);filter:blur(2px)}.row canvas{width:22px;height:22px;flex:none}.row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.row small{margin-left:auto;white-space:nowrap;color:#969ca6}.sizes{display:flex;align-items:center;gap:28px}.sizes div{text-align:center;color:#9299a4;font-size:11px}.sizes canvas{display:block;margin:0 auto 12px;width:40px;height:40px}.sizes div:first-child canvas{width:22px;height:22px}.sizes div:last-child canvas{width:64px;height:64px}footer{margin-top:20px;color:#8b929f;font-size:12px}body.dark{background:#141a25;color:#dbe3f3}body.dark .material,body.dark .row{background:#1b2537}body.dark .card{background:#202a3b}@media(max-width:740px){.layout{grid-template-columns:1fr}header{gap:12px}.material{max-height:450px}.material canvas{width:min(100%,450px);max-height:none;margin-inline:auto}}
+</style></head><body><main><header><div><h1>会话运行光团</h1><p>内部翻涌 · 半透明薄膜 · 柔光边缘</p></div><div><button id="pause">暂停</button> <button id="theme">深色</button></div></header><div class="layout"><div class="material"><div class="label">材质放大</div><canvas id="cloud"></canvas></div><div class="side"><section class="card"><h2>实际会话槽位 · 主体约 12 px</h2><div class="row"><canvas data-copy="22"></canvas><span>Identifying Project Context</span><small>刚刚</small></div><div class="row"><canvas data-copy="22"></canvas><span>了解工程并适配 dsh</span><small>3 分钟</small></div><div class="row"><canvas data-copy="22"></canvas><span>整理发布材料</span><small>6 分钟</small></div></section><section class="card"><h2>同一帧 · 不同尺寸</h2><div class="sizes"><div><canvas data-copy="22"></canvas>12 px</div><div><canvas data-copy="40"></canvas>22 px</div><div><canvas data-copy="64"></canvas>36 px</div></div></section><section class="card"><h2>材质原型</h2><p>对照实际尺寸观察颜色、轮廓和运动。小尺寸样本使用客户端绘制器与均衡档位，放大区用于检查材质。</p><p id="status" aria-live="polite"></p></section></div></div><footer>连续流动的体积材质 · 原型阶段</footer></main>
+<script type="module">
+import { createSessionCloudPainter, clearSessionCloudCache } from '/__lumina/source/effects/session-cloud-painter.js';
+import { RENDER_BUDGETS } from '/__lumina/source/core/performance.js';
+const clientCloud=createSessionCloudPainter(0,RENDER_BUDGETS.balanced);
+window.addEventListener('pagehide',clearSessionCloudCache);
+const canvas=document.querySelector('#cloud'),status=document.querySelector('#status');
+const gl=canvas.getContext('webgl2',{alpha:true,antialias:false,premultipliedAlpha:false,preserveDrawingBuffer:false});
+if(!gl){status.textContent='当前浏览器无法启用材质预览。';throw Error('WebGL2 unavailable')}
+import { CLOUD_VERTEX_SHADER as vs, CLOUD_FRAGMENT_SHADER as fs } from '/__lumina/source/effects/session-cloud-volume-shader.js';
+
+function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+gl.uniform1i(gl.getUniformLocation(program,'steps'),40);
+gl.uniform3f(gl.getUniformLocation(program,'cool'),.145098,.388235,.921569);
+gl.uniform3f(gl.getUniformLocation(program,'warmColor'),1.,.231373,.188235);
+gl.uniform3f(gl.getUniformLocation(program,'deep'),.062745,.172549,.509804);
+const clock=gl.getUniformLocation(program,'time'),copies=[...document.querySelectorAll('[data-copy]')].map(c=>{c.width=c.height=Number(c.dataset.copy)*2;return{c,g:c.getContext('2d')}});
+canvas.width=canvas.height=640;gl.viewport(0,0,640,640);
+let running=true,frame=0,seconds=4,previous=0,last=0;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+function paint(){gl.uniform1f(clock,seconds);gl.drawArrays(gl.TRIANGLES,0,3);for(const {c,g} of copies){g.clearRect(0,0,c.width,c.height);clientCloud.draw(g,c.width/2,c.height/2,c.width*.57,seconds-4,1)}}
+function tick(now){frame=0;if(!running||document.hidden||!document.hasFocus()||reduced.matches)return;if(now-last>=1000/30){seconds+=previous?Math.min(.05,(now-previous)/1000):0;previous=now;last=now;paint()}frame=requestAnimationFrame(tick)}
+function wake(){previous=0;if(!frame&&running&&!document.hidden&&!reduced.matches)frame=requestAnimationFrame(tick)}
+function stop(){cancelAnimationFrame(frame);frame=0;previous=0}
+document.querySelector('#pause').onclick=e=>{running=!running;e.target.textContent=running?'暂停':'播放';running?wake():stop()};
+document.querySelector('#theme').onclick=e=>{const dark=document.body.classList.toggle('dark');e.target.textContent=dark?'浅色':'深色';paint()};
+window.addEventListener('blur',stop);window.addEventListener('focus',wake);document.addEventListener('visibilitychange',()=>document.hidden?stop():wake());reduced.addEventListener('change',()=>{stop();paint();wake()});
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();stop();status.textContent='绘制已暂停，请刷新页面恢复。'});paint();wake();
+</script></body></html>

@@ -1,6 +1,6 @@
 {
   "name": "@ratel-works/dsh-lumina",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A subtle layer of motion for DeepSeek Harness. Customizable visual and motion enhancements for the client.",
   "license": "MIT",
   "type": "module",
@@ -58,8 +58,8 @@
     }
   },
   "scripts": {
-    "build": "node tools/gen-silk-art.mjs && rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
-    "build:client": "node tools/gen-silk-art.mjs && tsdown",
+    "build": "node tools/gen-session-cloud-art.mjs && node tools/gen-silk-art.mjs && rm -rf lib/types && tsc -p tsconfig.build.json && tsdown",
+    "build:client": "node tools/gen-session-cloud-art.mjs && node tools/gen-silk-art.mjs && tsdown",
     "install:local": "bash tools/install-local.sh",
     "prepare": "npm run build",
     "test": "vitest run",
@@ -68,6 +68,7 @@
     "verify:hooks": "node tools/verify-hooks.mjs",
     "watch": "tsdown --watch",
     "gen:brand": "node tools/gen-brand-assets.mjs",
+    "gen:session-cloud": "node tools/gen-session-cloud-art.mjs",
     "pack:check": "npm pack --dry-run",
     "check:dsh": "node tools/check-dsh-compat.mjs",
     "check:dsh:json": "node tools/check-dsh-compat.mjs --json --dry-run",
@@ -131,5 +132,15 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://afdian.com/a/golddream"
+    },
+    {
+      "type": "individual",
+      "url": "https://ko-fi.com/golddream_y"
+    }
+  ]
 }
