@@ -1,4 +1,4 @@
-![Ratel Lumina 流光 — 让交互，泛起流光。DeepSeek Harness 动效创意示意图。](assets/readme/hero-zh-CN.webp)
+![Ratel Lumina 流光 — 让开发，有趣一点。DeepSeek Harness 动效创意示意图。](assets/readme/hero-zh-CN.webp)
 
 # Ratel Lumina · 流光
 
@@ -6,7 +6,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?style=flat-square&label=npm)](https://www.npmjs.com/package/@ratel-works/dsh-lumina) [![License: MIT](https://img.shields.io/badge/License-MIT-0969da?style=flat-square)](LICENSE)
 
-**让交互，泛起流光。**
+**让开发，有趣一点。**
 
 为 DeepSeek Harness 添一层恰到好处的动效。
 

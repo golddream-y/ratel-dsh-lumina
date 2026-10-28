@@ -1,7 +1,7 @@
 {
   "name": "@ratel-works/dsh-lumina",
   "version": "1.1.0",
-  "description": "A subtle layer of motion for DeepSeek Harness. Customizable visual and motion enhancements for the client.",
+  "description": "Make development more fun. A subtle layer of motion for DeepSeek Harness, with customizable visual effects and reduced-motion support.",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -47,8 +47,8 @@
     "catalog": {
       "category": "ui",
       "summary": {
-        "en": "Let interaction glow. A subtle layer of motion for DeepSeek Harness, with customizable effects and reduced-motion support.",
-        "zh": "让交互，泛起流光。为 DeepSeek Harness 添一层恰到好处的动效，支持效果调整并跟随系统「减少动态效果」。"
+        "en": "Make development more fun. A subtle layer of motion for DeepSeek Harness, with customizable effects and reduced-motion support.",
+        "zh": "让开发，有趣一点。为 DeepSeek Harness 添一层恰到好处的动效，支持效果调整并跟随系统「减少动态效果」。"
       },
       "capabilities": [
         "slots",

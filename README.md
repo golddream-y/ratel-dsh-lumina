@@ -1,4 +1,4 @@
-![Ratel Lumina — Let interaction glow. A concept illustration of subtle motion for DeepSeek Harness.](assets/readme/hero-en.webp)
+![Ratel Lumina — Make development more fun. A concept illustration of subtle motion for DeepSeek Harness.](assets/readme/hero-en.webp)
 
 # Ratel Lumina
 
@@ -6,7 +6,7 @@ English · [中文](README.zh.md)
 
 [![npm version](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?style=flat-square&label=npm)](https://www.npmjs.com/package/@ratel-works/dsh-lumina) [![License: MIT](https://img.shields.io/badge/License-MIT-0969da?style=flat-square)](LICENSE)
 
-**Let interaction glow.**
+**Make development more fun.**
 
 A subtle layer of motion for DeepSeek Harness.
 
