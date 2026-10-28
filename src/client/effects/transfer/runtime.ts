@@ -8,13 +8,14 @@ import { requestMotionFrame, cancelMotionFrame } from '../../core/frame-schedule
  */
 
 import type { TransferRequest } from '../../adapter/send-transfer.ts'
-import { snapshotGlyphs } from '../../adapter/glyphs.ts'
+import { snapshotGlyphs, snapshotSurface } from '../../adapter/glyphs.ts'
 import { cssSelector } from '../../adapter/selector.ts'
+import { isTransferScrollContainer } from '../../adapter/targets.ts'
 import { prefersReducedMotion } from '../../core/motion.ts'
 import { reportTransferStatus } from '../../core/transfer-status.ts'
 import type { Intensity } from '../../core/config.ts'
 import { durationMs } from '../../style/tokens.ts'
-import { bubbleHost, center, glyphNode } from './shared.ts'
+import { bubbleHost, center, glyphNode, paintedAncestor } from './shared.ts'
 import { FLIGHT_START, TRANSFER_TIME } from '../liquid-geometry.ts'
 import type { Point, TransferMode, TransferStage } from './types.ts'
 import { flowLandingPoint, flowMessageReveal } from './flow-landing.ts'
@@ -172,6 +173,7 @@ export function runTransfer(
   let lastFrame = 0
   let slowFrames = 0
   let degraded = false
+  let targetMoved = false
   const started = performance.now()
   let handoff:ComposerHandoff|null=null
   if(firstLayout)handoff=composerHandoff(firstLayout,card,started,(dx,dy,next,final)=>{
@@ -227,6 +229,10 @@ export function runTransfer(
   const onMotion = () => { if (media.matches) stop() }
   const onScroll = (event: Event) => {
     if(handoff?.waiting)return
+    if (mode === 'flow' && isTransferScrollContainer(event.target, card, stage.target?.element)) {
+      targetMoved = true
+      return
+    }
     if (event.target === document || (performance.now() - started - (handoff?.paused??0)) * TRANSFER_TIME / stage.duration >= landingStart) stop()
   }
   window.addEventListener('scroll', onScroll, true)
@@ -262,20 +268,23 @@ export function runTransfer(
       lastFrame = now
       const t = (now - started - (handoff?.paused??0)) * TRANSFER_TIME / stage.duration
 
-      if (!stage.target || !stage.target.element.isConnected) {
+      const moved = targetMoved
+      targetMoved = false
+      if (!stage.target || !stage.target.element.isConnected || moved) {
         const element = request.target()
-        const next = element ? snapshotGlyphs(element) : null
+        const next = element ? mode === 'flow' ? snapshotSurface(element, paintedAncestor(element)) : snapshotGlyphs(element) : null
         if (next) {
-          const nextCenter = mode==='flow'?flowLandingPoint(next.element,edge):center(next)
-          if (stage.arrival && t >= landingStart && Math.hypot(nextCenter.x - stage.arrival.x, nextCenter.y - stage.arrival.y) > 8) { stop(); return }
+          const nextCenter = mode==='flow'?flowLandingPoint(next.element,edge,next.box):center(next)
+          if (!moved && stage.arrival && t >= landingStart && Math.hypot(nextCenter.x - stage.arrival.x, nextCenter.y - stage.arrival.y) > 8) { stop(); return }
           stage.target = next
           // Hide the whole message row first, background included, so the
           // bubble is gone before the animation reads as a send.
           const host=bubbleHost(next.element)
           mask(host)
           if(mode==='flow'){flowHost=host;messageReveal.update(host,0)}
-          if (stage.copyGlyphs.length === 0) {
-            // Freeze the destination and the copy geometry on the first hit.
+          if (mode === 'flow' || stage.copyGlyphs.length === 0) {
+            // Flow refreshes its landing only after scroll invalidation;
+            // modes with target glyph copies keep their initial geometry.
             stage.arrival = nextCenter
             stage.copyGlyphs = next.glyphs
             for (const node of stage.targetNodes) node.remove()
@@ -289,7 +298,7 @@ export function runTransfer(
             root.style.height = `${Math.min(innerHeight - stage.origin.y, Math.max(source.box.bottom, next.box.bottom) - stage.origin.y + pad)}px`
             placeFlow()
           }
-        } else if (stage.target && !stage.target.element.isConnected && t >= landingStart) {
+        } else if (stage.target && (moved || !stage.target.element.isConnected) && t >= landingStart) {
           stop(); return
         }
       }

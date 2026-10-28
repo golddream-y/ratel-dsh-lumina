@@ -115,6 +115,57 @@ try {
     await page.evaluate(()=>cleanups.forEach(fn=>fn?.()))
     boundaries.push({kind,...remaining})
   }
-  fs.writeFileSync(`${out}/evidence.json`, JSON.stringify({ samples, reduced, cleanup, boundaries, errors }, null, 2))
-  console.log(JSON.stringify({ frames: samples.length, mode: at(0).mode, coherentSource: true, coherentTarget: true, noTextBlur: true, reduced, cleanup, boundaries, errors, out }, null, 2))
+  const scrollCases = []
+  for (const testCase of [
+    { name: 'near', padding: 185 },
+    { name: 'near-auto-scroll', padding: 185, automatic: true },
+    { name: 'partially-clipped', padding: 225 },
+    { name: 'user-wheel', padding: 185, user: true },
+  ]) {
+    await boot()
+    await page.evaluate(padding => {
+      const chat = document.querySelector('#chat')
+      chat.setAttribute('data-conversation-scroll', '')
+      chat.style.overflow = 'auto'
+      chat.style.paddingTop = `${padding}px`
+    }, testCase.padding)
+    await page.locator('#send').click()
+    await page.evaluate(() => { advance(0); advance(40); advance(80); advance(100) })
+    assert.equal(await page.locator('.lumina-transfer').count(), 1)
+    if (testCase.automatic) await page.evaluate(() => {
+      const chat = document.querySelector('#chat')
+      chat.scrollTop = 8
+      chat.dispatchEvent(new Event('scroll'))
+    })
+    if (testCase.user) await page.evaluate(() => window.dispatchEvent(new WheelEvent('wheel')))
+    await page.evaluate(() => advance(160))
+    const present = await page.locator('.lumina-transfer').count()
+    assert.equal(present, testCase.user ? 0 : 1, testCase.name)
+    if (present) {
+      const endpoint = await page.evaluate(() => {
+        const root = document.querySelector('.lumina-transfer')
+        const art = root.querySelector('[data-flow-part]')
+        const matrix = art.transform.baseVal.consolidate().matrix
+        const box = root.getBoundingClientRect()
+        const chatBox = document.querySelector('#chat').getBoundingClientRect()
+        const bubbleBox = document.querySelector('.bubble').getBoundingClientRect()
+        return { y: matrix.b * 1280 + matrix.d * 150 + matrix.f + box.top,
+          expected: Math.min(chatBox.bottom, bubbleBox.bottom) - 1 }
+      })
+      assert(Math.abs(endpoint.y - endpoint.expected) < 1, `${testCase.name}: landing follows visible bubble`)
+      await page.evaluate(() => advance(280))
+      await page.screenshot({ path: `${out}/${testCase.name}.png` })
+    }
+    await page.evaluate(() => advance(600))
+    const remaining = await page.evaluate(() => ({
+      overlays: document.querySelectorAll('.lumina-transfer').length,
+      masks: document.querySelectorAll('[data-lumina-transfer-mask], [data-lumina-transfer-pending], [data-lumina-flow-reveal]').length,
+    }))
+    assert.deepEqual(remaining, { overlays: 0, masks: 0 })
+    scrollCases.push({ ...testCase, present: !!present, ...remaining })
+    await page.evaluate(() => cleanups.forEach(fn => fn?.()))
+  }
+  assert.equal(errors.length, 0)
+  fs.writeFileSync(`${out}/evidence.json`, JSON.stringify({ samples, reduced, cleanup, boundaries, scrollCases, errors }, null, 2))
+  console.log(JSON.stringify({ frames: samples.length, mode: at(0).mode, coherentSource: true, coherentTarget: true, noTextBlur: true, reduced, cleanup, boundaries, scrollCases, errors, out }, null, 2))
 } finally { await browser.close() }

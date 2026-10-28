@@ -76,6 +76,17 @@ describe('send transfer identity and lifecycle', () => {
     expect(f.session.count()).toBe(0)
     expect(vi.getTimerCount()).toBe(0)
   })
+  it('allows editing keys but cancels active transfers for user scroll gestures', () => {
+    const f = setup()
+    f.send.click(); f.session.set({ pendingSubmissions: [{ requestId: 'r1', placement: 'transcript', text: 'same' }] })
+    f.editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
+    expect(f.stop).not.toHaveBeenCalled()
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'PageDown', bubbles: true }))
+    expect(f.stop).toHaveBeenCalledTimes(1)
+    f.send.click(); f.session.set({ pendingSubmissions: [{ requestId: 'r2', placement: 'transcript', text: 'same' }] })
+    window.dispatchEvent(new WheelEvent('wheel'))
+    expect(f.stop).toHaveBeenCalledTimes(2)
+  })
   it('resolves the current session only from uiSession.current, never from a session list', () => {
     const f = setup()
     // A list-shaped snapshot without a `current` field must not be mistaken

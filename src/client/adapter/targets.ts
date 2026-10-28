@@ -126,6 +126,17 @@ export function pendingEchoes(root: Element): Element[] {
     .filter((node) => node.closest('[data-conversation-region="composer"]') === null)
 }
 
+/** Only the current conversation's native scroll owner may move a flow landing. */
+export function isTransferScrollContainer(target: EventTarget | null, composer: HTMLElement, message?: HTMLElement): boolean {
+  return target instanceof HTMLElement && target.matches('[data-conversation-scroll]')
+    && (target.contains(composer) || !!message && target.contains(message))
+}
+
+export function isScrollNavigation(event: KeyboardEvent): boolean {
+  if (!['PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) return false
+  return !(event.target instanceof Element && event.target.closest('input, textarea, [contenteditable="true"], [role="textbox"]'))
+}
+
 /** Match layout only after request identity is known; never establishes identity. */
 export function userTextRoot(node: Element, text: string): HTMLElement | null {
   const expected = compactText(text)

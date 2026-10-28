@@ -5,13 +5,15 @@ export const FLOW_REVEAL='data-lumina-flow-reveal'
 const PROGRESS='--lumina-flow-progress'
 
 /** Enter the near boundary, keeping the ribbon out of the text's centre. */
-export function flowLandingPoint(element:HTMLElement,from:Point):Point {
-  const rect=paintedAncestor(element).getBoundingClientRect()
+export function flowLandingPoint(element:HTMLElement,from:Point,visible?:{left:number;top:number;right:number;bottom:number}):Point {
+  const bounds=paintedAncestor(element).getBoundingClientRect()
+  const rect=visible ? {left:Math.max(bounds.left,visible.left),top:Math.max(bounds.top,visible.top),right:Math.min(bounds.right,visible.right),bottom:Math.min(bounds.bottom,visible.bottom)} : bounds
   const cx=(rect.left+rect.right)/2,cy=(rect.top+rect.bottom)/2
-  const inset=Math.min(18,rect.width*.15)
+  const inset=Math.min(18,(rect.right-rect.left)*.15)
+  const height=rect.bottom-rect.top
   if(from.y>rect.bottom)return{x:from.x<cx?rect.left+inset:rect.right-inset,y:rect.bottom-1}
   if(from.y<rect.top)return{x:from.x<cx?rect.left+inset:rect.right-inset,y:rect.top+1}
-  return{x:from.x<cx?rect.left+1:rect.right-1,y:Math.max(rect.top+Math.min(12,rect.height/2),Math.min(rect.bottom-Math.min(12,rect.height/2),from.y||cy))}
+  return{x:from.x<cx?rect.left+1:rect.right-1,y:Math.max(rect.top+Math.min(12,height/2),Math.min(rect.bottom-Math.min(12,height/2),from.y||cy))}
 }
 
 export function flowMessageReveal(id:string) {

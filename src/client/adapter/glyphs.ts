@@ -21,17 +21,33 @@ export function snapshotGlyphs(element: HTMLElement): GlyphSnapshot | null {
   try { return captureGlyphs(element) } catch { return null }
 }
 
-function captureGlyphs(element: HTMLElement): GlyphSnapshot | null {
+/** A flow landing needs a visible surface, not copies of each target glyph. */
+export function snapshotSurface(element: HTMLElement, surface = element): GlyphSnapshot | null {
+  try {
+    const box = visibleBox(surface)
+    return box ? { element, text: element.innerText ?? element.textContent ?? '', glyphs: [], box } : null
+  } catch { return null }
+}
+
+function visibleBox(element: HTMLElement): GlyphSnapshot['box'] | null {
   const bounds = element.getBoundingClientRect()
   let left = Math.max(0, bounds.left), top = Math.max(0, bounds.top)
   let right = Math.min(innerWidth, bounds.right), bottom = Math.min(innerHeight, bounds.bottom)
   for (let parent = element.parentElement; parent; parent = parent.parentElement) {
     const style = getComputedStyle(parent)
+    if (style.display === 'contents') continue
     const rect = parent.getBoundingClientRect()
     if (/hidden|clip|auto|scroll/.test(style.overflowX)) { left = Math.max(left, rect.left); right = Math.min(right, rect.right) }
     if (/hidden|clip|auto|scroll/.test(style.overflowY)) { top = Math.max(top, rect.top); bottom = Math.min(bottom, rect.bottom) }
   }
   if (right <= left || bottom <= top) return null
+  return { left, top, right, bottom }
+}
+
+function captureGlyphs(element: HTMLElement): GlyphSnapshot | null {
+  const box = visibleBox(element)
+  if (!box) return null
+  const { left, top, right, bottom } = box
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
   const glyphs: Glyph[] = []
   const range = document.createRange()
@@ -56,5 +72,5 @@ function captureGlyphs(element: HTMLElement): GlyphSnapshot | null {
     }
   }
   if (!glyphs.length) return null
-  return { element, text: element.innerText ?? element.textContent ?? '', glyphs, box: { left, top, right, bottom } }
+  return { element, text: element.innerText ?? element.textContent ?? '', glyphs, box }
 }

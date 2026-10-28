@@ -12,6 +12,7 @@ describe('flow message handover',()=>{
     expect(flowLandingPoint(text,{x:100,y:600})).toEqual({x:518,y:179})
     expect(flowLandingPoint(text,{x:900,y:0})).toEqual({x:782,y:101})
     expect(flowLandingPoint(text,{x:100,y:140})).toEqual({x:501,y:140})
+    expect(flowLandingPoint(text,{x:100,y:600},{left:500,top:100,right:800,bottom:130})).toEqual({x:518,y:129})
   })
   it('reveals a single real row including its background, then restores ownership',()=>{
     document.documentElement.dataset.lumina='on'

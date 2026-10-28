@@ -1,6 +1,6 @@
 /** Read-only public-service bridge. No submission methods or private stores. */
 import { cssSelector, queryTarget } from './selector.ts'
-import { compactText, conversationRoot, pendingEchoes, sendControl, userNode, userTextRoot } from './targets.ts'
+import { compactText, conversationRoot, isScrollNavigation, pendingEchoes, sendControl, userNode, userTextRoot } from './targets.ts'
 import { snapshotGlyphs, type GlyphSnapshot } from './glyphs.ts'
 import { prefersReducedMotion } from '../core/motion.ts'
 import { reportTransferStatus } from '../core/transfer-status.ts'
@@ -247,9 +247,11 @@ export function installTransferBridge(
     retryBinding()
   }
   const releaseCurrent = ui.current.subscribe(bind)
+  const onScrollKey = (event: KeyboardEvent) => { if (isScrollNavigation(event)) cancel() }
   bind()
   document.addEventListener('click', prepare, true)
   document.addEventListener('keydown', prepare, true)
+  document.addEventListener('keydown', onScrollKey, true)
   window.addEventListener('wheel', cancel, { capture: true, passive: true })
   window.addEventListener('touchmove', cancel, { capture: true, passive: true })
   window.addEventListener('resize', cancel)
@@ -257,6 +259,7 @@ export function installTransferBridge(
     cancel(); releaseSession(); releaseCurrent()
     document.removeEventListener('click', prepare, true)
     document.removeEventListener('keydown', prepare, true)
+    document.removeEventListener('keydown', onScrollKey, true)
     fallbacks.clear()
     window.removeEventListener('wheel', cancel, true)
     window.removeEventListener('touchmove', cancel, true)
