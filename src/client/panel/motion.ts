@@ -44,3 +44,40 @@ export function usePanelMotion(root: RefObject<HTMLDivElement>, enabled: boolean
     if (button) play(button)
   } }
 }
+
+/**
+ * Publish the active chip's box on every segmented group under `root`.
+ *
+ * The selected state is drawn by one indicator per group instead of by tinting
+ * each chip, so switching a mode slides the indicator to the new chip. Widths
+ * differ per group (the colour preset carries brand marks, the send modes carry
+ * five labels), so the box is measured rather than computed from an index.
+ *
+ * @param root - the panel element that owns the groups.
+ * @param signature - re-measure when any selection changes.
+ */
+export function useSegmentIndicators(root: RefObject<HTMLElement>, signature: string) {
+  useEffect(() => {
+    const container = root.current
+    if (container === null) return
+    const measure = () => {
+      for (const group of container.querySelectorAll<HTMLElement>('.lumina-segmented')) {
+        const chip = group.querySelector<HTMLElement>('.lumina-segment[data-active="true"]')
+        if (chip === null) { delete group.dataset.chip; continue }
+        group.dataset.chip = 'ready'
+        group.style.setProperty('--lumina-chip-x', `${chip.offsetLeft}px`)
+        group.style.setProperty('--lumina-chip-y', `${chip.offsetTop}px`)
+        group.style.setProperty('--lumina-chip-w', `${chip.offsetWidth}px`)
+        group.style.setProperty('--lumina-chip-h', `${chip.offsetHeight}px`)
+      }
+    }
+    measure()
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+    observer?.observe(container)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [root, signature])
+}

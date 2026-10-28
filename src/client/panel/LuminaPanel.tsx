@@ -1,4 +1,4 @@
-import { usePanelMotion } from './motion.ts'
+import { usePanelMotion, useSegmentIndicators } from './motion.ts'
 import { getMotionStatus, subscribeMotionStatus } from '../core/frame-scheduler.ts'
 import { PerformanceSettings } from './PerformanceSettings.tsx'
 /**
@@ -96,6 +96,7 @@ export function LuminaPanel(props: LuminaPanelProps) {
   const base = useRef<LuminaConfig>(saved)
   const panelRoot = useRef<HTMLDivElement>(null)
   const feedback = usePanelMotion(panelRoot, draft.master)
+  useSegmentIndicators(panelRoot, `${draft.brand}|${draft.intensity}|${draft.performance.profile}|${draft.effects.sendTransition}`)
 
   // A commit made elsewhere replaces the committed snapshot under us. Keep the
   // base in step so the conflict flag means "the stored value moved", not

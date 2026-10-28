@@ -143,7 +143,7 @@ export function panelCss(): string {
 .lumina-switch:checked::before { transform: translateX(14px); }
 .lumina-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 3px; }
 .lumina-switch:disabled { opacity: .4; cursor: default; }
-@media (prefers-reduced-motion: reduce) { .lumina-switch, .lumina-switch::before, .lumina-segment { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lumina-switch, .lumina-switch::before, .lumina-segment, .lumina-segmented::before { transition: none; } }
 
 .lumina-preview {
   display: flex;
@@ -241,7 +241,33 @@ ${composerCss(
 .lumina-diagnostics[open] summary { margin-bottom: 16px; }
 .lumina-row { min-width: 0; padding: 4px 0; }
 .lumina-switch { accent-color: var(--dsw-alias-state-business-primary); }
-.lumina-segmented { flex-wrap: wrap; }
+.lumina-segmented { flex-wrap: wrap; position: relative; }
+/* One indicator per group slides to the active chip, so switching a mode reads
+   as movement rather than as two chips swapping colour. The box comes from
+   useSegmentIndicators because the groups have different widths. */
+.lumina-segmented::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: var(--lumina-chip-w, 0);
+  height: var(--lumina-chip-h, 0);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-state-business-primary) 35%, transparent);
+  transform: translate(var(--lumina-chip-x, 0), var(--lumina-chip-y, 0));
+  transition: transform 200ms cubic-bezier(.22,.7,.3,1), width 200ms cubic-bezier(.22,.7,.3,1), height 200ms ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.lumina-segmented[data-chip='ready']::before { opacity: 1; }
+/* While the indicator is measured it owns the highlight; before that (first
+   paint, no JS) the chip keeps its own tint as a fallback. */
+.lumina-segmented[data-chip='ready'] > .lumina-segment[data-active='true'] {
+  background: transparent;
+  box-shadow: none;
+}
 
 .lumina-performance { position: relative; z-index: 1; min-width: 0; }
 /* Every block isolates its own stacking context, so a later block paints over
