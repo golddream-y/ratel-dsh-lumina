@@ -8,18 +8,15 @@
 
 **让开发，有趣一点。**
 
-为 DeepSeek Harness 添一层恰到好处的动效。
-
-Ratel Lumina 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的视觉动效增强插件。
-
-适用于 DSH 的桌面端与 Web / PWA 客户端。动效可以按偏好调整，也可以随时关闭。
+Ratel Lumina 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的视觉动效增强插件，适用于桌面端与 Web / PWA 客户端。从界面切换、会话运行到输入发送，为日常开发添一层恰到好处的动效。
 
 ## 为什么用 Lumina
 
-- **连贯的体验**：从界面切换、菜单弹框到输入发送，以协调的视觉与动效丰富日常操作。
-- **按偏好调整**：支持动效强度、配色、性能档位和独立效果开关，保存后即时生效。
-- **保留原有工作方式**：不修改模型、请求或消息内容，不延迟发送，不阻挡输入、点击与选中。
-- **轻量且可关闭**：使用浏览器原生能力，不额外引入动效框架；支持总开关，跟随系统「减少动态效果」。
+- **连贯的交互**：面板开合、菜单弹框和消息转场自然衔接，运行中的会话有流动的光与色彩。
+- **自己的风格**：品牌质感、配色、动效强度和发送效果可以按偏好选择，每个效果都能单独关闭。
+- **原生的实现**：使用浏览器原生能力，不额外引入动效框架，并跟随系统「减少动态效果」。
+
+Lumina 不修改模型、请求或消息内容，不延迟发送，也不阻挡输入、点击与选中。
 
 ## 安装与更新
 
@@ -31,17 +28,24 @@ Ratel Lumina 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harn
 dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 ```
 
-将 `<profile>` 替换为 `desktop` 或 `web`。升级时重新安装，然后**完整退出并重新打开客户端**，加载新的插件代码。
+将 `<profile>` 替换为实际使用的配置名称：桌面端通常为 `desktop`，Web / PWA 通常为 `web`。
 
+**更新插件后，完整退出并重新打开客户端**，才能加载新的插件代码。通过命令行更新时，重新执行安装命令即可。
 
 ## 设置
 
-打开 DSH 设置中的 **Lumina / 流光** 页面，调整效果、强度、配色与性能档位。保存后即时生效，无需重启。
+打开 DSH 设置中的 **Lumina / 流光** 页面。设置保存后即时生效，无需重启。
 
-性能提供「性能优先」「均衡」「画质优先」「极致画质」四档，默认均衡；与动效强度独立，综合调整绘制频率、清晰度和细节。悬停或键盘聚焦档位按钮可查看具体参数。档位中的帧率为上限，实际表现取决于设备与屏幕刷新率。
+- **效果与风格**：选择配色、动效强度和发送效果，或单独关闭某个效果。
+- **性能与画质**：提供「性能优先」「均衡」「画质优先」「极致画质」四档，默认均衡。档位综合调整绘制频率、清晰度和细节，与动效强度独立；悬停或键盘聚焦档位按钮可查看参数。帧率为上限，实际表现取决于设备与屏幕刷新率。
+- **关闭与恢复**：关闭总开关即可恢复原有界面；系统启用「减少动态效果」时，Lumina 自动减少或停用动画。
 
-想恢复原有界面时，关闭 Lumina 总开关即可。系统启用「减少动态效果」时，插件会自动减少或停用动画。
+## 赞助
 
+这是我给自己做的插件，顺手开源。初衷就是让枯燥的开发有趣一点。如果你也觉得好用，可以请我喝杯咖啡：
+
+- [爱发电](https://afdian.com/a/golddream) —— 微信支付、支付宝
+- [Ko-fi](https://ko-fi.com/golddream_y) —— PayPal、银行卡
 
 ## 文档与开发
 
@@ -50,7 +54,8 @@ dsh plugin --profile <profile> add @ratel-works/dsh-lumina
 - [功能实现状态](docs/product/功能实现状态.md)：已发布功能、验证范围与后续计划。
 - [发布与收录](docs/engineering/发布.md)：npm 发布流程和插件列表条目。
 
-本地开发检查：
+<details>
+<summary>本地开发</summary>
 
 ```sh
 npm install
@@ -60,22 +65,10 @@ npm run build
 npm run install:local -- web
 ```
 
-## 赞助
-
-这是我给自己做的插件，顺手开源。初衷就是让枯燥的开发有趣一点。如果你也觉得好用，可以请我喝杯咖啡：
-
-- [爱发电](https://afdian.com/a/golddream) —— 微信支付、支付宝
-- [Ko-fi](https://ko-fi.com/golddream_y) —— PayPal、银行卡
-
+</details>
 
 ## 许可
 
 项目采用 MIT 许可。第三方代码的来源及附加许可条款见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
-### 品牌素材
-
 DeepSeek 标识归其各自权利人所有。本项目不主张这些标识的所有权，MIT 许可不代表授予品牌使用权。详见[第三方声明](THIRD_PARTY_NOTICES.md)。
-
----
-
-版本更新记录见 [CHANGELOG.md](CHANGELOG.md)。
