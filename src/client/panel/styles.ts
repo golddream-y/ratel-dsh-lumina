@@ -107,6 +107,9 @@ export function panelCss(): string {
   background: transparent;
   cursor: pointer;
   white-space: nowrap;
+  /* Switching a mode used to be a hard cut: the chip and its ring appeared in
+     one frame while every other control in the page animated. */
+  transition: color 140ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 .lumina-segment:hover { color: var(--dsw-alias-label-primary); }
 /* The selected chip is marked with a brand tint and a ring: the theme's own
@@ -140,7 +143,7 @@ export function panelCss(): string {
 .lumina-switch:checked::before { transform: translateX(14px); }
 .lumina-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 3px; }
 .lumina-switch:disabled { opacity: .4; cursor: default; }
-@media (prefers-reduced-motion: reduce) { .lumina-switch, .lumina-switch::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lumina-switch, .lumina-switch::before, .lumina-segment { transition: none; } }
 
 .lumina-preview {
   display: flex;
