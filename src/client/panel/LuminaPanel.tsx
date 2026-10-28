@@ -162,8 +162,10 @@ export function LuminaPanel(props: LuminaPanelProps) {
       </header>
 
       <section className="lumina-section lumina-section-general">
-        <h3 className="lumina-section-title">{t('general')}</h3>
-        <p className="lumina-row-hint">{t('generalHint')}</p>
+        <h3 className="lumina-section-title lumina-general-title">
+          {t('general')}
+          <span className="lumina-general-hint">{t('generalHint')}</span>
+        </h3>
         <div className="lumina-field">
           <span className="lumina-field-head">
             <span className="lumina-row-title">{t('brand')}</span>

@@ -20,29 +20,33 @@ export function panelCss(): string {
 .lumina-panel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px 24px 24px;
+  gap: 12px;
+  padding: 8px 24px 24px;
   max-width: 640px;
   --lumina-settings-surface: color-mix(in srgb, var(--dsw-alias-label-primary) 5%, var(--dsw-alias-bg-base));
   color: var(--dsw-alias-label-primary);
 }
 
-.lumina-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 4px 2px 8px; }
-.lumina-header-copy { display: flex; flex-direction: column; gap: 8px; }
-.lumina-panel-title { margin: 0; font-size: 17px; font-weight: 600; }
-.lumina-panel-intro { margin: 0; font-size: 13px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.lumina-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 2px; }
+.lumina-header-copy { display: flex; flex-direction: column; gap: 3px; }
+.lumina-panel-title { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; }
+.lumina-panel-intro { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--dsw-alias-label-secondary); }
 
 .lumina-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 20px;
+  gap: 8px;
+  padding: 16px 20px;
   border: 0;
   border-radius: 14px;
   background: var(--lumina-settings-surface);
 }
 .lumina-section-title { font-size: 13px; font-weight: 600; }
 .lumina-group-title { display: flex; align-items: baseline; gap: 8px; }
+/* The overall block states its scope once, on the title line, the way a
+   section header carries its own note in the rest of the client. */
+.lumina-general-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.lumina-general-hint { font-size: 12px; font-weight: 400; color: var(--dsw-alias-label-tertiary); }
 .lumina-group-subtitle { font-size: 12px; font-weight: 400; color: var(--dsw-alias-label-tertiary); }
 /* The overall block carries every global preference, so it reads one level
    stronger than the location groups below it. */
@@ -63,7 +67,10 @@ export function panelCss(): string {
 .lumina-row-title { font-size: 13px; }
 .lumina-row-hint { font-size: 12px; line-height: 1.5; color: var(--dsw-alias-label-tertiary); }
 
-.lumina-field { display: flex; flex-direction: column; gap: 4px; }
+.lumina-field { display: flex; flex-direction: column; gap: 3px; }
+/* A <p> hint inside a block would add a full paragraph margin on both sides,
+   which is what opened the gap under the block title. */
+.lumina-section > p.lumina-row-hint { margin: 0; }
 /* A switch owns the right edge of its row, so a toggle keeps its hint under the
    title. A segmented field leaves the right side empty, so the hint moves there
    instead of stacking under the title. */
@@ -84,7 +91,7 @@ export function panelCss(): string {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 2px;
-  margin-top: 8px;
+  margin-top: 5px;
   padding: 2px;
   border-radius: 8px;
   background: var(--dsw-alias-bg-layer-2);
@@ -226,10 +233,10 @@ ${composerCss(
   content: ''; position: absolute; top: 100%; left: -24px; right: -24px;
   height: 48px; background: var(--dsw-alias-bg-base); pointer-events: none;
 }
-.lumina-section-title { margin: 0 0 12px; }
+.lumina-section-title { margin: 0; }
 .lumina-diagnostics summary { cursor: pointer; font-weight: 500; }
 .lumina-diagnostics[open] summary { margin-bottom: 16px; }
-.lumina-row { min-width: 0; padding: 6px 0; }
+.lumina-row { min-width: 0; padding: 4px 0; }
 .lumina-switch { accent-color: var(--dsw-alias-state-business-primary); }
 .lumina-segmented { flex-wrap: wrap; }
 
@@ -238,7 +245,7 @@ ${composerCss(
    an earlier one. The detail card hangs below its own block, so while it is open
    that block has to come forward or the next section covers it. */
 .lumina-section:has(.lumina-performance-details) { z-index: 3; }
-.lumina-performance-intro { margin: -6px 0 2px; }
+.lumina-performance-intro { margin: 0; }
 .lumina-performance-control { position: relative; }
 .lumina-performance-options { display: flex; flex-wrap: nowrap; overflow-x: auto; }
 .lumina-performance-choice { flex: 1 0 auto; white-space: nowrap; }
@@ -249,7 +256,7 @@ ${composerCss(
 .lumina-performance-details dl { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 8px 12px; margin: 12px 0; }
 .lumina-performance-details dt { color: var(--dsw-alias-label-secondary); }
 .lumina-performance-details dd { margin: 0; overflow-wrap: anywhere; }
-.lumina-performance-summary { margin: 4px 0 0; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.lumina-performance-summary { margin: 2px 0 0; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
 
 /* Static layers animate only their opacity; no continuous painted shadows. */
 .lumina-section { position: relative; isolation: isolate; }
