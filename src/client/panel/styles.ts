@@ -253,6 +253,10 @@ ${composerCss(
 .lumina-panel[data-settings-motion='on'] .lumina-section::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; opacity: 0; transition: opacity 220ms ease; }
 .lumina-panel[data-settings-motion='on'] .lumina-section::before { box-shadow: 0 2px 10px color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--lumina-settings-accent, var(--dsw-alias-state-business-primary)) 14%, transparent); }
 .lumina-panel[data-settings-motion='on'] .lumina-section::after { background: radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--lumina-settings-accent, var(--dsw-alias-state-business-primary)) 4%, transparent), transparent 65%); }
+/* Pointing at a block is the first thing a reader does, so the lift follows the
+   pointer instead of waiting for a click to land focus inside. */
+.lumina-panel[data-settings-motion='on'] .lumina-section:hover::before,
+.lumina-panel[data-settings-motion='on'] .lumina-section:hover::after,
 .lumina-panel[data-settings-motion='on'] .lumina-section:focus-within::before,
 .lumina-panel[data-settings-motion='on'] .lumina-section:focus-within::after { opacity: 1; }
 .lumina-panel .lumina-segment, .lumina-panel .lumina-button { position: relative; overflow: hidden; isolation: isolate; }
