@@ -42,6 +42,15 @@ export function panelCss(): string {
   background: var(--lumina-settings-surface);
 }
 .lumina-section-title { font-size: 13px; font-weight: 600; }
+.lumina-group-title { display: flex; align-items: baseline; gap: 8px; }
+.lumina-group-subtitle { font-size: 12px; font-weight: 400; color: var(--dsw-alias-label-tertiary); }
+/* The overall block carries every global preference, so it reads one level
+   stronger than the location groups below it. */
+.lumina-section-general {
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 5%, var(--lumina-settings-surface, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-state-business-primary) 16%, transparent);
+}
+.lumina-section-general .lumina-section-title { color: var(--dsw-alias-state-business-primary); }
 
 .lumina-row {
   display: flex;
@@ -55,6 +64,21 @@ export function panelCss(): string {
 .lumina-row-hint { font-size: 12px; line-height: 1.5; color: var(--dsw-alias-label-tertiary); }
 
 .lumina-field { display: flex; flex-direction: column; gap: 4px; }
+/* A switch owns the right edge of its row, so a toggle keeps its hint under the
+   title. A segmented field leaves the right side empty, so the hint moves there
+   instead of stacking under the title. */
+.lumina-field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.lumina-field-head .lumina-row-hint {
+  margin: 0;
+  text-align: right;
+  max-width: 62%;
+}
+.lumina-performance .lumina-field-head { align-items: baseline; }
 
 .lumina-segmented {
   display: inline-flex;

@@ -2,8 +2,17 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { PERFORMANCE_PROFILES, RENDER_BUDGETS, type PerformanceProfile } from '../core/performance.ts'
 
-export function PerformanceSettings({ value, disabled, onChange, t }: {
-  value: PerformanceProfile; disabled: boolean; onChange: (profile: PerformanceProfile) => void; t: (key: string) => string
+/**
+ * The rendering quality & performance control.
+ *
+ * @param props.value - the selected profile.
+ * @param props.disabled - disabled with the master switch.
+ * @param props.onChange - called with the chosen profile.
+ * @param props.t - the localized copy function.
+ * @param props.bare - render as a field inside an existing section instead of its own.
+ */
+export function PerformanceSettings({ value, disabled, onChange, t, bare = false }: {
+  value: PerformanceProfile; disabled: boolean; onChange: (profile: PerformanceProfile) => void; t: (key: string) => string; bare?: boolean
 }) {
   const id = useId(), container = useRef<HTMLDivElement>(null)
   const [info, setInfo] = useState<PerformanceProfile | null>(null)
@@ -22,9 +31,16 @@ export function PerformanceSettings({ value, disabled, onChange, t }: {
       ? (document.activeElement as HTMLElement).dataset.performanceProfile : undefined
     setInfo(!dismissed.current && PERFORMANCE_PROFILES.includes(focused as PerformanceProfile) ? focused as PerformanceProfile : null)
   }
-  return <section className="lumina-section lumina-performance">
-    <h3 className="lumina-section-title">{t('performanceHeading')}</h3>
-    <p className="lumina-row-hint lumina-performance-intro">{t('performanceHint')}</p>
+  const body = <>
+    {bare
+      ? <span className="lumina-field-head">
+          <span className="lumina-row-title">{t('performanceHeading')}</span>
+          <span className="lumina-row-hint lumina-performance-intro">{t('performanceHint')}</span>
+        </span>
+      : <>
+          <h3 className="lumina-section-title">{t('performanceHeading')}</h3>
+          <p className="lumina-row-hint lumina-performance-intro">{t('performanceHint')}</p>
+        </>}
     <div ref={container} className="lumina-performance-control" onMouseLeave={closeHover} onBlur={event => {
       if (!event.currentTarget.contains(event.relatedTarget)) setInfo(null)
     }}>
@@ -57,5 +73,8 @@ export function PerformanceSettings({ value, disabled, onChange, t }: {
       </div> : null}
     </div>
     <p className="lumina-performance-summary">{t(`performanceHint_${value}`)}</p>
-  </section>
+  </>
+  return bare
+    ? <div className="lumina-field lumina-performance">{body}</div>
+    : <section className="lumina-section lumina-performance">{body}</section>
 }

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratel Lumina · 设置页布局（总分结构）</title>
+<style>
+  :root {
+    --bg: #f7f9fd; --base: #fff; --layer2: #eceff5;
+    --surface: color-mix(in srgb, #243247 5%, #fff);
+    --label: #243247; --label-2: #5b6676; --label-3: #8c97a8;
+    --brand: #4176e6; --danger: #d93b32;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 0 64px; background: var(--bg); color: var(--label);
+    font: 13px/1.6 ui-sans-serif, -apple-system, "SF Pro Text", "PingFang SC", sans-serif; }
+  .page { width: min(1180px, calc(100vw - 40px)); margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.01em; }
+  .lead { margin: 0 0 20px; color: var(--label-2); font-size: 13px; }
+
+  .tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--layer2); margin-bottom: 18px; }
+  .tab { appearance: none; border: 0; background: transparent; font: inherit; font-size: 12px;
+    color: var(--label-2); padding: 6px 14px; border-radius: 8px; cursor: pointer; }
+  .tab[aria-selected="true"] { color: var(--label); font-weight: 600; background: #fff;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent); }
+
+  .note { margin: 0 0 18px; padding: 12px 14px; border-radius: 12px; font-size: 12px; line-height: 1.7;
+    background: color-mix(in srgb, var(--brand) 7%, #fff);
+    border: 1px solid color-mix(in srgb, var(--brand) 18%, transparent); color: var(--label-2); }
+  .note b { color: var(--label); }
+
+  .panel { display: flex; flex-direction: column; gap: 14px; width: 640px; max-width: 100%;
+    padding: 20px 24px 0; background: var(--base); border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(31, 57, 104, .10); }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 2px 2px 2px; }
+  .panel-title { margin: 0; font-size: 17px; font-weight: 600; }
+  .panel-intro { margin: 4px 0 0; font-size: 13px; color: var(--label-2); }
+
+  /* 总：全局项，视觉上比下面的分组更重一层 */
+  .general { display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; border-radius: 14px;
+    background: color-mix(in srgb, var(--brand) 5%, var(--base));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 16%, transparent); }
+  .general-title { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--brand); }
+  .general-note { margin: 0; font-size: 12px; color: var(--label-3); }
+
+  .group { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 14px; background: var(--surface); }
+  .group-title { margin: 0; font-size: 13px; font-weight: 600; display: flex; align-items: baseline; gap: 8px; }
+  .group-title span { font-weight: 400; font-size: 12px; color: var(--label-3); }
+
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+  .row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .row-title { font-size: 13px; }
+  .row-hint { font-size: 12px; line-height: 1.5; color: var(--label-3); }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .divider { height: 1px; background: color-mix(in srgb, var(--label) 8%, transparent); margin: 2px 0; }
+
+  .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; margin-top: 8px; padding: 2px; border-radius: 8px; background: var(--layer2); }
+  .segment { appearance: none; border: 0; border-radius: 6px; padding: 5px 12px; font: inherit; font-size: 12px;
+    color: var(--label-2); background: transparent; cursor: pointer; white-space: nowrap; }
+  .segment[data-active="true"] { color: var(--label); font-weight: 600;
+    background: color-mix(in srgb, var(--brand) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent); }
+
+  .switch { appearance: none; position: relative; display: inline-block; flex-shrink: 0;
+    width: 34px; height: 20px; margin: 0; border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--label-3); transition: background-color 160ms ease; }
+  .switch::before { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px;
+    border-radius: 50%; background: #fff; transition: transform 160ms ease; }
+  .switch:checked { background: var(--brand); }
+  .switch:checked::before { transform: translateX(14px); }
+
+  details.group > summary { display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; }
+  details.group > summary::-webkit-details-marker { display: none; }
+  details.group > summary::after { content: '展开'; font-size: 12px; font-weight: 400; color: var(--label-3); }
+  details.group[open] > summary::after { content: '收起'; }
+
+  .btn { appearance: none; border: 0; border-radius: 8px; padding: 6px 14px; font: inherit; font-size: 12px;
+    background: var(--layer2); color: var(--label); cursor: pointer; }
+  .btn-danger { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 35%, transparent); color: var(--danger); }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .footer { position: sticky; bottom: 0; display: flex; align-items: center; gap: 8px;
+    padding: 14px 0 16px; background: var(--base);
+    border-top: 1px solid color-mix(in srgb, var(--label) 8%, transparent); }
+  .spacer { flex: 1; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>设置页布局 · 总分结构</h1>
+  <p class="lead">顶部是"总"（总开关 + 三个全局项），下面按位置或功能分组。没有预设层，不按使用频率排序。</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="pos">按位置分组</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="fn">按功能分组</button>
+  </div>
+  <p class="note" id="note"></p>
+
+  <!-- ================= 按位置分组 ================= -->
+  <div class="panel" data-variant="pos">
+    <header class="panel-header">
+      <div>
+        <h2 class="panel-title">Lumina · 流光</h2>
+        <p class="panel-intro">为客户端添一层动效。下面按效果出现的位置分组，每一项都能单独关掉。</p>
+      </div>
+      <input class="switch" type="checkbox" checked aria-label="总开关">
+    </header>
+
+    <section class="general">
+      <h3 class="general-title">全局</h3>
+      <p class="general-note">这三项影响全部效果；关掉上面的总开关会一次性停用所有效果。</p>
+      <div class="field">
+        <span class="row-title">品牌配色</span>
+        <div class="segmented"><button class="segment" data-active="true"><svg viewBox="28 29 52 41" width="20" height="20" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><path d="M77.3939 34.94 C76.8852 34.6919 76.6681 35.1654 76.3703 35.4053 C76.269 35.4828 76.1842 35.5842 76.0974 35.6772 C75.357 36.4692 74.4906 36.9893 73.3594 36.9273 C71.703 36.8342 70.2907 37.3543 69.0416 38.6199 C68.7769 37.0596 67.8939 36.128 66.5519 35.5304 C65.8508 35.2202 65.1395 34.909 64.6473 34.2338 C64.304 33.7528 64.211 33.2172 64.0393 32.6889 C63.9297 32.3704 63.8201 32.0447 63.4541 31.9899 C63.055 31.9279 62.8999 32.2619 62.7428 32.541 C62.1182 33.6825 61.8763 34.94 61.9011 36.2138 C61.9549 39.0789 63.1646 41.3611 65.5696 42.9844 C65.8426 43.1705 65.9129 43.3566 65.826 43.6286 C65.6627 44.1879 65.4683 44.7308 65.2966 45.2901 C65.187 45.6468 65.0237 45.7254 64.6411 45.5693 C63.3218 45.0182 62.1824 44.2024 61.1753 43.217 C59.4651 41.5637 57.9204 39.7386 55.9931 38.3097 C55.5402 37.9757 55.0873 37.6655 54.6179 37.3698 C52.6513 35.4601 54.8764 33.8914 55.3913 33.7053 C55.929 33.5109 55.5774 32.8429 53.8383 32.8512 C52.0971 32.8584 50.5048 33.4416 48.4762 34.2183 C48.1784 34.3351 47.8662 34.4199 47.5477 34.4902 C45.7052 34.1408 43.7924 34.0632 41.7948 34.2886 C38.0332 34.7074 35.0286 36.4858 32.82 39.5215 C30.1669 43.1705 29.5424 47.3167 30.3054 51.6409 C31.1099 56.1988 33.4363 59.9717 37.0096 62.9218 C40.7174 65.9802 44.9876 67.4795 49.8576 67.192 C52.8168 67.0214 56.1089 66.6254 59.8249 63.4812 C60.7617 63.9475 61.744 64.1336 63.3755 64.2732 C64.6308 64.39 65.8405 64.2111 66.7773 64.0168 C68.2455 63.7066 68.1442 62.348 67.6127 62.0988 C63.3135 60.0958 64.2565 60.9105 63.3983 60.2509 C65.5841 57.666 68.9217 53.0709 69.9515 46.8142 C70.0528 46.1235 70.1811 45.1505 70.1666 44.5912 C70.1583 44.25 70.2369 44.1176 70.6257 44.0783 C71.703 43.9543 72.7494 43.6596 73.711 43.1312 C76.4965 41.6092 77.6214 39.1089 77.8861 36.1125 C77.9254 35.6545 77.8778 35.1809 77.3939 34.94 Z M53.1125 61.9127 C48.9436 58.6358 46.9232 57.5574 46.0878 57.6039 C45.3082 57.6505 45.4488 58.5438 45.6204 59.1259 C45.8003 59.7008 46.034 60.0968 46.3607 60.6014 C46.5882 60.9354 46.7433 61.4317 46.1353 61.8051 C44.7933 62.6354 42.4586 61.5258 42.349 61.471 C39.6338 59.8714 37.3612 57.7601 35.7606 54.8722 C34.2159 52.0927 33.3184 49.1108 33.1695 45.9281 C33.1302 45.1599 33.3577 44.8879 34.1228 44.7483 C35.1299 44.5622 36.168 44.5229 37.173 44.6708 C41.4288 45.2922 45.0497 47.1936 48.0854 50.2068 C49.8183 51.9221 51.1293 53.9725 52.4797 55.9755 C53.9148 58.1023 55.4596 60.1289 57.4282 61.7907 C58.123 62.3728 58.6772 62.8153 59.2066 63.142 C57.6081 63.3209 54.9384 63.3592 53.1125 61.9147 V61.9127 Z M55.1101 49.0633 C55.1101 48.722 55.383 48.4501 55.7263 48.4501 C55.8028 48.4501 55.8731 48.4656 55.9372 48.4884 C56.022 48.5194 56.1006 48.5659 56.1627 48.6362 C56.2723 48.7448 56.3343 48.8999 56.3343 49.0633 C56.3343 49.4045 56.0613 49.6764 55.718 49.6764 C55.3748 49.6764 55.1101 49.4045 55.1101 49.0633 Z M61.3138 52.2458 C60.9168 52.4091 60.5177 52.5487 60.1351 52.5642 C59.5416 52.5953 58.8944 52.3543 58.5428 52.0597 C57.9969 51.6016 57.6061 51.3452 57.4427 50.5459 C57.3724 50.2047 57.4117 49.6764 57.4737 49.3734 C57.6143 48.721 57.4592 48.3023 56.9981 47.9218 C56.6238 47.6114 56.1482 47.5255 55.625 47.5255 C55.4285 47.5255 55.2507 47.4397 55.1163 47.3705 C54.8992 47.2619 54.7192 46.99 54.8909 46.656 C54.9446 46.5474 55.2114 46.2838 55.2734 46.2372 C55.9827 45.833 56.8016 45.9653 57.5606 46.2683 C58.2616 46.5557 58.793 47.083 59.5582 47.8287 C60.3378 48.7293 60.4784 48.9774 60.923 49.6536 C61.2745 50.182 61.5951 50.7248 61.8143 51.3462 C61.9466 51.734 61.775 52.0514 61.3138 52.2458 Z" fill="#2563EB"/></svg>Ratel 蓝</button><button class="segment"><svg viewBox="28 29 52 41" width="20" height="20" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><path d="M77.3939 34.94 C76.8852 34.6919 76.6681 35.1654 76.3703 35.4053 C76.269 35.4828 76.1842 35.5842 76.0974 35.6772 C75.357 36.4692 74.4906 36.9893 73.3594 36.9273 C71.703 36.8342 70.2907 37.3543 69.0416 38.6199 C68.7769 37.0596 67.8939 36.128 66.5519 35.5304 C65.8508 35.2202 65.1395 34.909 64.6473 34.2338 C64.304 33.7528 64.211 33.2172 64.0393 32.6889 C63.9297 32.3704 63.8201 32.0447 63.4541 31.9899 C63.055 31.9279 62.8999 32.2619 62.7428 32.541 C62.1182 33.6825 61.8763 34.94 61.9011 36.2138 C61.9549 39.0789 63.1646 41.3611 65.5696 42.9844 C65.8426 43.1705 65.9129 43.3566 65.826 43.6286 C65.6627 44.1879 65.4683 44.7308 65.2966 45.2901 C65.187 45.6468 65.0237 45.7254 64.6411 45.5693 C63.3218 45.0182 62.1824 44.2024 61.1753 43.217 C59.4651 41.5637 57.9204 39.7386 55.9931 38.3097 C55.5402 37.9757 55.0873 37.6655 54.6179 37.3698 C52.6513 35.4601 54.8764 33.8914 55.3913 33.7053 C55.929 33.5109 55.5774 32.8429 53.8383 32.8512 C52.0971 32.8584 50.5048 33.4416 48.4762 34.2183 C48.1784 34.3351 47.8662 34.4199 47.5477 34.4902 C45.7052 34.1408 43.7924 34.0632 41.7948 34.2886 C38.0332 34.7074 35.0286 36.4858 32.82 39.5215 C30.1669 43.1705 29.5424 47.3167 30.3054 51.6409 C31.1099 56.1988 33.4363 59.9717 37.0096 62.9218 C40.7174 65.9802 44.9876 67.4795 49.8576 67.192 C52.8168 67.0214 56.1089 66.6254 59.8249 63.4812 C60.7617 63.9475 61.744 64.1336 63.3755 64.2732 C64.6308 64.39 65.8405 64.2111 66.7773 64.0168 C68.2455 63.7066 68.1442 62.348 67.6127 62.0988 C63.3135 60.0958 64.2565 60.9105 63.3983 60.2509 C65.5841 57.666 68.9217 53.0709 69.9515 46.8142 C70.0528 46.1235 70.1811 45.1505 70.1666 44.5912 C70.1583 44.25 70.2369 44.1176 70.6257 44.0783 C71.703 43.9543 72.7494 43.6596 73.711 43.1312 C76.4965 41.6092 77.6214 39.1089 77.8861 36.1125 C77.9254 35.6545 77.8778 35.1809 77.3939 34.94 Z M53.1125 61.9127 C48.9436 58.6358 46.9232 57.5574 46.0878 57.6039 C45.3082 57.6505 45.4488 58.5438 45.6204 59.1259 C45.8003 59.7008 46.034 60.0968 46.3607 60.6014 C46.5882 60.9354 46.7433 61.4317 46.1353 61.8051 C44.7933 62.6354 42.4586 61.5258 42.349 61.471 C39.6338 59.8714 37.3612 57.7601 35.7606 54.8722 C34.2159 52.0927 33.3184 49.1108 33.1695 45.9281 C33.1302 45.1599 33.3577 44.8879 34.1228 44.7483 C35.1299 44.5622 36.168 44.5229 37.173 44.6708 C41.4288 45.2922 45.0497 47.1936 48.0854 50.2068 C49.8183 51.9221 51.1293 53.9725 52.4797 55.9755 C53.9148 58.1023 55.4596 60.1289 57.4282 61.7907 C58.123 62.3728 58.6772 62.8153 59.2066 63.142 C57.6081 63.3209 54.9384 63.3592 53.1125 61.9147 V61.9127 Z M55.1101 49.0633 C55.1101 48.722 55.383 48.4501 55.7263 48.4501 C55.8028 48.4501 55.8731 48.4656 55.9372 48.4884 C56.022 48.5194 56.1006 48.5659 56.1627 48.6362 C56.2723 48.7448 56.3343 48.8999 56.3343 49.0633 C56.3343 49.4045 56.0613 49.6764 55.718 49.6764 C55.3748 49.6764 55.1101 49.4045 55.1101 49.0633 Z M61.3138 52.2458 C60.9168 52.4091 60.5177 52.5487 60.1351 52.5642 C59.5416 52.5953 58.8944 52.3543 58.5428 52.0597 C57.9969 51.6016 57.6061 51.3452 57.4427 50.5459 C57.3724 50.2047 57.4117 49.6764 57.4737 49.3734 C57.6143 48.721 57.4592 48.3023 56.9981 47.9218 C56.6238 47.6114 56.1482 47.5255 55.625 47.5255 C55.4285 47.5255 55.2507 47.4397 55.1163 47.3705 C54.8992 47.2619 54.7192 46.99 54.8909 46.656 C54.9446 46.5474 55.2114 46.2838 55.2734 46.2372 C55.9827 45.833 56.8016 45.9653 57.5606 46.2683 C58.2616 46.5557 58.793 47.083 59.5582 47.8287 C60.3378 48.7293 60.4784 48.9774 60.923 49.6536 C61.2745 50.182 61.5951 50.7248 61.8143 51.3462 C61.9466 51.734 61.775 52.0514 61.3138 52.2458 Z" fill="#FF3B30"/></svg>DeepSeek 红</button></div>
+      </div>
+      <div class="field">
+        <span class="row-title">动效强度</span>
+        <span class="row-hint">只改变动画节奏，不改变幅度</span>
+        <div class="segmented"><button class="segment">克制</button><button class="segment" data-active="true">标准</button><button class="segment">明显</button></div>
+      </div>
+      <div class="field">
+        <span class="row-title">渲染质量与性能</span>
+        <span class="row-hint">均衡：背景 40 fps，DPR ≤ 1.25，星点 44 · 光团 40 分辨率</span>
+        <div class="segmented"><button class="segment">流畅优先</button><button class="segment" data-active="true">均衡</button><button class="segment">清晰优先</button><button class="segment">极致</button></div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">侧栏 <span>会话列表与品牌</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">品牌标识</span><span class="row-hint">侧栏图标与字标</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">会话运行光团</span><span class="row-hint">运行中的会话显示柔和光团与星河</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">会话选中交接</span><span class="row-hint">切换会话时选中底板平滑移动</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">分组折叠</span><span class="row-hint">侧栏分组展开与收起</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">输入与发送 <span>输入框</span></h3>
+      <div class="field">
+        <span class="row-title">发送转场</span>
+        <span class="row-hint">文字进入消息的方式</span>
+        <div class="segmented"><button class="segment">关闭</button><button class="segment">水滴</button><button class="segment" data-active="true">流光</button><button class="segment">文字消解</button><button class="segment">小幽灵</button></div>
+      </div>
+      <div class="divider"></div>
+      <label class="row"><span class="row-text"><span class="row-title">输入框边缘流光</span><span class="row-hint">聚焦时边缘出现柔光</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">打字机光标</span><span class="row-hint">输入时常亮，停顿后呼吸</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">逐字点亮</span><span class="row-hint">新出现的字依次亮起（输入与流式输出）</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">按钮与水纹反馈</span><span class="row-hint">按下与发送时的短反馈</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">会话与页面 <span>新会话与背景</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">新会话入场</span><span class="row-hint">粒子聚合、标题描边与辅助控件归位</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">页面丝带</span><span class="row-hint">聚焦时从左下流入、绕过输入框向右上舒展</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">面板与浮层 <span>窗口级</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">面板开合</span><span class="row-hint">左右面板展开与退回</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">弹框过渡</span><span class="row-hint">居中弹框的进退场</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">菜单与浮层</span><span class="row-hint">按下拉方向显现，关闭淡出</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <details class="group">
+      <summary>诊断</summary>
+      <p class="row-hint" style="margin:8px 0 0">绘制状态：运行中 · 40 / 60 fps</p>
+      <p class="row-hint" style="margin:4px 0 0">发送转场：已生效 · 已播放 12 次</p>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-danger">恢复默认…</button></div>
+    </details>
+
+    <footer class="footer">
+      <span class="spacer"></span>
+      <button class="btn">取消</button>
+      <button class="btn btn-primary">保存</button>
+    </footer>
+  </div>
+
+  <!-- ================= 按功能分组 ================= -->
+  <div class="panel" data-variant="fn" hidden>
+    <header class="panel-header">
+      <div>
+        <h2 class="panel-title">Lumina · 流光</h2>
+        <p class="panel-intro">为客户端添一层动效。下面按作用分组，每一项都能单独关掉。</p>
+      </div>
+      <input class="switch" type="checkbox" checked aria-label="总开关">
+    </header>
+
+    <section class="general">
+      <h3 class="general-title">全局</h3>
+      <p class="general-note">这三项影响全部效果；关掉上面的总开关会一次性停用所有效果。</p>
+      <div class="field">
+        <span class="row-title">品牌配色</span>
+        <div class="segmented"><button class="segment" data-active="true"><svg viewBox="28 29 52 41" width="20" height="20" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><path d="M77.3939 34.94 C76.8852 34.6919 76.6681 35.1654 76.3703 35.4053 C76.269 35.4828 76.1842 35.5842 76.0974 35.6772 C75.357 36.4692 74.4906 36.9893 73.3594 36.9273 C71.703 36.8342 70.2907 37.3543 69.0416 38.6199 C68.7769 37.0596 67.8939 36.128 66.5519 35.5304 C65.8508 35.2202 65.1395 34.909 64.6473 34.2338 C64.304 33.7528 64.211 33.2172 64.0393 32.6889 C63.9297 32.3704 63.8201 32.0447 63.4541 31.9899 C63.055 31.9279 62.8999 32.2619 62.7428 32.541 C62.1182 33.6825 61.8763 34.94 61.9011 36.2138 C61.9549 39.0789 63.1646 41.3611 65.5696 42.9844 C65.8426 43.1705 65.9129 43.3566 65.826 43.6286 C65.6627 44.1879 65.4683 44.7308 65.2966 45.2901 C65.187 45.6468 65.0237 45.7254 64.6411 45.5693 C63.3218 45.0182 62.1824 44.2024 61.1753 43.217 C59.4651 41.5637 57.9204 39.7386 55.9931 38.3097 C55.5402 37.9757 55.0873 37.6655 54.6179 37.3698 C52.6513 35.4601 54.8764 33.8914 55.3913 33.7053 C55.929 33.5109 55.5774 32.8429 53.8383 32.8512 C52.0971 32.8584 50.5048 33.4416 48.4762 34.2183 C48.1784 34.3351 47.8662 34.4199 47.5477 34.4902 C45.7052 34.1408 43.7924 34.0632 41.7948 34.2886 C38.0332 34.7074 35.0286 36.4858 32.82 39.5215 C30.1669 43.1705 29.5424 47.3167 30.3054 51.6409 C31.1099 56.1988 33.4363 59.9717 37.0096 62.9218 C40.7174 65.9802 44.9876 67.4795 49.8576 67.192 C52.8168 67.0214 56.1089 66.6254 59.8249 63.4812 C60.7617 63.9475 61.744 64.1336 63.3755 64.2732 C64.6308 64.39 65.8405 64.2111 66.7773 64.0168 C68.2455 63.7066 68.1442 62.348 67.6127 62.0988 C63.3135 60.0958 64.2565 60.9105 63.3983 60.2509 C65.5841 57.666 68.9217 53.0709 69.9515 46.8142 C70.0528 46.1235 70.1811 45.1505 70.1666 44.5912 C70.1583 44.25 70.2369 44.1176 70.6257 44.0783 C71.703 43.9543 72.7494 43.6596 73.711 43.1312 C76.4965 41.6092 77.6214 39.1089 77.8861 36.1125 C77.9254 35.6545 77.8778 35.1809 77.3939 34.94 Z M53.1125 61.9127 C48.9436 58.6358 46.9232 57.5574 46.0878 57.6039 C45.3082 57.6505 45.4488 58.5438 45.6204 59.1259 C45.8003 59.7008 46.034 60.0968 46.3607 60.6014 C46.5882 60.9354 46.7433 61.4317 46.1353 61.8051 C44.7933 62.6354 42.4586 61.5258 42.349 61.471 C39.6338 59.8714 37.3612 57.7601 35.7606 54.8722 C34.2159 52.0927 33.3184 49.1108 33.1695 45.9281 C33.1302 45.1599 33.3577 44.8879 34.1228 44.7483 C35.1299 44.5622 36.168 44.5229 37.173 44.6708 C41.4288 45.2922 45.0497 47.1936 48.0854 50.2068 C49.8183 51.9221 51.1293 53.9725 52.4797 55.9755 C53.9148 58.1023 55.4596 60.1289 57.4282 61.7907 C58.123 62.3728 58.6772 62.8153 59.2066 63.142 C57.6081 63.3209 54.9384 63.3592 53.1125 61.9147 V61.9127 Z M55.1101 49.0633 C55.1101 48.722 55.383 48.4501 55.7263 48.4501 C55.8028 48.4501 55.8731 48.4656 55.9372 48.4884 C56.022 48.5194 56.1006 48.5659 56.1627 48.6362 C56.2723 48.7448 56.3343 48.8999 56.3343 49.0633 C56.3343 49.4045 56.0613 49.6764 55.718 49.6764 C55.3748 49.6764 55.1101 49.4045 55.1101 49.0633 Z M61.3138 52.2458 C60.9168 52.4091 60.5177 52.5487 60.1351 52.5642 C59.5416 52.5953 58.8944 52.3543 58.5428 52.0597 C57.9969 51.6016 57.6061 51.3452 57.4427 50.5459 C57.3724 50.2047 57.4117 49.6764 57.4737 49.3734 C57.6143 48.721 57.4592 48.3023 56.9981 47.9218 C56.6238 47.6114 56.1482 47.5255 55.625 47.5255 C55.4285 47.5255 55.2507 47.4397 55.1163 47.3705 C54.8992 47.2619 54.7192 46.99 54.8909 46.656 C54.9446 46.5474 55.2114 46.2838 55.2734 46.2372 C55.9827 45.833 56.8016 45.9653 57.5606 46.2683 C58.2616 46.5557 58.793 47.083 59.5582 47.8287 C60.3378 48.7293 60.4784 48.9774 60.923 49.6536 C61.2745 50.182 61.5951 50.7248 61.8143 51.3462 C61.9466 51.734 61.775 52.0514 61.3138 52.2458 Z" fill="#2563EB"/></svg>Ratel 蓝</button><button class="segment"><svg viewBox="28 29 52 41" width="20" height="20" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><path d="M77.3939 34.94 C76.8852 34.6919 76.6681 35.1654 76.3703 35.4053 C76.269 35.4828 76.1842 35.5842 76.0974 35.6772 C75.357 36.4692 74.4906 36.9893 73.3594 36.9273 C71.703 36.8342 70.2907 37.3543 69.0416 38.6199 C68.7769 37.0596 67.8939 36.128 66.5519 35.5304 C65.8508 35.2202 65.1395 34.909 64.6473 34.2338 C64.304 33.7528 64.211 33.2172 64.0393 32.6889 C63.9297 32.3704 63.8201 32.0447 63.4541 31.9899 C63.055 31.9279 62.8999 32.2619 62.7428 32.541 C62.1182 33.6825 61.8763 34.94 61.9011 36.2138 C61.9549 39.0789 63.1646 41.3611 65.5696 42.9844 C65.8426 43.1705 65.9129 43.3566 65.826 43.6286 C65.6627 44.1879 65.4683 44.7308 65.2966 45.2901 C65.187 45.6468 65.0237 45.7254 64.6411 45.5693 C63.3218 45.0182 62.1824 44.2024 61.1753 43.217 C59.4651 41.5637 57.9204 39.7386 55.9931 38.3097 C55.5402 37.9757 55.0873 37.6655 54.6179 37.3698 C52.6513 35.4601 54.8764 33.8914 55.3913 33.7053 C55.929 33.5109 55.5774 32.8429 53.8383 32.8512 C52.0971 32.8584 50.5048 33.4416 48.4762 34.2183 C48.1784 34.3351 47.8662 34.4199 47.5477 34.4902 C45.7052 34.1408 43.7924 34.0632 41.7948 34.2886 C38.0332 34.7074 35.0286 36.4858 32.82 39.5215 C30.1669 43.1705 29.5424 47.3167 30.3054 51.6409 C31.1099 56.1988 33.4363 59.9717 37.0096 62.9218 C40.7174 65.9802 44.9876 67.4795 49.8576 67.192 C52.8168 67.0214 56.1089 66.6254 59.8249 63.4812 C60.7617 63.9475 61.744 64.1336 63.3755 64.2732 C64.6308 64.39 65.8405 64.2111 66.7773 64.0168 C68.2455 63.7066 68.1442 62.348 67.6127 62.0988 C63.3135 60.0958 64.2565 60.9105 63.3983 60.2509 C65.5841 57.666 68.9217 53.0709 69.9515 46.8142 C70.0528 46.1235 70.1811 45.1505 70.1666 44.5912 C70.1583 44.25 70.2369 44.1176 70.6257 44.0783 C71.703 43.9543 72.7494 43.6596 73.711 43.1312 C76.4965 41.6092 77.6214 39.1089 77.8861 36.1125 C77.9254 35.6545 77.8778 35.1809 77.3939 34.94 Z M53.1125 61.9127 C48.9436 58.6358 46.9232 57.5574 46.0878 57.6039 C45.3082 57.6505 45.4488 58.5438 45.6204 59.1259 C45.8003 59.7008 46.034 60.0968 46.3607 60.6014 C46.5882 60.9354 46.7433 61.4317 46.1353 61.8051 C44.7933 62.6354 42.4586 61.5258 42.349 61.471 C39.6338 59.8714 37.3612 57.7601 35.7606 54.8722 C34.2159 52.0927 33.3184 49.1108 33.1695 45.9281 C33.1302 45.1599 33.3577 44.8879 34.1228 44.7483 C35.1299 44.5622 36.168 44.5229 37.173 44.6708 C41.4288 45.2922 45.0497 47.1936 48.0854 50.2068 C49.8183 51.9221 51.1293 53.9725 52.4797 55.9755 C53.9148 58.1023 55.4596 60.1289 57.4282 61.7907 C58.123 62.3728 58.6772 62.8153 59.2066 63.142 C57.6081 63.3209 54.9384 63.3592 53.1125 61.9147 V61.9127 Z M55.1101 49.0633 C55.1101 48.722 55.383 48.4501 55.7263 48.4501 C55.8028 48.4501 55.8731 48.4656 55.9372 48.4884 C56.022 48.5194 56.1006 48.5659 56.1627 48.6362 C56.2723 48.7448 56.3343 48.8999 56.3343 49.0633 C56.3343 49.4045 56.0613 49.6764 55.718 49.6764 C55.3748 49.6764 55.1101 49.4045 55.1101 49.0633 Z M61.3138 52.2458 C60.9168 52.4091 60.5177 52.5487 60.1351 52.5642 C59.5416 52.5953 58.8944 52.3543 58.5428 52.0597 C57.9969 51.6016 57.6061 51.3452 57.4427 50.5459 C57.3724 50.2047 57.4117 49.6764 57.4737 49.3734 C57.6143 48.721 57.4592 48.3023 56.9981 47.9218 C56.6238 47.6114 56.1482 47.5255 55.625 47.5255 C55.4285 47.5255 55.2507 47.4397 55.1163 47.3705 C54.8992 47.2619 54.7192 46.99 54.8909 46.656 C54.9446 46.5474 55.2114 46.2838 55.2734 46.2372 C55.9827 45.833 56.8016 45.9653 57.5606 46.2683 C58.2616 46.5557 58.793 47.083 59.5582 47.8287 C60.3378 48.7293 60.4784 48.9774 60.923 49.6536 C61.2745 50.182 61.5951 50.7248 61.8143 51.3462 C61.9466 51.734 61.775 52.0514 61.3138 52.2458 Z" fill="#FF3B30"/></svg>DeepSeek 红</button></div>
+      </div>
+      <div class="field">
+        <span class="row-title">动效强度</span>
+        <div class="segmented"><button class="segment">克制</button><button class="segment" data-active="true">标准</button><button class="segment">明显</button></div>
+      </div>
+      <div class="field">
+        <span class="row-title">渲染质量与性能</span>
+        <span class="row-hint">均衡：背景 40 fps，DPR ≤ 1.25</span>
+        <div class="segmented"><button class="segment">流畅优先</button><button class="segment" data-active="true">均衡</button><button class="segment">清晰优先</button><button class="segment">极致</button></div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">导航与状态 <span>告诉你在哪、在做什么</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">品牌标识</span><span class="row-hint">侧栏图标与字标</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">会话运行光团</span><span class="row-hint">运行中的会话显示柔和光团与星河</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">会话选中交接</span><span class="row-hint">选中底板平滑移动</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">分组折叠</span><span class="row-hint">侧栏分组展开与收起</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">面板开合</span><span class="row-hint">左右面板展开与退回</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">输入 <span>打字过程</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">输入框边缘流光</span><span class="row-hint">聚焦时边缘出现柔光</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">打字机光标</span><span class="row-hint">输入时常亮，停顿后呼吸</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">逐字点亮</span><span class="row-hint">新出现的字依次亮起</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">发送 <span>递出与确认</span></h3>
+      <div class="field">
+        <span class="row-title">发送转场</span>
+        <div class="segmented"><button class="segment">关闭</button><button class="segment">水滴</button><button class="segment" data-active="true">流光</button><button class="segment">文字消解</button><button class="segment">小幽灵</button></div>
+      </div>
+      <label class="row"><span class="row-text"><span class="row-title">按钮与水纹反馈</span><span class="row-hint">按下与发送时的短反馈</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">氛围 <span>背景与新会话</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">新会话入场</span><span class="row-hint">粒子聚合与标题描边</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">页面丝带</span><span class="row-hint">聚焦时从左下流入、绕过输入框</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">浮层 <span>弹框与菜单</span></h3>
+      <label class="row"><span class="row-text"><span class="row-title">弹框过渡</span><span class="row-hint">居中弹框的进退场</span></span><input class="switch" type="checkbox" checked></label>
+      <label class="row"><span class="row-text"><span class="row-title">菜单与浮层</span><span class="row-hint">按下拉方向显现，关闭淡出</span></span><input class="switch" type="checkbox" checked></label>
+    </section>
+
+    <details class="group">
+      <summary>诊断</summary>
+      <p class="row-hint" style="margin:8px 0 0">绘制状态：运行中 · 40 / 60 fps</p>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-danger">恢复默认…</button></div>
+    </details>
+
+    <footer class="footer">
+      <span class="spacer"></span>
+      <button class="btn">取消</button>
+      <button class="btn btn-primary">保存</button>
+    </footer>
+  </div>
+</div>
+<script>
+  const notes = {
+    pos: '<b>按位置分组</b>：侧栏 / 输入与发送 / 会话与页面 / 面板与浮层。"这个东西在我界面的哪一块"是最省力的检索方式，四组数量均衡（4 / 5 / 2 / 3）。',
+    fn: '<b>按功能分组</b>：导航与状态 / 输入 / 发送 / 氛围 / 浮层。按"它在干什么"分组，更贴近理解，但同组的元素可能出现在不同位置，找具体某个效果时不如位置直观。'
+  };
+  const tabs = [...document.querySelectorAll('.tab')];
+  const panels = [...document.querySelectorAll('[data-variant]')];
+  const note = document.getElementById('note');
+  function select(key) {
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === key)));
+    panels.forEach(p => { p.hidden = p.dataset.variant !== key; });
+    note.innerHTML = notes[key];
+  }
+  tabs.forEach(t => t.addEventListener('click', () => select(t.dataset.tab)));
+  select('pos');
+  document.querySelectorAll('.segmented').forEach(group => {
+    group.addEventListener('click', event => {
+      const b = event.target.closest('.segment'); if (!b) return;
+      [...group.querySelectorAll('.segment')].forEach(s => s.removeAttribute('data-active'));
+      b.dataset.active = 'true';
+    });
+  });
+</script>
+</body>
+</html>

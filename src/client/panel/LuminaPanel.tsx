@@ -51,6 +51,20 @@ const EFFECT_ROWS = [
 ] as const
 
 /**
+ * The effect groups, in display order.
+ *
+ * Grouped by where the effect shows up rather than by how often it is used:
+ * Lumina has no usage data, and a wrong "frequently used" bucket is worse than
+ * a predictable location. The subtitle names the surface for first-time use.
+ */
+const GROUPS = [
+  { title: 'groupSidebar', subtitle: 'groupSidebarHint', ids: ['brand', 'sessionActivity', 'sessionSelection', 'groupMotion'] },
+  { title: 'groupInputSend', subtitle: 'groupInputSendHint', ids: ['composerGlow', 'caret', 'typeWave', 'press'] },
+  { title: 'groupSessionPage', subtitle: 'groupSessionPageHint', ids: ['hero', 'composerRibbon'] },
+  { title: 'groupOverlays', subtitle: 'groupOverlaysHint', ids: ['panelMotion', 'dialogMotion', 'menuMotion'] },
+] as const
+
+/**
  * Compare two snapshots field by field.
  *
  * @param left - the first snapshot.
@@ -147,46 +161,14 @@ export function LuminaPanel(props: LuminaPanelProps) {
           onChange={(event) => edit({ master: event.target.checked })} />
       </header>
 
-      <section className="lumina-section">
-
-
+      <section className="lumina-section lumina-section-general">
+        <h3 className="lumina-section-title">{t('general')}</h3>
+        <p className="lumina-row-hint">{t('generalHint')}</p>
         <div className="lumina-field">
-          <span className="lumina-row-title">{t('intensity')}</span>
-          <span className="lumina-row-hint">{t('intensityHint')}</span>
-          <div className="lumina-segmented" role="radiogroup" aria-label={t('intensity')}>
-            {(['subtle', 'normal', 'vivid'] as const).map((tier) => (
-              <button
-                key={tier}
-                type="button"
-                role="radio"
-                aria-checked={draft.intensity === tier}
-                className="lumina-segment"
-                data-active={draft.intensity === tier ? 'true' : undefined}
-                disabled={!draft.master}
-                onClick={() => edit({ intensity: tier })}
-              >
-                {t(`intensity${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <PerformanceSettings value={draft.performance.profile} disabled={!draft.master} t={t}
-        onChange={profile => edit({ performance: { profile } })} />
-
-      {([
-        { title: 'navigation', ids: ['brand', 'panelMotion', 'groupMotion', 'dialogMotion', 'menuMotion', 'sessionSelection', 'sessionActivity', 'press'] },
-        { title: 'inputMessages', ids: ['composerGlow', 'caret', 'typeWave'] },
-        { title: 'newSession', ids: ['hero', 'composerRibbon'] },
-      ] as const).map(group => {
-        const ids: readonly string[] = group.ids
-        return <section className="lumina-section" key={group.title}>
-          <h3 className="lumina-section-title">{t(group.title)}</h3>
-          {group.title === 'navigation' ? <>
-        <div className="lumina-field">
-          <span className="lumina-row-title">{t('brand')}</span>
-          <span className="lumina-row-hint">{t('brandHint')}</span>
+          <span className="lumina-field-head">
+            <span className="lumina-row-title">{t('brand')}</span>
+            <span className="lumina-row-hint">{t('brandHint')}</span>
+          </span>
           <div className="lumina-segmented" role="radiogroup" aria-label={t('brand')}>
             {(['ratel', 'deepseek'] as const).map((preset) => (
               <button
@@ -205,46 +187,84 @@ export function LuminaPanel(props: LuminaPanelProps) {
             ))}
           </div>
         </div>
-          </> : null}
-        {EFFECT_ROWS.filter(row => ids.includes(row.id)).map((row) => (
-          <label key={row.id} className="lumina-row">
-            <span className="lumina-row-text">
-              <span className="lumina-row-title">{t(row.label)}</span>
-              <span className="lumina-row-hint">{t(row.hint)}</span>
-            </span>
-            <input
-              type="checkbox"
-              className="lumina-switch"
-              checked={draft.effects[row.id]}
-              disabled={!draft.master}
-              onChange={(event) => editEffect(row.id, event.target.checked)}
-            />
-          </label>
-        ))}
-          {group.title === 'inputMessages' ? <>
         <div className="lumina-field">
-          <span className="lumina-row-title">{t('effectSendTransfer')}</span>
-          <span className="lumina-row-hint">{t('effectSendTransferHint')}</span>
-          <div className="lumina-segmented" role="radiogroup" aria-label={t('effectSendTransfer')}>
-            {TRANSFER_MODES.map((mode) => (
+          <span className="lumina-field-head">
+            <span className="lumina-row-title">{t('intensity')}</span>
+            <span className="lumina-row-hint">{t('intensityHint')}</span>
+          </span>
+          <div className="lumina-segmented" role="radiogroup" aria-label={t('intensity')}>
+            {(['subtle', 'normal', 'vivid'] as const).map((tier) => (
               <button
-                key={mode}
+                key={tier}
                 type="button"
                 role="radio"
-                aria-checked={draft.effects.sendTransition === mode}
+                aria-checked={draft.intensity === tier}
                 className="lumina-segment"
-                data-active={draft.effects.sendTransition === mode ? 'true' : undefined}
+                data-active={draft.intensity === tier ? 'true' : undefined}
                 disabled={!draft.master}
-                onClick={() => editTransfer(mode)}
+                onClick={() => edit({ intensity: tier })}
               >
-                {t(`transferMode${mode.charAt(0).toUpperCase()}${mode.slice(1)}`)}
+                {t(`intensity${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
               </button>
             ))}
           </div>
         </div>
-          </> : null}
+        <PerformanceSettings value={draft.performance.profile} disabled={!draft.master} t={t} bare
+          onChange={profile => edit({ performance: { profile } })} />
+      </section>
+
+      {GROUPS.map(group => (
+        <section className="lumina-section" key={group.title}>
+          <h3 className="lumina-section-title lumina-group-title">
+            {t(group.title)}
+            <span className="lumina-group-subtitle">{t(group.subtitle)}</span>
+          </h3>
+          {group.ids.map((id) => {
+            const row = EFFECT_ROWS.find(entry => entry.id === id)
+            if (row === undefined) return null
+            return (
+              <label key={row.id} className="lumina-row">
+                <span className="lumina-row-text">
+                  <span className="lumina-row-title">{t(row.label)}</span>
+                  <span className="lumina-row-hint">{t(row.hint)}</span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="lumina-switch"
+                  checked={draft.effects[row.id]}
+                  disabled={!draft.master}
+                  onChange={(event) => editEffect(row.id, event.target.checked)}
+                />
+              </label>
+            )
+          })}
+          {group.title === 'groupInputSend' ? (
+            <div className="lumina-field">
+              <span className="lumina-field-head">
+                <span className="lumina-row-title">{t('effectSendTransfer')}</span>
+                <span className="lumina-row-hint">{t('effectSendTransferHint')}</span>
+              </span>
+              <div className="lumina-segmented" role="radiogroup" aria-label={t('effectSendTransfer')}>
+                {TRANSFER_MODES.map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="radio"
+                    aria-checked={draft.effects.sendTransition === mode}
+                    className="lumina-segment"
+                    data-active={draft.effects.sendTransition === mode ? 'true' : undefined}
+                    disabled={!draft.master}
+                    onClick={() => editTransfer(mode)}
+                  >
+                    {t(`transferMode${mode.charAt(0).toUpperCase()}${mode.slice(1)}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
-      })}
+      ))}
+
       <details className="lumina-section lumina-diagnostics">
         <summary>{t('diagnostics')}</summary>
         <p className="lumina-row-hint">{t('performanceRuntime')}: {t(`performanceState_${motionStatus.state}`)} · {t('performanceFrames')}: {motionStatus.backgroundFps} / {motionStatus.interactionFps} fps{motionStatus.yielding ? ` · ${t('performanceYielding')}` : ''}</p>
