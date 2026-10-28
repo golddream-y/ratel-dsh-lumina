@@ -326,7 +326,7 @@ export function installSessionGalaxy(): () => void {
     }
     // MutationObserver runs before paint: transfer the first frame in this checkpoint.
     // Later frames remain owned by the shared background scheduler.
-    if (handover && !document.hidden && document.hasFocus() && !prefersReducedMotion()) {
+    if (handover && !document.hidden && !prefersReducedMotion()) {
       cancelMotionFrame(frame)
       frame = 0
       draw(performance.now())

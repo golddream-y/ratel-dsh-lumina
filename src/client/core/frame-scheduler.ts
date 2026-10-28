@@ -6,7 +6,7 @@ import { panelMotionBusy } from './render-activity.ts'
 type Kind = 'background' | 'interaction'
 type Pending = { callback: FrameRequestCallback; kind: Kind }
 const pending = new Map<number, Pending>()
-let serial = 0, frame = 0, listening = false, focused = true
+let serial = 0, frame = 0, listening = false
 let last = new WeakMap<FrameRequestCallback, number>()
 let unwatch = () => {}
 export interface MotionStatus { readonly state: 'idle' | 'paused' | 'running'; readonly backgroundFps: number; readonly interactionFps: number; readonly yielding: boolean }
@@ -20,7 +20,14 @@ function publish(now = performance.now()) {
   if (next.state === status.state && next.backgroundFps === status.backgroundFps && next.interactionFps === status.interactionFps && next.yielding === status.yielding) return
   status = next; subscribers.forEach(callback => callback())
 }
-const allowed = () => focused && !document.hidden && !prefersReducedMotion()
+/**
+ * Whether frames may run.
+ *
+ * Visibility, not focus, decides this: a visible window keeps drawing while the
+ * user types in another app (the tiers already budget that cost), and a hidden
+ * or minimised window stops completely. Focus only feeds the status text.
+ */
+const allowed = () => !document.hidden && !prefersReducedMotion()
 const wake = () => { publish(); if (pending.size && !frame && allowed()) frame = requestAnimationFrame(flush) }
 const stateChanged = () => {
   document.documentElement.toggleAttribute('data-lumina-motion-paused', !allowed())
@@ -28,14 +35,10 @@ const stateChanged = () => {
   if (!allowed()) { cancelAnimationFrame(frame); frame = 0; last = new WeakMap() }
   else wake()
 }
-const focus = () => { focused = true; stateChanged() }
-const blur = () => { focused = false; stateChanged() }
+
 function listen() {
   if (listening) return
   listening = true
-  focused = document.hasFocus()
-  window.addEventListener('focus', focus)
-  window.addEventListener('blur', blur)
   document.addEventListener('visibilitychange', stateChanged)
   unwatch = watchReducedMotion(stateChanged)
   stateChanged()
@@ -76,6 +79,5 @@ export function disposeFrameScheduler() {
   document.documentElement.removeAttribute('data-lumina-motion-paused')
   if (!listening) return
   listening = false; unwatch()
-  window.removeEventListener('focus', focus); window.removeEventListener('blur', blur)
   document.removeEventListener('visibilitychange', stateChanged)
 }

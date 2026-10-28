@@ -234,6 +234,10 @@ ${composerCss(
 .lumina-segmented { flex-wrap: wrap; }
 
 .lumina-performance { position: relative; z-index: 1; min-width: 0; }
+/* Every block isolates its own stacking context, so a later block paints over
+   an earlier one. The detail card hangs below its own block, so while it is open
+   that block has to come forward or the next section covers it. */
+.lumina-section:has(.lumina-performance-details) { z-index: 3; }
 .lumina-performance-intro { margin: -6px 0 2px; }
 .lumina-performance-control { position: relative; }
 .lumina-performance-options { display: flex; flex-wrap: nowrap; overflow-x: auto; }

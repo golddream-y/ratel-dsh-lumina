@@ -27,17 +27,39 @@ describe('shared rendering scheduler', () => {
     expect(interaction).toBe(121)
     expect(native.size).toBe(1)
   })
-  it('stops native callbacks on blur, resumes on focus, and cancels the last task without an idle loop', () => {
+  it('keeps drawing while the window is merely unfocused, and stops only when hidden', () => {
+    let hidden = false
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden })
+    const draw = vi.fn()
+    const loop = () => { draw(); requestMotionFrame(loop, 'background') }
+    requestMotionFrame(loop, 'background')
+
+    // Losing focus is not losing sight of the window: the loop must survive it.
+    window.dispatchEvent(new Event('blur'))
+    expect(native.size).toBe(1)
+    tick(1000)
+    expect(draw).toHaveBeenCalled()
+
+    hidden = true
+    document.dispatchEvent(new Event('visibilitychange'))
+    expect(native.size).toBe(0)
+    expect(document.documentElement.hasAttribute('data-lumina-motion-paused')).toBe(true)
+    const afterHide = draw.mock.calls.length
+    tick(2000)
+    expect(draw.mock.calls.length).toBe(afterHide)
+
+    hidden = false
+    document.dispatchEvent(new Event('visibilitychange'))
+    expect(native.size).toBe(1)
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+  })
+
+  it('cancels the last task without leaving an idle loop behind', () => {
     const draw = vi.fn()
     const id = requestMotionFrame(draw, 'background')
-    window.dispatchEvent(new Event('blur'))
-    expect(native.size).toBe(0)
-    tick(1000); expect(draw).not.toHaveBeenCalled()
-    window.dispatchEvent(new Event('focus')); expect(native.size).toBe(1)
-    tick(2000); expect(draw).toHaveBeenCalledTimes(1)
-    expect(native.size).toBe(0)
     cancelMotionFrame(id)
-    const next = requestMotionFrame(draw); cancelMotionFrame(next)
+    const next = requestMotionFrame(draw)
+    cancelMotionFrame(next)
     expect(native.size).toBe(0)
   })
   it('follows the selected profile and does not let a failing task stop the others', () => {
