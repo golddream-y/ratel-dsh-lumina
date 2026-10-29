@@ -1,28 +1,22 @@
-import {toolRows, toolTarget, toolHeaderVisible, toolMutationRelevant, toolRowOwner, type ToolTarget} from '../adapter/tool-targets.ts'
+import {toolRows, toolTarget, toolHeaderVisible, toolMutationRelevant, toolRowOwner, toolIconPlacement, type ToolTarget} from '../adapter/tool-targets.ts'
 import {prefersReducedMotion, watchReducedMotion} from '../core/motion.ts'
 import {TOOL_MOTION_BUDGET} from '../core/performance.ts'
 import {installStyle} from '../core/styles.ts'
 import {TOOL_MOTION} from '../style/tokens.ts'
 
 const FLOW='data-lumina-tool-flow'
-let flowSerial=0
 const active=(target:ToolTarget)=>target.state==='preparing'||target.state==='running'
 type Entry={target:ToolTarget;visible:boolean;since:number;order:number;flow:HTMLElement|null;position:string;timer:ReturnType<typeof setTimeout>|undefined;animations:Set<Animation>}
 export function toolMotionCss():string {
-  return `[${FLOW}]{display:none;position:absolute;pointer-events:none!important;width:min(44%,140px);height:12px;left:24px;bottom:-3px;transform-origin:40% 50%;overflow:visible;contain:layout style;}
+  return `[${FLOW}]{display:none;position:absolute;pointer-events:none!important;width:var(--lumina-tool-size,26px);height:var(--lumina-tool-size,26px);left:calc(var(--lumina-tool-x) - var(--lumina-tool-size)/2);top:calc(var(--lumina-tool-y) - var(--lumina-tool-size)/2);transform-origin:center;contain:layout style;}
 html[data-lumina="on"] [${FLOW}]{display:block;opacity:.9;animation:lumina-tool-enter ${TOOL_MOTION.enter}ms ease-out;}
 [${FLOW}][data-phase="preparing"]{opacity:.3!important;}
-[${FLOW}] svg{width:100%;height:100%;overflow:visible;}
-[${FLOW}] path{fill:none;stroke-linecap:round;}
-[${FLOW}] .lumina-tool-cool-stop{stop-color:var(--lumina-brand-ratel);}
-[${FLOW}] .lumina-tool-warm-stop{stop-color:color-mix(in srgb,var(--lumina-brand-deepseek) 65%,var(--lumina-brand-soft));}
-[${FLOW}] .lumina-tool-haze{stroke-width:5;opacity:.1;}
-[${FLOW}] .lumina-tool-thread{stroke-width:.75;opacity:.55;}
-[${FLOW}] .lumina-tool-a{animation:lumina-tool-a ${TOOL_MOTION.cycle}ms ease-in-out infinite;}
-[${FLOW}] .lumina-tool-b{animation:lumina-tool-b ${TOOL_MOTION.cycle}ms ease-in-out infinite;}
+[${FLOW}] .lumina-tool-a,[${FLOW}] .lumina-tool-b{position:absolute;inset:0;border-radius:50%;pointer-events:none;}
+[${FLOW}] .lumina-tool-a{background:radial-gradient(ellipse at 32% 44%,color-mix(in srgb,var(--lumina-brand-ratel) 40%,transparent),color-mix(in srgb,var(--lumina-brand-ratel) 18%,transparent) 35%,transparent 72%);animation:lumina-tool-a ${TOOL_MOTION.cycle}ms ease-in-out infinite;}
+[${FLOW}] .lumina-tool-b{background:radial-gradient(ellipse at 66% 56%,color-mix(in srgb,var(--lumina-brand-deepseek) 32%,transparent),color-mix(in srgb,var(--lumina-brand-soft) 20%,transparent) 35%,transparent 72%);animation:lumina-tool-b ${TOOL_MOTION.cycle}ms ease-in-out infinite;}
 @keyframes lumina-tool-enter{from{opacity:0}to{opacity:.9}}
-@keyframes lumina-tool-a{0%,100%{transform:translate(-4px,1px);opacity:.5}50%{transform:translate(4px,-1px);opacity:1}}
-@keyframes lumina-tool-b{0%,100%{transform:translate(4px,-1px);opacity:1}50%{transform:translate(-4px,1px);opacity:.5}}
+@keyframes lumina-tool-a{0%,100%{transform:translate(-.6px,.3px) scale(.92);opacity:.6}50%{transform:translate(.6px,-.3px) scale(1.08);opacity:1}}
+@keyframes lumina-tool-b{0%,100%{transform:translate(.5px,-.3px) scale(1.06);opacity:1}50%{transform:translate(-.5px,.3px) scale(.9);opacity:.55}}
 html[data-lumina-motion-paused] [${FLOW}]{visibility:hidden;}
 html[data-lumina-motion-paused] [${FLOW}],html[data-lumina-motion-paused] [${FLOW}] *{animation-play-state:paused!important;}
 @media(prefers-reduced-motion:reduce){[${FLOW}]{display:none!important;}[${FLOW}],[${FLOW}] *{animation:none!important;}}
@@ -30,9 +24,8 @@ html[data-lumina-motion-paused] [${FLOW}],html[data-lumina-motion-paused] [${FLO
 }
 function makeFlow():HTMLElement {
   const span=document.createElement('span');span.setAttribute(FLOW,'');span.setAttribute('aria-hidden','true')
-  // Local authored curves; no remote assets, text copies, filters or runtime dependencies.
-  const id=++flowSerial
-  span.innerHTML=`<svg viewBox="0 0 142 13" aria-hidden="true"><defs><linearGradient id="lumina-tool-c-${id}"><stop class="lumina-tool-cool-stop" stop-opacity="0"/><stop class="lumina-tool-cool-stop" offset=".3"/><stop class="lumina-tool-cool-stop" offset=".7"/><stop class="lumina-tool-cool-stop" offset="1" stop-opacity="0"/></linearGradient><linearGradient id="lumina-tool-w-${id}"><stop class="lumina-tool-warm-stop" stop-opacity="0"/><stop class="lumina-tool-warm-stop" offset=".3"/><stop class="lumina-tool-warm-stop" offset=".7"/><stop class="lumina-tool-warm-stop" offset="1" stop-opacity="0"/></linearGradient></defs><g class="lumina-tool-a" stroke="url(#lumina-tool-c-${id})"><path class="lumina-tool-haze" d="M2 8C28 7 38 1 63 5S106 11 140 4"/><path class="lumina-tool-thread" d="M2 8C28 7 38 1 63 5S106 11 140 4"/></g><g class="lumina-tool-b" stroke="url(#lumina-tool-w-${id})"><path class="lumina-tool-haze" d="M2 5C27 9 44 12 68 7S112 1 140 6"/><path class="lumina-tool-thread" d="M2 5C27 9 44 12 68 7S112 1 140 6"/></g></svg>`
+  // Two composited light fields; the native icon remains intact underneath.
+  span.innerHTML='<span class="lumina-tool-a"></span><span class="lumina-tool-b"></span>'
   return span
 }
 export function installToolMotion():()=>void {
@@ -60,12 +53,12 @@ export function installToolMotion():()=>void {
   const finish=(entry:Entry,success:boolean)=>{
     clearTimer(entry)
     if(!entry.flow)return
-    animate(entry,entry.flow,[{opacity:.9,transform:'scaleX(1)'},{opacity:0,transform:success?'scaleX(.25)':'none'}],success?TOOL_MOTION.settle:TOOL_MOTION.exit)
+    animate(entry,entry.flow,[{opacity:.9,transform:'scale(1)'},{opacity:0,transform:success?'scale(.65)':'none'}],success?TOOL_MOTION.settle:TOOL_MOTION.exit)
     entry.timer=setTimeout(()=>{entry.timer=undefined;clearFlow(entry);schedule()},success?TOOL_MOTION.settle:TOOL_MOTION.exit)
   }
   function refresh() {
     queued=false;if(disposed)return
-    const now=performance.now(), candidates:Entry[]=[]
+    const now=performance.now(), candidates:Entry[]=[], placements=new Map<Entry,{x:number;y:number;size:number}>()
     for(const [row,entry] of entries) {
       const target=toolTarget(row)
       if(!target||target.key!==entry.target.key||target.header!==entry.target.header) {
@@ -89,7 +82,9 @@ export function installToolMotion():()=>void {
       if(!active(target)) {if(!entry.flow && !entry.animations.size)remove(row,entry);continue}
       const remaining=TOOL_MOTION.delay-(now-entry.since)
       if(remaining>0) {if(!entry.timer)entry.timer=setTimeout(()=>{entry.timer=undefined;schedule()},remaining);continue}
-      candidates.push(entry)
+      const placement=toolIconPlacement(target)
+      if(!placement){clearFlow(entry);continue}
+      placements.set(entry,placement);candidates.push(entry)
     }
     candidates.sort((a,b)=>b.order-a.order)
     const selected=new Set(candidates.slice(0,TOOL_MOTION_BUDGET.visible))
@@ -100,6 +95,11 @@ export function installToolMotion():()=>void {
         if(getComputedStyle(entry.target.header).position==='static')entry.target.header.style.position='relative'
         entry.flow=makeFlow();entry.target.header.append(entry.flow)
       }
+      const placement=placements.get(entry)
+      if(!placement){clearFlow(entry);continue}
+      entry.flow.style.setProperty('--lumina-tool-x',`${placement.x}px`)
+      entry.flow.style.setProperty('--lumina-tool-y',`${placement.y}px`)
+      entry.flow.style.setProperty('--lumina-tool-size',`${placement.size}px`)
       entry.flow.dataset.phase=entry.target.state
     }
   }

@@ -51,3 +51,17 @@ export function toolMutationRelevant(record: MutationRecord): boolean {
   if(record.type==='attributes') return !!toolRowOwner(record.target) || (record.target instanceof Element && (record.target.matches(CHAT) || (['hidden','aria-hidden','data-turn-process-hidden'].includes(record.attributeName ?? '') && toolRows(record.target).length>0)))
   return [...record.addedNodes,...record.removedNodes].some(node=>toolRows(node).length>0 || (node instanceof Element && (node.matches(CHAT) || node.matches('[data-disclosure-header]') || !!node.querySelector('[data-disclosure-header]'))))
 }
+
+/** Verified native leading slot; glyphs and disclosure controls remain host-owned. */
+export function toolIconPlacement(target:ToolTarget):{x:number;y:number;size:number}|null {
+  const row=target.row.dataset.sample==='bash'?target.row:target.header.querySelector<HTMLElement>('[data-disclosure-row]')
+  const leading=row?.firstElementChild
+  if(!(leading instanceof HTMLElement) || !leading.querySelector('svg') || leading.hasAttribute('data-lumina-tool-flow'))return null
+  const header=target.header.getBoundingClientRect(),icon=leading.getBoundingClientRect()
+  const sx=target.header.offsetWidth?header.width/target.header.offsetWidth:1
+  const sy=target.header.offsetHeight?header.height/target.header.offsetHeight:1
+  if(!Number.isFinite(sx)||!Number.isFinite(sy)||sx<=0||sy<=0)return null
+  const w=icon.width/sx,h=icon.height/sy
+  if(w<8||h<8||w>32||h>32||icon.left<header.left-1||icon.right>header.right+1)return null
+  return {x:(icon.left+icon.width/2-header.left)/sx-target.header.clientLeft,y:(icon.top+icon.height/2-header.top)/sy-target.header.clientTop,size:Math.min(30,Math.max(w,h)*1.8)}
+}
