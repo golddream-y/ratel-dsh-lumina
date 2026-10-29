@@ -73,3 +73,24 @@ describe('shared rendering scheduler', () => {
     expect(warn).toHaveBeenCalledTimes(1)
   })
 })
+
+it('rearms retained tasks and clears a stale pause marker on focus or page restoration', () => {
+  let hidden = true
+  Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden })
+  const draw=vi.fn()
+  requestMotionFrame(draw,'background')
+  expect(native.size).toBe(0)
+  hidden=false
+  // Model a return notification without the visibilitychange previously relied on.
+  window.dispatchEvent(new Event('focus'))
+  expect(native.size).toBe(1)
+  expect(document.documentElement.hasAttribute('data-lumina-motion-paused')).toBe(false)
+  window.dispatchEvent(new Event('pageshow'))
+  expect(native.size).toBe(1)
+  tick(1000)
+  expect(draw).toHaveBeenCalledTimes(1)
+  disposeFrameScheduler()
+  window.dispatchEvent(new Event('focus'))
+  expect(native.size).toBe(0)
+  Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+})

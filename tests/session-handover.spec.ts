@@ -5,7 +5,7 @@ import { installSessionGalaxy } from '../src/client/effects/session-galaxy.ts'
 const state = vi.hoisted(() => ({ drawable: true }))
 vi.mock('../src/client/effects/session-cloud-painter.ts', () => ({
   createSessionCloudPainter: () => ({ draw: () => state.drawable, setPalette: vi.fn() }),
-  clearSessionCloudCache: vi.fn(), readSessionCloudPalette: () => ({}),
+  recoverSessionCloudCache: vi.fn(), clearSessionCloudCache: vi.fn(), readSessionCloudPalette: () => ({}),
 }))
 vi.mock('../src/client/effects/session-galaxy-painter.ts', () => ({ createGalaxyPainter: () => vi.fn() }))
 vi.mock('../src/client/core/frame-scheduler.ts', () => ({ requestMotionFrame: vi.fn(() => 1), cancelMotionFrame: vi.fn() }))

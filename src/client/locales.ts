@@ -34,7 +34,7 @@ export const en = {
   performanceLines: 'filaments',
   performanceCloudResolution: 'px cloud texture',
   performanceCloudSteps: 'volume samples',
-  performanceScope: 'Limits, not measured frame rates. Display and device capabilities may reduce them. CSS animations are browser-controlled. Hidden or unfocused windows pause background drawing in every mode.',
+  performanceScope: 'Limits, not measured frame rates. Display and device capabilities may reduce them. CSS animations are browser-controlled. Hidden windows pause background drawing in every mode; visible windows keep drawing when unfocused.',
 
   transferStatusLabel: 'Send transition status',
   transferStarts: 'Starts',
@@ -148,7 +148,7 @@ export const zh = {
   performanceLines: '光丝',
   performanceCloudResolution: 'px 光团纹理',
   performanceCloudSteps: '层体积采样',
-  performanceScope: '以上是预算上限，并非实测帧率；实际受设备与刷新率限制。CSS 动画由浏览器控制。所有档位均在窗口隐藏或失焦时暂停背景绘制。',
+  performanceScope: '以上是预算上限，并非实测帧率；实际受设备与刷新率限制。CSS 动画由浏览器控制。所有档位均在窗口隐藏时暂停背景绘制；可见窗口失焦时继续播放。',
 
   transferStatusLabel: '发送转场状态',
   transferStarts: '已启动次数',

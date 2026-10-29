@@ -25,7 +25,7 @@ function publish(now = performance.now()) {
  *
  * Visibility, not focus, decides this: a visible window keeps drawing while the
  * user types in another app (the tiers already budget that cost), and a hidden
- * or minimised window stops completely. Focus only feeds the status text.
+ * or minimised window stops completely. Focus is only a recovery signal.
  */
 const allowed = () => !document.hidden && !prefersReducedMotion()
 const wake = () => { publish(); if (pending.size && !frame && allowed()) frame = requestAnimationFrame(flush) }
@@ -36,10 +36,19 @@ const stateChanged = () => {
   else wake()
 }
 
+// A return event may arrive without visibilitychange (e.g. a suspended webview).
+// Replace a possibly stale native handle, preserving every pending effect task.
+const resume = () => {
+  cancelAnimationFrame(frame); frame = 0; last = new WeakMap()
+  stateChanged()
+}
+
 function listen() {
   if (listening) return
   listening = true
   document.addEventListener('visibilitychange', stateChanged)
+  window.addEventListener('focus', resume)
+  window.addEventListener('pageshow', resume)
   unwatch = watchReducedMotion(stateChanged)
   stateChanged()
 }
@@ -80,4 +89,6 @@ export function disposeFrameScheduler() {
   if (!listening) return
   listening = false; unwatch()
   document.removeEventListener('visibilitychange', stateChanged)
+  window.removeEventListener('focus', resume)
+  window.removeEventListener('pageshow', resume)
 }

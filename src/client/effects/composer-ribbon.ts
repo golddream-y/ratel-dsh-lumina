@@ -22,17 +22,27 @@ export function installComposerRibbon(): () => void {
   let width=0,height=0,raf=0,updateFrame=0,last=0,stopTimer: ReturnType<typeof setTimeout>|undefined
   let disposed=false,visible=false,phase=0,sessionKey: string|undefined
   let renderer: RibbonRenderer | null=null, initializing=false, unavailable=false
-  const fail=()=>{unavailable=true;stop();renderer?.dispose();renderer=null;canvas.remove()}
+  let generation=0
+  const releaseRenderer=()=>{
+    generation++;stop();clearTimeout(stopTimer)
+    visible=false;last=0;canvas.style.opacity='0'
+    renderer?.dispose();renderer=null;canvas.remove()
+  }
   const initialize=()=>{
     if(renderer||initializing||unavailable||disposed) return
     initializing=true
+    const attempt=++generation
+    const fail=()=>{
+      if(disposed||attempt!==generation) return
+      unavailable=true;releaseRenderer()
+    }
     void createRibbonRenderer(canvas,fail).then(value=>{
       initializing=false
-      if(disposed||unavailable) {value?.dispose();return}
+      if(disposed||attempt!==generation) {value?.dispose();schedule();return}
       if(!value) {fail();return}
       renderer=value
       schedule()
-    }).catch(()=>{initializing=false;fail()})
+    }).catch(()=>{initializing=false;if(attempt===generation) fail();else schedule()})
   }
   const stop=()=>{cancelMotionFrame(raf);raf=0}
   const draw=(now:number)=>{
@@ -42,7 +52,7 @@ export function installComposerRibbon(): () => void {
       phase+=elapsed/1000;last=now
       if(bounds) renderer?.render(width,height,box,phase,true,bounds)
     }
-    raf=requestMotionFrame(draw, 'background')
+    if(!disposed && !unavailable && renderer) raf=requestMotionFrame(draw, 'background')
   }
   const resize=new ResizeObserver(()=>schedule())
   const setVisible=(next:boolean)=>{
@@ -56,9 +66,10 @@ export function installComposerRibbon(): () => void {
   function update() {
     updateFrame=0
     if(disposed||unavailable) return
+    if(document.hidden) {setVisible(false);stop();last=0;return}
     const next=composerRibbonScene()
-    if(!next || prefersReducedMotion() || document.hidden) {
-      setVisible(false);stop();renderer?.dispose();renderer=null;canvas.remove();scene=null;resize.disconnect();return
+    if(!next || prefersReducedMotion()) {
+      releaseRenderer();scene=null;resize.disconnect();return
     }
     const key=currentHeroSession()
     if(key!==sessionKey || next.card!==scene?.card || next.mark!==scene?.mark) {
@@ -91,10 +102,20 @@ export function installComposerRibbon(): () => void {
   observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-lumina-echo-gate']})
   const unwatchViewport=watchViewportScale(schedule)
   const onBlur=()=>{last=0}
+  const onResume=()=>{
+    if(disposed) return
+    last=0
+    if(document.hidden) {setVisible(false);stop();return}
+    unavailable=false
+    schedule()
+  }
   window.addEventListener('blur',onBlur)
-  const events=['focusin','focusout','animationend','animationcancel','visibilitychange','scroll']
+  window.addEventListener('focus',onResume)
+  window.addEventListener('pageshow',onResume)
+  document.addEventListener('visibilitychange',onResume)
+  const events=['focusin','focusout','animationend','animationcancel','scroll']
   events.forEach(event=>document.addEventListener(event,schedule,true));window.addEventListener('resize',schedule)
   const unwatch=watchReducedMotion(schedule)
   schedule()
-  return ()=>{disposed=true;window.removeEventListener('blur',onBlur);stop();cancelAnimationFrame(updateFrame);clearTimeout(stopTimer);observer.disconnect();unwatchViewport();resize.disconnect();unwatch();events.forEach(event=>document.removeEventListener(event,schedule,true));window.removeEventListener('resize',schedule);renderer?.dispose();renderer=null;canvas.remove()}
+  return ()=>{disposed=true;releaseRenderer();window.removeEventListener('blur',onBlur);window.removeEventListener('focus',onResume);window.removeEventListener('pageshow',onResume);document.removeEventListener('visibilitychange',onResume);stop();cancelAnimationFrame(updateFrame);clearTimeout(stopTimer);observer.disconnect();unwatchViewport();resize.disconnect();unwatch();events.forEach(event=>document.removeEventListener(event,schedule,true));window.removeEventListener('resize',schedule);renderer?.dispose();renderer=null;canvas.remove()}
 }

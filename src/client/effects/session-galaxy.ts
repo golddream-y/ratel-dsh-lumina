@@ -5,6 +5,7 @@ import { createGalaxyPainter } from './session-galaxy-painter.ts'
 import {
   createSessionCloudPainter,
   clearSessionCloudCache,
+  recoverSessionCloudCache,
   readSessionCloudPalette,
   type SessionCloudPainter,
 } from './session-cloud-painter.ts'
@@ -358,7 +359,16 @@ export function installSessionGalaxy(): () => void {
     attributes: true,
     attributeFilter: ['data-state'],
   })
-  document.addEventListener('visibilitychange', start)
+  const resume = () => {
+    lastDraw = 0
+    if (disposed || document.hidden || prefersReducedMotion()) return
+    recoverSessionCloudCache()
+    invalidateGeometry()
+    schedule()
+  }
+  window.addEventListener('focus', resume)
+  window.addEventListener('pageshow', resume)
+  document.addEventListener('visibilitychange', resume)
   const stopMotion = watchReducedMotion(() => {
     cancelMotionFrame(frame)
     frame = 0
@@ -383,6 +393,8 @@ export function installSessionGalaxy(): () => void {
     resize.disconnect()
     intersection.disconnect()
     clearSessionCloudCache()
-    document.removeEventListener('visibilitychange', start)
+    window.removeEventListener('focus', resume)
+    window.removeEventListener('pageshow', resume)
+    document.removeEventListener('visibilitychange', resume)
   }
 }

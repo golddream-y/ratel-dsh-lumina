@@ -59,7 +59,15 @@ function renderer(): Renderer | null {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'Cloud program link failed')
     const uniforms = Object.fromEntries(['time', 'steps', 'cool', 'warmColor', 'deep'].map(key => [key, gl.getUniformLocation(program!, key)])) as Renderer['uniforms']
     const resource: Renderer = { canvas, gl, program, shaders, uniforms, lost: false }
-    canvas.addEventListener('webglcontextlost', () => { resource.lost = true })
+    canvas.addEventListener('webglcontextlost', event => {
+      event.preventDefault() // Opt in to browser restoration; never draw invalid resources.
+      resource.lost = true
+    })
+    canvas.addEventListener('webglcontextrestored', () => {
+      if (shared !== resource) return
+      gl.deleteProgram(program); shaders.forEach(shader => gl.deleteShader(shader))
+      shared = null // Uniforms and programs are invalid after restoration.
+    })
     shared = resource
     return resource
   } catch (error) {
@@ -82,6 +90,11 @@ export function clearSessionCloudCache(): void {
   }
   shared = null
   unavailable = false
+}
+
+/** Retry only at a lifecycle boundary, never once per failed frame. */
+export function recoverSessionCloudCache(): void {
+  if (unavailable || shared?.lost || shared?.gl.isContextLost()) clearSessionCloudCache()
 }
 
 export function createSessionCloudPainter(seed = 0, budget: Budget, initialPalette = DEFAULT_PALETTE): SessionCloudPainter {
