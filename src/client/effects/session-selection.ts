@@ -32,7 +32,7 @@ export function installSessionSelection(intensity: Intensity): () => void {
     const tree = next ? sessionTree(next) : null
     const sameTree = tree === previousTree
     selected = next; previousTree = tree; previousBox = next?.getBoundingClientRect()
-    if (!next || !tree || !previousBox || !from || document.hidden || !document.hasFocus() || prefersReducedMotion() || typeof next.animate !== 'function') return
+    if (!next || !tree || !previousBox || !from || document.hidden || prefersReducedMotion() || typeof next.animate !== 'function') return
     const to = previousBox
     const rootBox = tree.getBoundingClientRect()
     const sx = tree.offsetWidth ? rootBox.width / tree.offsetWidth : 1

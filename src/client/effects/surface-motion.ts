@@ -21,7 +21,7 @@ export function installSurfaceMotion(kind: Kind, intensity: Intensity): () => vo
   const surfaces = new Map<HTMLElement, Surface>()
   const exits = new Map<HTMLElement, { animation: Animation; timer: ReturnType<typeof setTimeout> }>()
   const duration = SURFACE_MOTION_DURATIONS[intensity][kind]
-  const allowed = () => !document.hidden && document.hasFocus() && !prefersReducedMotion()
+  const allowed = () => !document.hidden && !prefersReducedMotion()
   let disposed = false
   let origin: { box: DOMRect; time: number } | undefined
   const rememberOrigin = (event: Event) => {
