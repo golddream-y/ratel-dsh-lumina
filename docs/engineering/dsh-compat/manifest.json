@@ -486,6 +486,46 @@
         "menuMotion"
       ],
       "why": "原生提示浮层的对齐属性，与 role=tooltip/data-side 共同匹配"
+    },
+    {
+      "id": "hook.tool-header",
+      "category": "dom-hook",
+      "pattern": "data-disclosure-header",
+      "required": false,
+      "usedBy": [
+        "toolMotion"
+      ],
+      "why": "通用工具标题的局部装饰锚点；缺少时跳过该效果"
+    },
+    {
+      "id": "hook.tool-row",
+      "category": "dom-hook",
+      "pattern": "data-disclosure-row",
+      "required": false,
+      "usedBy": [
+        "toolMotion"
+      ],
+      "why": "读取原生工具展开状态，不绑定或阻止点击"
+    },
+    {
+      "id": "hook.tool-name",
+      "category": "dom-hook",
+      "pattern": "data-tool",
+      "required": false,
+      "usedBy": [
+        "toolMotion"
+      ],
+      "why": "限定原生工具行；未知结构保留原样"
+    },
+    {
+      "id": "hook.tool-bash",
+      "category": "dom-hook",
+      "pattern": "data-sample",
+      "required": false,
+      "usedBy": [
+        "toolMotion"
+      ],
+      "why": "Bash 标题独立适配；只匹配 bash 类型"
     }
   ]
 }

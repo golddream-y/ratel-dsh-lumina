@@ -91,7 +91,7 @@ describe('settings panel', () => {
   it('renders the master switch, every effect row and the five send modes', () => {
     render(DEFAULT_CONFIG)
     // The send transition is a mode selector, not a switch, so it has no checkbox.
-    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(14)
+    expect(container.querySelectorAll('input[type="checkbox"]').length).toBe(15)
     expect(container.textContent).toContain('effectBrand')
     expect(container.textContent).toContain('effectHero')
     expect(container.textContent).toContain('effectSendTransfer')
@@ -124,6 +124,17 @@ describe('settings panel', () => {
     expect(saves[0]?.effects.composerRibbon).toBe(false)
     expect(saves[0]?.effects.hero).toBe(true)
     expect(saves[0]?.effects.composerGlow).toBe(true)
+  })
+
+  it('keeps the tool-motion switch independent and stages it until save', () => {
+    const saves = render(DEFAULT_CONFIG)
+    const toggle = switchFor('effectToolMotion')
+    expect(toggle.checked).toBe(true)
+    act(() => toggle.click())
+    expect(saves).toHaveLength(0)
+    clickButton('save')
+    expect(saves[0]?.effects.toolMotion).toBe(false)
+    expect(saves[0]?.effects.sendTransition).toBe('flow')
   })
 
   it('discards the draft on cancel', () => {

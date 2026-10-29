@@ -1,3 +1,4 @@
+import { installToolMotion } from './effects/tool-motion.ts'
 import { installSurfaceMotion } from './effects/surface-motion.ts'
 import { installSessionSelection } from './effects/session-selection.ts'
 import { setRenderBudget } from './core/performance.ts'
@@ -179,6 +180,7 @@ function installEffects(
         press: () => installPress(streaming, config.intensity, ctx),
         hero: () => installHero(ctx),
         sessionActivity: () => installSessionActivity(),
+        toolMotion: () => installToolMotion(),
         dialogMotion: () => installSurfaceMotion('dialog', config.intensity),
         menuMotion: () => installSurfaceMotion('menu', config.intensity),
         sessionSelection: () => installSessionSelection(config.intensity),

@@ -31,3 +31,6 @@ export function setRenderBudget(profile: PerformanceProfile) { current = RENDER_
 
 /** One small GPU target shared by all visible running rows. */
 export const SESSION_CLOUD_RESOURCE_BUDGET = { maxTextureSize: 64 } as const
+
+/** CSS tool decoration shares the same small concurrency cap in all profiles. */
+export const TOOL_MOTION_BUDGET = { visible: 2, tracked: 128 } as const

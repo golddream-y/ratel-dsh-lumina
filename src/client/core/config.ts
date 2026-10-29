@@ -49,6 +49,7 @@ export interface EffectFlags {
   readonly menuMotion: boolean
   readonly sessionSelection: boolean
   readonly groupMotion: boolean
+  readonly toolMotion: boolean
   readonly sessionActivity: boolean
 }
 
@@ -77,6 +78,7 @@ export const DEFAULT_CONFIG: LuminaConfig = {
     typeWave: true,
     hero: true,
     sessionActivity: true,
+    toolMotion: true,
     panelMotion: true,
     groupMotion: true,
     dialogMotion: true,
@@ -125,6 +127,7 @@ function readEffects(value: unknown): EffectFlags {
   const source = isRecord(value) ? value : {}
   return {
     brand: readBoolean(source.brand, DEFAULT_CONFIG.effects.brand),
+    toolMotion: readBoolean(source.toolMotion, DEFAULT_CONFIG.effects.toolMotion),
     composerGlow: readBoolean(source.composerGlow, DEFAULT_CONFIG.effects.composerGlow),
     composerRibbon: readBoolean(source.composerRibbon, readBoolean(source.composerGlow, DEFAULT_CONFIG.effects.composerRibbon)),
     caret: readBoolean(source.caret, DEFAULT_CONFIG.effects.caret),

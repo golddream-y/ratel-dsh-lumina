@@ -46,6 +46,7 @@ const EFFECT_ROWS = [
   { id: 'typeWave', label: 'effectTypeWave', hint: 'effectTypeWaveHint' },
   { id: 'press', label: 'effectPress', hint: 'effectPressHint' },
   { id: 'composerRibbon', label: 'effectComposerRibbon', hint: 'effectComposerRibbonHint' },
+  { id: 'toolMotion', label: 'effectToolMotion', hint: 'effectToolMotionHint' },
   { id: 'hero', label: 'effectHero', hint: 'effectHeroHint' },
   { id: 'sessionActivity', label: 'effectSessionActivity', hint: 'effectSessionActivityHint' },
 ] as const
@@ -60,7 +61,7 @@ const EFFECT_ROWS = [
 const GROUPS = [
   { title: 'groupSidebar', subtitle: 'groupSidebarHint', ids: ['brand', 'sessionActivity', 'sessionSelection', 'groupMotion'] },
   { title: 'groupInputSend', subtitle: 'groupInputSendHint', ids: ['composerGlow', 'caret', 'typeWave', 'press'] },
-  { title: 'groupSessionPage', subtitle: 'groupSessionPageHint', ids: ['hero', 'composerRibbon'] },
+  { title: 'groupSessionPage', subtitle: 'groupSessionPageHint', ids: ['hero', 'composerRibbon', 'toolMotion'] },
   { title: 'groupOverlays', subtitle: 'groupOverlaysHint', ids: ['panelMotion', 'dialogMotion', 'menuMotion'] },
 ] as const
 

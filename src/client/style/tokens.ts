@@ -157,3 +157,6 @@ export const SURFACE_MOTION_DURATIONS = {
   vivid: { dialog: 187, menu: 136, selection: 180 },
 } as const
 export const SURFACE_EXIT_FACTOR = .7
+
+/** Tool state timings do not delay native results or disposal. */
+export const TOOL_MOTION = { delay:200, enter:180, settle:260, exit:120, open:180, cycle:2800 } as const
