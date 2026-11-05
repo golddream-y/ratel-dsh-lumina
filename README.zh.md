@@ -1,4 +1,4 @@
-![Ratel Lumina 流光 — 让开发，有趣一点。DeepSeek Harness 动效创意示意图。](assets/readme/hero-zh-CN-2026-11.webp)
+![Ratel Lumina 流光 — 让开发，有趣一点。DeepSeek Harness 动效创意示意图。](assets/readme/hero-zh-CN-optical-motion.gif)
 
 # Ratel Lumina · 流光
 
