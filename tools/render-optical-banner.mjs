@@ -4,7 +4,9 @@ import {createRequire} from 'node:module'
 import {spawnSync} from 'node:child_process'
 const require=createRequire(import.meta.url)
 const {chromium}=require(process.env.LUMINA_PLAYWRIGHT_PATH||'playwright')
-const dir='.local/diagnostics/2026-11-05-optical-gif'
+const lang=process.env.LUMINA_BANNER_LANG||'zh-CN'
+if(!['zh-CN','en'].includes(lang))throw Error('Unsupported banner language')
+const dir=`.local/diagnostics/2026-11-05-optical-gif/${lang}`
 fs.mkdirSync(dir,{recursive:true})
 const browser=await chromium.launch({channel:'chrome',headless:true})
 try {
@@ -41,9 +43,9 @@ try {
   gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));gl.useProgram(p)
   const im=new Image();im.src=data;await im.decode();const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im)
   window.frame=phase=>{gl.uniform1f(gl.getUniformLocation(p,'t'),phase*Math.PI*2);gl.drawArrays(gl.TRIANGLES,0,3);gl.finish();return canvas.toDataURL().split(',')[1]}
- },'data:image/png;base64,'+fs.readFileSync('assets/readme/hero-zh-CN-optical-v2.png').toString('base64'))
+ },'data:image/png;base64,'+fs.readFileSync(`assets/readme/hero-${lang}-optical-v2.png`).toString('base64'))
  for(let i=0;i<144;i++)fs.writeFileSync(`${dir}/${String(i).padStart(3,'0')}.png`,Buffer.from(await page.evaluate(p=>frame(p),i/144),'base64'))
- const out='assets/readme/hero-zh-CN-optical-motion.gif'
+ const out=`assets/readme/hero-${lang}-optical-motion.gif`
  const result=spawnSync('/opt/homebrew/bin/ffmpeg',['-y','-v','error','-framerate','24','-i',`${dir}/%03d.png`,'-filter_complex','[0:v]split[a][b];[a]palettegen=stats_mode=full:reserve_transparent=1[p];[b][p]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle','-gifflags','+transdiff','-loop','0',out],{encoding:'utf8'})
  if(result.status!==0)throw Error(result.stderr)
  console.log(JSON.stringify({out,bytes:fs.statSync(out).size,frames:144,seconds:6}))

@@ -1,4 +1,4 @@
-![Ratel Lumina — Make development more fun. A concept illustration of subtle motion for DeepSeek Harness.](assets/readme/hero-en-2026-11.webp)
+![Ratel Lumina — Make development more fun. A concept illustration of subtle motion for DeepSeek Harness.](assets/readme/hero-en-optical-motion.gif)
 
 # Ratel Lumina
 
