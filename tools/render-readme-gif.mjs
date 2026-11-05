@@ -6,7 +6,7 @@ import {spawnSync} from 'node:child_process'
 const require=createRequire(import.meta.url)
 const {chromium}=require(process.env.LUMINA_PLAYWRIGHT_PATH||'playwright')
 const width=1140,height=494,fps=20,seconds=6,frames=fps*seconds
-const root=process.cwd(),scratch=path.join(root,'.local/diagnostics/2026-11-05-banner-vivid')
+const root=process.cwd(),scratch=path.join(root,'.local/diagnostics/2026-11-05-banner-flow')
 fs.mkdirSync(scratch,{recursive:true})
 const browser=await chromium.launch({headless:true,channel:'chrome'})
 try{
@@ -38,17 +38,42 @@ try{
   if(p.x>.38&&p.x<.95){frameMask=max(frameMask,max(exp(-pow(p.y-(.230-.21*p.x),2.)/.00008),exp(-pow(p.y-(.84+.052*p.x),2.)/.00008)));}
   mask*=(1.-protected)*(1.-frameMask);
   float t=phase*6.28318530718;
-  vec2 shift=vec2(sin(t+s*10.)*.011,sin(t+s*13.)*.026+sin(t*2.+s*19.)*.006)*mask;
+  vec2 shift=vec2(sin(t-s*3.4)*.006,sin(t-s*4.)*.020+sin(t*2.-s*5.2)*.003)*mask;
   vec3 color=texture2D(image,p+shift).rgb;
-  float traveling=pow(.5+.5*cos(6.28318530718*(s-phase*2.)),12.);
+  float traveling=pow(.5+.5*cos(6.28318530718*(s-phase)),14.);
   float highlight=traveling*exp(-best*best/.0006)*mask*.58;
   vec3 glow=mix(vec3(.48,.76,1.),vec3(1.,.65,.59),.5+.5*sin(t+s*8.));
   color=mix(color,glow,highlight*.3);
   color=mix(color,vec3(1.,.985,.975),highlight);
+  // Animate only the existing session icon and indicator; labels stay untouched.
+  vec2 ratio=vec2(2.305,1.);
+  vec2 orb=(p-vec2(.418,.637))*ratio;
+  float orbWeight=1.-smoothstep(.017,.022,length(orb));
+  float angle=.48*sin(t)+length(orb)*18.*sin(t*2.);
+  vec2 rotated=mat2(cos(angle),-sin(angle),sin(angle),cos(angle))*orb;
+  vec3 orbColor=texture2D(image,vec2(.418,.637)+rotated/ratio).rgb;
+  color=mix(color,orbColor,orbWeight);
   float light=sin(t*2.)*.5+.5;
-  vec2 orb=(p-vec2(.418,.637))*vec2(2.305,1.);
-  float halo=exp(-dot(orb,orb)/(.00025*(.85+.25*sin(t*2.))))*.48;
+  float halo=exp(-dot(orb,orb)/(.00025*(.85+.25*sin(t*2.))))*.40;
   color=mix(color,mix(vec3(.45,.73,1.),vec3(1.,.56,.59),light),halo);
+  vec2 ring=(p-vec2(.506,.635))*ratio;
+  float ringAngle=t*2.;
+  vec2 ringRot=mat2(cos(ringAngle),-sin(ringAngle),sin(ringAngle),cos(ringAngle))*ring;
+  color=mix(color,texture2D(image,vec2(.506,.635)+ringRot/ratio).rgb,1.-smoothstep(.009,.012,length(ring)));
+  float x=clamp((p.x-.407)/.108,0.,1.);
+  float envelope=smoothstep(.405,.416,p.x)*(1.-smoothstep(.50,.517,p.x));
+  float streamY=.667+.0018*sin(x*8.-t)+.0008*sin(x*14.+t*2.);
+  float stream=exp(-pow(p.y-streamY,2.)/.000006)*envelope;
+  float streamEnergy=.22+.28*pow(.5+.5*cos(x*12.-t*2.),4.);
+  color=mix(color,mix(vec3(.48,.75,1.),vec3(1.,.65,.72),.5+.5*sin(x*5.-t)),stream*streamEnergy);
+  float spark=0.;
+  for(int i=0;i<6;i++){
+    float k=float(i),life=fract(k/6.+phase),sx=.412+.099*life;
+    float sy=.667+.0017*sin(k*2.3-t);
+    vec2 v=(p-vec2(sx,sy))*ratio;
+    spark+=exp(-dot(v,v)/.0000025)*(.25+.25*sin(t+k))*pow(sin(life*3.14159265),2.);
+  }
+  color=mix(color,vec3(.94,.98,1.),clamp(spark*envelope,0.,.6));
   gl_FragColor=vec4(color,1.);
   }`
   const compile=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
