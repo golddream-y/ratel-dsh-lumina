@@ -5,8 +5,8 @@ import {createRequire} from 'node:module'
 import {spawnSync} from 'node:child_process'
 const require=createRequire(import.meta.url)
 const {chromium}=require(process.env.LUMINA_PLAYWRIGHT_PATH||'playwright')
-const width=1140,height=494,fps=15,seconds=6,frames=fps*seconds
-const root=process.cwd(),scratch=path.join(root,'.local/diagnostics/2026-11-05-banner')
+const width=1140,height=494,fps=20,seconds=6,frames=fps*seconds
+const root=process.cwd(),scratch=path.join(root,'.local/diagnostics/2026-11-05-banner-vivid')
 fs.mkdirSync(scratch,{recursive:true})
 const browser=await chromium.launch({headless:true,channel:'chrome'})
 try{
@@ -31,17 +31,23 @@ try{
   d=line(p,vec2(.975,.46),vec2(.95,.35),u);if(d<best){best=d;s=.86+u*.07;}
   d=line(p,vec2(.95,.35),vec2(.865,.21),u);if(d<best){best=d;s=.93+u*.07;}
   float mask=exp(-best*best/.0025);
-  float protected=max(rect(p,vec2(0.,0.),vec2(.375,.76)),max(rect(p,vec2(.395,.08),vec2(.52,.85)),max(rect(p,vec2(.57,.28),vec2(.9,.68)),rect(p,vec2(.555,.74),vec2(.93,.86)))));
-  mask*=1.-protected;
+  float protected=max(rect(p,vec2(0.,0.),vec2(.375,.76)),max(rect(p,vec2(.395,.08),vec2(.52,.85)),max(rect(p,vec2(.57,.28),vec2(.925,.68)),rect(p,vec2(.555,.74),vec2(.93,.86)))));
+  protected=max(protected,rect(p,vec2(.70,.13),vec2(.91,.27)));
+  float frameMask=0.;
+  if(p.y>.04&&p.y<.9){frameMask=max(exp(-pow(p.x-(.409-.027*p.y),2.)/.00008),exp(-pow(p.x-.944,2.)/.00008));}
+  if(p.x>.38&&p.x<.95){frameMask=max(frameMask,max(exp(-pow(p.y-(.230-.21*p.x),2.)/.00008),exp(-pow(p.y-(.84+.052*p.x),2.)/.00008)));}
+  mask*=(1.-protected)*(1.-frameMask);
   float t=phase*6.28318530718;
-  vec2 shift=vec2(sin(t+s*10.)*.0014,sin(t+s*13.)*.0045)*mask;
+  vec2 shift=vec2(sin(t+s*10.)*.011,sin(t+s*13.)*.026+sin(t*2.+s*19.)*.006)*mask;
   vec3 color=texture2D(image,p+shift).rgb;
-  float traveling=pow(.5+.5*cos(6.28318530718*(s-phase)),18.);
-  float highlight=traveling*exp(-best*best/.0006)*mask*.24;
+  float traveling=pow(.5+.5*cos(6.28318530718*(s-phase*2.)),12.);
+  float highlight=traveling*exp(-best*best/.0006)*mask*.58;
+  vec3 glow=mix(vec3(.48,.76,1.),vec3(1.,.65,.59),.5+.5*sin(t+s*8.));
+  color=mix(color,glow,highlight*.3);
   color=mix(color,vec3(1.,.985,.975),highlight);
   float light=sin(t*2.)*.5+.5;
   vec2 orb=(p-vec2(.418,.637))*vec2(2.305,1.);
-  float halo=exp(-dot(orb,orb)/.00025)*.13;
+  float halo=exp(-dot(orb,orb)/(.00025*(.85+.25*sin(t*2.))))*.48;
   color=mix(color,mix(vec3(.45,.73,1.),vec3(1.,.56,.59),light),halo);
   gl_FragColor=vec4(color,1.);
   }`
