@@ -2,8 +2,8 @@
   "schema": 1,
   "about": "Ratel Lumina 对 DSH 宿主能力的全部依赖。每次 DSH 升级后由 tools/check-dsh-compat.mjs 逐条核对；新增或修改依赖时必须同步本文件。",
   "verified": {
-    "version": "0.2.1-rc.3",
-    "checkedAt": "2026-10-24T06:43:21.335Z",
+    "version": "0.2.2-rc.1",
+    "checkedAt": "2026-11-06T01:27:55.145Z",
     "missing": []
   },
   "checks": [
