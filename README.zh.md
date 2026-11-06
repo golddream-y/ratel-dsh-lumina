@@ -4,7 +4,7 @@
 
 [English](README.md) · 中文
 
-[![npm version](https://img.shields.io/npm/v/@ratel-works/dsh-lumina?style=flat-square&label=npm)](https://www.npmjs.com/package/@ratel-works/dsh-lumina) [![License: MIT](https://img.shields.io/badge/License-MIT-0969da?style=flat-square)](LICENSE)
+[![npm package](assets/brand/npm-package.svg)](https://www.npmjs.com/package/@ratel-works/dsh-lumina) [![License: MIT](https://img.shields.io/badge/License-MIT-0969da?style=flat-square)](LICENSE)
 
 **让开发，有趣一点。**
 
