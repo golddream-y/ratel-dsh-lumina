@@ -20,7 +20,7 @@
     {
       "id": "service.slots",
       "category": "service",
-      "pattern": "\"slots\"",
+      "pattern": "ctx.slots.inject",
       "required": true,
       "usedBy": [
         "品牌 slot",

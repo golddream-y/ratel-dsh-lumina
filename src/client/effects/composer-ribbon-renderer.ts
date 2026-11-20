@@ -1,5 +1,4 @@
 import { renderBudget } from '../core/performance.ts'
-import { silkArtwork, silkSpine } from './composer-ribbon-art.generated.ts'
 import { artworkShader } from './composer-ribbon-art-shaders.ts'
 import type { RibbonViewport } from './composer-ribbon-bounds.ts'
 import type { RibbonBox } from './composer-ribbon-bounds.ts'
@@ -11,7 +10,7 @@ interface RenderPass {
   setPipeline(pipeline: object): void
   setBindGroup(index: number, group: object): void
   setScissorRect(x: number, y: number, w: number, h: number): void
-  draw(count: number): void
+  draw(count: number, instances: number): void
   end(): void
 }
 interface Encoder { beginRenderPass(options: object): RenderPass; finish(): object }
@@ -51,19 +50,19 @@ export async function createRibbonRenderer(canvas: HTMLCanvasElement, failed: ()
   const adapter=await gpu.requestAdapter({powerPreference:'low-power'})
   if(!adapter) return null
   const device=await adapter.requestDevice()
-  let context: GPUContext | null=null, uniform: BufferResource | undefined, artwork: TextureResource | undefined, spine: BufferResource | undefined
+  let context: GPUContext | null=null, uniform: BufferResource | undefined
   let multisample: TextureResource | undefined, sampleWidth=0, sampleHeight=0, dead=false
   const onError: EventListener=()=>{dispose();failed()}
   const dispose=()=>{
     if(dead) return
     dead=true;device.removeEventListener('uncapturederror',onError)
-    context?.unconfigure();multisample?.destroy();artwork?.destroy();spine?.destroy();uniform?.destroy();device.destroy()
+    context?.unconfigure();multisample?.destroy();uniform?.destroy();device.destroy()
   }
   try {
     context=(canvas as unknown as {getContext(type: string): GPUContext|null}).getContext('webgpu')
     if(!context) {dispose();return null}
     const format=gpu.getPreferredCanvasFormat()
-    const shader=device.createShaderModule({code:artworkShader,label:'Lumina SVG silk'})
+    const shader=device.createShaderModule({code:artworkShader,label:'Lumina optical silk'})
     const info=await shader.getCompilationInfo()
     if(info.messages.some(m=>m.type==='error')) throw new Error(info.messages.map(m=>m.message).join('\n'))
     device.pushErrorScope('validation')
@@ -72,20 +71,9 @@ export async function createRibbonRenderer(canvas: HTMLCanvasElement, failed: ()
       fragment:{module:shader,entryPoint:'fragment',targets:[{format,blend:{color:{srcFactor:'one',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}}}]},
       primitive:{topology:'triangle-list',cullMode:'none'},multisample:{count:budget.ribbonSamples}})
     if(await device.popErrorScope()) throw new Error('Invalid silk pipeline')
-    // Rasterize our bundled SVG once. Its local filters and fine folds remain one coherent image.
-    const image=new Image()
-    const url=URL.createObjectURL(new Blob([silkArtwork.replace('<svg ','<svg width="3072" height="912" ')],{type:'image/svg+xml'}))
-    try {
-      image.src=url;await image.decode()
-      artwork=device.createTexture({size:[3072,912],format:'rgba8unorm',usage:0x04|0x02|0x10,label:'Lumina approved silk artwork'})
-      device.queue.copyExternalImageToTexture({source:image},{texture:artwork,premultipliedAlpha:true},[3072,912])
-    } finally {URL.revokeObjectURL(url);image.src=''}
     uniform=device.createBuffer({size:48,usage:0x40|0x08,label:'Lumina silk scene'})
-    spine=device.createBuffer({size:silkSpine.byteLength,usage:0x80|0x08,label:'Lumina artwork spine'})
-    device.queue.writeBuffer(spine,0,silkSpine)
-    const sampler=device.createSampler({magFilter:'linear',minFilter:'linear',addressModeU:'clamp-to-edge',addressModeV:'clamp-to-edge'})
     const group=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[
-      {binding:0,resource:{buffer:uniform}},{binding:1,resource:artwork.createView()},{binding:2,resource:sampler},{binding:3,resource:{buffer:spine}}]})
+      {binding:0,resource:{buffer:uniform}}]})
     context.configure({device,format,alphaMode:'premultiplied'})
     device.addEventListener('uncapturederror',onError)
     void device.lost.then(()=>{if(!dead) {dispose();failed()}})
@@ -103,7 +91,7 @@ export async function createRibbonRenderer(canvas: HTMLCanvasElement, failed: ()
         const pass=encoder.beginRenderPass({colorAttachments:[{view:budget.ribbonSamples>1?multisample!.createView():context.getCurrentTexture().createView(),...(budget.ribbonSamples>1?{resolveTarget:context.getCurrentTexture().createView()}:{}),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:budget.ribbonSamples>1?'discard':'store'}]})
         pass.setPipeline(pipeline);pass.setBindGroup(0,group)
         pass.setScissorRect(0,0,canvas.width,canvas.height)
-        pass.draw(budget.ribbonColumns*16*6);pass.end();device.queue.submit([encoder.finish()])
+        pass.draw(budget.ribbonColumns*16*6,2);pass.end();device.queue.submit([encoder.finish()])
       } catch {dispose();failed()}
     }}
   } catch(error) {
